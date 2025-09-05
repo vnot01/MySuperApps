@@ -7,8 +7,9 @@ services:
     container_name: myrvm_app_dev
     restart: unless-stopped
     working_dir: /var/www/html
-    # environment:
+    environment:
     #   STARTUP_COMMAND_1: sudo chown docker /proc/self/fd/{1,2}
+      CONTAINER_ROLE: app # Menandai kontainer ini sebagai 'app'
     volumes:
       - ./:/var/www/html
     networks:
@@ -66,6 +67,20 @@ services:
     command: server /data --console-address ":9001"
     networks:
       - myrvm_network
+
+  reverb:
+    image: myrvm-platform-app:latest # Menggunakan image yang sama dengan 'app'
+    container_name: myrvm_reverb_dev
+    restart: unless-stopped
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    volumes:
+      - ./:/var/www/html # Mount kode agar bisa membaca perubahan .env dan config
+    ports:
+      - "8080:8080" # Map port Reverb ke host untuk debugging/koneksi langsung
+    networks:
+      - myrvm_network
+    depends_on:
+      - app # Bergantung pada 'app' untuk kode Laravel
 
 # Definisi Jaringan Kustom
 networks:

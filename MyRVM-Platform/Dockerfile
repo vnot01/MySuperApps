@@ -41,6 +41,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     opcache \
     pdo_pgsql \
     zip \
+    pcntl \
     && pecl install imagick \
     && docker-php-ext-enable imagick
 
