@@ -7,6 +7,8 @@ services:
     container_name: myrvm_app_dev
     restart: unless-stopped
     working_dir: /var/www/html
+    # environment:
+    #   STARTUP_COMMAND_1: sudo chown docker /proc/self/fd/{1,2}
     volumes:
       - ./:/var/www/html
     networks:
@@ -38,7 +40,7 @@ services:
     ports:
       - "54321:5432"
     environment:
-      POSTGRES_DB: ${DB_DATABASE:-myrvm_platform}
+      # POSTGRES_DB: ${DB_DATABASE:-myrvm_platform}
       POSTGRES_USER: ${POSTGRES_USER:-postgres} # Ini adalah user SUPERUSER postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-8?WC6T=6KmMT} # Ini adalah password SUPERUSER postgres
     volumes:

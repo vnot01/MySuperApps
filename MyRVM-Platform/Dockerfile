@@ -47,10 +47,17 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
 # Instal Composer secara global
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Copy file konfigurasi PHP-FPM kustom (sebagai root)
+# COPY./docker/php/zz-fpm-pool.conf /usr/local/etc/php-fpm.d/zz-fpm-pool.conf
+
+USER root
+COPY ./docker/php/www.conf /usr/local/etc/php-fpm.d/www.conf
+
 # Salin skrip entrypoint yang akan kita buat nanti
 COPY ./docker/app/entrypoint.sh /usr/local/bin/docker-app-entrypoint
 RUN chmod +x /usr/local/bin/docker-app-entrypoint
 
+USER root
 # Atur entrypoint untuk kontainer
 ENTRYPOINT ["docker-app-entrypoint"]
 
