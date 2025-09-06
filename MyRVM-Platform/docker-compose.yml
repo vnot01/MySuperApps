@@ -10,6 +10,13 @@ services:
     environment:
     #   STARTUP_COMMAND_1: sudo chown docker /proc/self/fd/{1,2}
       CONTAINER_ROLE: app # Menandai kontainer ini sebagai 'app'
+      DB_HOST: ${DB_HOST:-db}
+      DB_DATABASE: ${DB_DATABASE:-docker_db}
+      DB_USERNAME: ${DB_USERNAME:-docker}
+      DB_PASSWORD: ${DB_PASSWORD:-docker}
+      # POSTGRES_USERNAME: ${DB_USERNAME:-postgres}
+      # POSTGRES_USER: ${DB_USERNAME:-postgres} # Ini adalah user SUPERUSER postgres
+      # POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres_password} # Ini adalah password SUPERUSER postgres
     volumes:
       - ./:/var/www/html
     networks:
@@ -41,15 +48,31 @@ services:
     ports:
       - "54321:5432"
     environment:
-      # POSTGRES_DB: ${DB_DATABASE:-myrvm_platform}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres} # Ini adalah user SUPERUSER postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-8?WC6T=6KmMT} # Ini adalah password SUPERUSER postgres
+      POSTGRES_DB: ${DB_DATABASE:-myrvm_platform}
+      # DB_DATABASE: ${DB_DATABASE:-myrvm_platform}
+      # DB_USERNAME: ${DB_USERNAME:-myrvm_user}
+      # DB_PASSWORD: ${DB_PASSWORD:-myrvm_password}
+      POSTGRES_USERNAME: ${DB_USERNAME:-docker}
+      POSTGRES_USER: ${DB_USERNAME:-docker}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-docker}
+      PGDATA: /var/lib/postgresql/data
     volumes:
       - myrvm_postgres_data:/var/lib/postgresql/data
       # --- TAMBAHKAN BARIS INI ---
-      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+      # - ./docker/postgres/init:/docker-entrypoint-initdb.d
     networks:
       - myrvm_network
+      
+    # Tambahkan healthcheck untuk memastikan PostgreSQL siap sebelum 'app' mulai
+    # Ini membantu mencegah masalah koneksi database saat startup
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER:-docker}"]
+      interval: 10s
+      retries: 5
+      
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+    #   interval: 10s
 
   # Service Penyimpanan Objek (MinIO)
   minio:

@@ -23,6 +23,8 @@ RUN apk update && apk add --no-cache \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
+    mariadb-client \
+    postgresql-client \
     icu-dev \
     imagemagick-dev \
     imagemagick \
@@ -39,11 +41,13 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     gd \
     intl \
     opcache \
-    pdo_pgsql \
+    pdo_pgsql pgsql \
     zip \
     pcntl \
     && pecl install imagick \
     && docker-php-ext-enable imagick
+# Instal ekstensi tambahan jika diperlukan
+# RUN pecl install xdebug && docker-php-ext-enable xdebug
 
 # Instal Composer secara global
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -54,6 +58,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 USER root
 COPY ./docker/php/www.conf /usr/local/etc/php-fpm.d/www.conf
 
+# COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+# RUN chmod +x /usr/local/bin/entrypoint.sh
+# ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# CMD ["php-fpm"] # Or other default command
+
 # Salin skrip entrypoint yang akan kita buat nanti
 COPY ./docker/app/entrypoint.sh /usr/local/bin/docker-app-entrypoint
 RUN chmod +x /usr/local/bin/docker-app-entrypoint
@@ -61,6 +70,5 @@ RUN chmod +x /usr/local/bin/docker-app-entrypoint
 USER root
 # Atur entrypoint untuk kontainer
 ENTRYPOINT ["docker-app-entrypoint"]
-
 # Perintah default untuk dijalankan oleh entrypoint
 CMD ["php-fpm"]
