@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V2\RvmSessionController;
 use App\Http\Controllers\Api\V2\AuthController;
 use App\Http\Controllers\Api\V2\DepositController;
+use App\Http\Controllers\Api\V2\BalanceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,17 +56,11 @@ Route::prefix('v2')->middleware('auth:sanctum')->group(function () {
     });
     
     // User Balance & Voucher Management
+    // User Balance Management
     Route::prefix('user')->group(function () {
-        Route::get('/balance', function (Request $request) {
-            return response()->json([
-                'success' => true,
-                'message' => 'User balance endpoint - to be implemented',
-                'data' => [
-                    'user_id' => $request->user()->id,
-                    'balance' => 0.00
-                ]
-            ]);
-        });
+        Route::get('/balance', [BalanceController::class, 'getBalance']);
+        Route::get('/balance/transactions', [BalanceController::class, 'getTransactionHistory']);
+        Route::get('/balance/statistics', [BalanceController::class, 'getBalanceStatistics']);
     });
     
     Route::prefix('vouchers')->group(function () {
