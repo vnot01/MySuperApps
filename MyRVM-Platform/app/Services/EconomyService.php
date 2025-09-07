@@ -322,7 +322,7 @@ class EconomyService
     }
 
     /**
-     * Calculate reward amount based on waste type and quality
+     * Calculate System Reward amount based on waste type and quality
      *
      * @param string $wasteType
      * @param float $weight

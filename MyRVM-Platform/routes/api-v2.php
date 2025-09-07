@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V2\TenantController;
 use App\Http\Controllers\Api\V2\RVMController;
 use App\Http\Controllers\Api\V2\UserManagementController;
 use App\Http\Controllers\Api\V2\AnalyticsController;
+use App\Http\Controllers\AdminRvmController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,6 +37,13 @@ Route::prefix('v2')->group(function () {
         Route::post('/create', [RvmSessionController::class, 'create']);
         Route::post('/activate-guest', [RvmSessionController::class, 'activateGuest']);
         Route::get('/status', [RvmSessionController::class, 'status']);
+    });
+    
+    // RVM Management Routes (Public for Testing)
+    Route::prefix('rvms')->group(function () {
+        Route::get('/', [RVMController::class, 'getRVMs']);
+        Route::get('/{id}', [RVMController::class, 'getRVM']);
+        Route::get('/{id}/statistics', [RVMController::class, 'getRVMStatistics']);
     });
     
 });
@@ -130,5 +138,28 @@ Route::prefix('v2')->middleware('auth:sanctum')->group(function () {
         Route::get('/users', [AnalyticsController::class, 'getUserAnalytics']);
         Route::get('/rvms', [AnalyticsController::class, 'getRVMAnalytics']);
         Route::post('/reports', [AnalyticsController::class, 'generateReport']);
+    });
+
+    // Admin RVM Control API Routes
+    Route::prefix('admin/rvm')->group(function () {
+        Route::get('/list', [AdminRvmController::class, 'getRvmList']);
+        Route::get('/monitoring', [AdminRvmController::class, 'getRvmMonitoring']);
+        Route::get('/{rvmId}/details', [AdminRvmController::class, 'getRvmDetails']);
+        Route::post('/{rvmId}/remote-access', [AdminRvmController::class, 'remoteAccess']);
+        Route::post('/{rvmId}/status', [AdminRvmController::class, 'updateRvmStatus']);
+        Route::put('/{rvmId}/settings', [AdminRvmController::class, 'updateRvmSettings']);
+    });
+});
+
+// Public API Routes for Testing (No Authentication Required)
+Route::prefix('v2')->group(function () {
+    // Admin RVM Control API Routes (Public for Testing)
+    Route::prefix('admin/rvm')->group(function () {
+        Route::get('/list', [AdminRvmController::class, 'getRvmList']);
+        Route::get('/monitoring', [AdminRvmController::class, 'getRvmMonitoring']);
+        Route::get('/{rvmId}/details', [AdminRvmController::class, 'getRvmDetails']);
+        Route::post('/{rvmId}/remote-access', [AdminRvmController::class, 'remoteAccess']);
+        Route::post('/{rvmId}/status', [AdminRvmController::class, 'updateRvmStatus']);
+        Route::put('/{rvmId}/settings', [AdminRvmController::class, 'updateRvmSettings']);
     });
 });

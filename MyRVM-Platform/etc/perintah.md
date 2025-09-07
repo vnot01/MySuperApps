@@ -6,6 +6,7 @@ Ok Lanjutkan ke Langkah 1.2: Konfigurasi Lingkungan Docker Terpusat.. kita akan 
 Ok kita lanjut ke Langkah 2.2: Implementasi Autentikasi Email & Verifikasi. Lakukan dengan bertahap, kita akan seperti ini agar terstruktur dan efisien.
 
 Ok kita lanjut tahap selanjutnya. Lakukan dengan bertahap, kita akan seperti ini agar terstruktur dan efisien
+Ok kita lanjut Tahap 3.2: Pengembangan Aplikasi Jembatan (MyRVM-EdgeControl - Python). Lakukan dengan bertahap, kita akan seperti ini agar terstruktur dan efisien
 
 Ok kita lanjut Tahap 2.3.2: Buat VoucherController untuk API voucher.
 

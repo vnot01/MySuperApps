@@ -1,0 +1,283 @@
+{
+  "test_scenarios": {
+    "remote_access_control": {
+      "description": "Test remote access control untuk admin/teknisi",
+      "tests": [
+        {
+          "name": "Valid Admin PIN Access",
+          "method": "POST",
+          "url": "/api/v2/admin/rvm/1/remote-access",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_TOKEN"
+          },
+          "body": {
+            "access_pin": "1234"
+          },
+          "expected_status": 200,
+          "expected_response": {
+            "success": true,
+            "data": {
+              "access_token": "string",
+              "rvm": "object",
+              "access_url": "string",
+              "expires_at": "string"
+            }
+          }
+        },
+        {
+          "name": "Invalid PIN Access",
+          "method": "POST",
+          "url": "/api/v2/admin/rvm/1/remote-access",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_TOKEN"
+          },
+          "body": {
+            "access_pin": "9999"
+          },
+          "expected_status": 401,
+          "expected_response": {
+            "success": false,
+            "message": "Invalid access pin"
+          }
+        },
+        {
+          "name": "RVM Remote Access Disabled",
+          "method": "POST",
+          "url": "/api/v2/admin/rvm/2/remote-access",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_TOKEN"
+          },
+          "body": {
+            "access_pin": "1234"
+          },
+          "expected_status": 403,
+          "expected_response": {
+            "success": false,
+            "message": "Remote access is disabled for this RVM"
+          }
+        }
+      ]
+    },
+    "security_authentication": {
+      "description": "Test security authentication dengan PIN",
+      "tests": [
+        {
+          "name": "Super Admin PIN",
+          "method": "POST",
+          "url": "/api/v2/admin/rvm/1/remote-access",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer SUPER_ADMIN_TOKEN"
+          },
+          "body": {
+            "access_pin": "0000"
+          },
+          "expected_status": 200
+        },
+        {
+          "name": "Operator PIN",
+          "method": "POST",
+          "url": "/api/v2/admin/rvm/1/remote-access",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer OPERATOR_TOKEN"
+          },
+          "body": {
+            "access_pin": "5678"
+          },
+          "expected_status": 200
+        },
+        {
+          "name": "Technician PIN",
+          "method": "POST",
+          "url": "/api/v2/admin/rvm/1/remote-access",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer TECHNICIAN_TOKEN"
+          },
+          "body": {
+            "access_pin": "9999"
+          },
+          "expected_status": 200
+        }
+      ]
+    },
+    "rvm_status_monitoring": {
+      "description": "Test RVM status monitoring dashboard",
+      "tests": [
+        {
+          "name": "Get Monitoring Data",
+          "method": "GET",
+          "url": "/api/v2/admin/rvm/monitoring",
+          "headers": {
+            "Authorization": "Bearer YOUR_TOKEN"
+          },
+          "expected_status": 200,
+          "expected_response": {
+            "success": true,
+            "data": {
+              "total_rvms": "number",
+              "status_counts": "object",
+              "active_sessions": "number",
+              "total_sessions_today": "number",
+              "total_deposits_today": "number",
+              "rvms": "array"
+            }
+          }
+        },
+        {
+          "name": "Get RVM List",
+          "method": "GET",
+          "url": "/api/v2/admin/rvm/list",
+          "headers": {
+            "Authorization": "Bearer YOUR_TOKEN"
+          },
+          "expected_status": 200
+        },
+        {
+          "name": "Get RVM Details",
+          "method": "GET",
+          "url": "/api/v2/admin/rvm/1/details",
+          "headers": {
+            "Authorization": "Bearer YOUR_TOKEN"
+          },
+          "expected_status": 200
+        }
+      ]
+    },
+    "remote_control": {
+      "description": "Test remote control untuk admin dashboard",
+      "tests": [
+        {
+          "name": "Update RVM Status to Maintenance",
+          "method": "POST",
+          "url": "/api/v2/admin/rvm/1/status",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_TOKEN"
+          },
+          "body": {
+            "status": "maintenance"
+          },
+          "expected_status": 200,
+          "expected_response": {
+            "success": true,
+            "message": "RVM status updated successfully"
+          }
+        },
+        {
+          "name": "Update RVM Status to Active",
+          "method": "POST",
+          "url": "/api/v2/admin/rvm/1/status",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_TOKEN"
+          },
+          "body": {
+            "status": "active"
+          },
+          "expected_status": 200
+        },
+        {
+          "name": "Update RVM Settings",
+          "method": "PUT",
+          "url": "/api/v2/admin/rvm/1/settings",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_TOKEN"
+          },
+          "body": {
+            "admin_access_pin": "5678",
+            "remote_access_enabled": true,
+            "kiosk_mode_enabled": true,
+            "pos_settings": {
+              "auto_fullscreen": true,
+              "disable_shortcuts": true
+            }
+          },
+          "expected_status": 200
+        }
+      ]
+    },
+    "kiosk_mode": {
+      "description": "Test kiosk mode functionality",
+      "tests": [
+        {
+          "name": "Access Remote RVM UI with Valid Token",
+          "method": "GET",
+          "url": "/admin/rvm/1/remote/VALID_TOKEN",
+          "expected_status": 200,
+          "expected_content": "RVM Remote Control"
+        },
+        {
+          "name": "Access Remote RVM UI with Invalid Token",
+          "method": "GET",
+          "url": "/admin/rvm/1/remote/INVALID_TOKEN",
+          "expected_status": 403
+        },
+        {
+          "name": "Access Remote RVM UI with Expired Token",
+          "method": "GET",
+          "url": "/admin/rvm/1/remote/EXPIRED_TOKEN",
+          "expected_status": 403
+        }
+      ]
+    }
+  },
+  "test_data": {
+    "rvm_data": {
+      "id": 1,
+      "name": "RVM Test Unit",
+      "location_description": "Test Location",
+      "status": "active",
+      "admin_access_pin": "1234",
+      "remote_access_enabled": true,
+      "kiosk_mode_enabled": true,
+      "pos_settings": {
+        "auto_fullscreen": true,
+        "disable_shortcuts": true,
+        "session_timeout": 3600
+      }
+    },
+    "user_roles": {
+      "super_admin": {
+        "pin": "0000",
+        "permissions": ["all"]
+      },
+      "admin": {
+        "pin": "1234",
+        "permissions": ["rvm_control", "status_update", "settings_update"]
+      },
+      "operator": {
+        "pin": "5678",
+        "permissions": ["rvm_control", "status_view"]
+      },
+      "technician": {
+        "pin": "9999",
+        "permissions": ["rvm_control", "status_update", "maintenance"]
+      }
+    }
+  },
+  "test_instructions": {
+    "setup": [
+      "1. Pastikan migration sudah dijalankan",
+      "2. Buat test data RVM dengan settings yang sesuai",
+      "3. Setup user dengan role yang berbeda",
+      "4. Generate auth token untuk testing"
+    ],
+    "execution": [
+      "1. Jalankan test scenarios secara berurutan",
+      "2. Verifikasi response sesuai expected",
+      "3. Check database untuk perubahan data",
+      "4. Test UI functionality secara manual"
+    ],
+    "cleanup": [
+      "1. Reset test data setelah testing",
+      "2. Clear cache dan session",
+      "3. Restore original settings"
+    ]
+  }
+}

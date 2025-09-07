@@ -15,6 +15,18 @@ class ReverseVendingMachine extends Model
         'location_description',
         'status',
         'api_key',
+        'last_status_change',
+        'admin_access_pin',
+        'remote_access_enabled',
+        'kiosk_mode_enabled',
+        'pos_settings',
+    ];
+
+    protected $casts = [
+        'pos_settings' => 'array',
+        'remote_access_enabled' => 'boolean',
+        'kiosk_mode_enabled' => 'boolean',
+        'last_status_change' => 'datetime',
     ];
 
     /**

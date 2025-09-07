@@ -57,7 +57,7 @@ class DepositService
     }
 
     /**
-     * Calculate reward amount based on deposit data
+     * Calculate System Reward amount based on deposit data
      *
      * @param Deposit $deposit
      * @return float

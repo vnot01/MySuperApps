@@ -374,7 +374,7 @@ GROUP BY u.id, u.name, u.email, ub.balance;
 -- FUNCTIONS
 -- =============================================
 
--- Function to calculate reward amount
+-- Function to calculate System Reward amount
 CREATE OR REPLACE FUNCTION calculate_reward_amount(
     p_waste_type VARCHAR(100),
     p_weight DECIMAL(8,3),
