@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V2\AdminController;
 use App\Http\Controllers\Api\V2\TenantController;
 use App\Http\Controllers\Api\V2\RVMController;
 use App\Http\Controllers\Api\V2\UserManagementController;
+use App\Http\Controllers\Api\V2\AnalyticsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -119,5 +120,15 @@ Route::prefix('v2')->middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [UserManagementController::class, 'deleteUser']);
         Route::get('/{id}/statistics', [UserManagementController::class, 'getUserStatistics']);
         Route::patch('/{id}/balance', [UserManagementController::class, 'updateUserBalance']);
+    });
+
+    // Analytics & Reporting Routes
+    Route::prefix('analytics')->group(function () {
+        Route::get('/dashboard', [AnalyticsController::class, 'getDashboardAnalytics']);
+        Route::get('/deposits', [AnalyticsController::class, 'getDepositAnalytics']);
+        Route::get('/economy', [AnalyticsController::class, 'getEconomyAnalytics']);
+        Route::get('/users', [AnalyticsController::class, 'getUserAnalytics']);
+        Route::get('/rvms', [AnalyticsController::class, 'getRVMAnalytics']);
+        Route::post('/reports', [AnalyticsController::class, 'generateReport']);
     });
 });
