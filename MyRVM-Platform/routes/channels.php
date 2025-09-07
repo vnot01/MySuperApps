@@ -32,3 +32,20 @@ Broadcast::channel('rvm.{rvmId}', function ($user, $rvmId) {
     // Pastikan $rvmId yang diberikan adalah RVM yang valid.
     return ReverseVendingMachine::where('id', $rvmId)->exists();
 });
+
+/**
+ * Channel untuk admin dashboard.
+ * Hanya admin yang terautentikasi yang bisa mendengarkan.
+ */
+Broadcast::channel('admin-dashboard', function ($user) {
+    // Check if user is authenticated and has admin role
+    return $user && in_array($user->role?->slug ?? 'user', ['super-admin', 'admin', 'operator', 'technician']);
+});
+
+/**
+ * Channel untuk RVM status updates.
+ * Public channel untuk status updates.
+ */
+Broadcast::channel('rvm-status', function () {
+    return true; // Public channel for status updates
+});

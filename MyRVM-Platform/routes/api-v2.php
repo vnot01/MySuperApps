@@ -151,15 +151,5 @@ Route::prefix('v2')->middleware('auth:sanctum')->group(function () {
     });
 });
 
-// Public API Routes for Testing (No Authentication Required)
-Route::prefix('v2')->group(function () {
-    // Admin RVM Control API Routes (Public for Testing)
-    Route::prefix('admin/rvm')->group(function () {
-        Route::get('/list', [AdminRvmController::class, 'getRvmList']);
-        Route::get('/monitoring', [AdminRvmController::class, 'getRvmMonitoring']);
-        Route::get('/{rvmId}/details', [AdminRvmController::class, 'getRvmDetails']);
-        Route::post('/{rvmId}/remote-access', [AdminRvmController::class, 'remoteAccess']);
-        Route::post('/{rvmId}/status', [AdminRvmController::class, 'updateRvmStatus']);
-        Route::put('/{rvmId}/settings', [AdminRvmController::class, 'updateRvmSettings']);
-    });
-});
+// Note: Public routes for testing have been removed
+// All admin routes now require authentication

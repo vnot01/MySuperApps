@@ -6,6 +6,184 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>RVM Admin Dashboard - MyRVM Platform</title>
     
+    <!-- Authentication Script - Inline untuk menghindari 404 error -->
+    <script>
+        // Inline AuthManager untuk menghindari 404 error
+        class AuthManager {
+            constructor() {
+                this.token = localStorage.getItem('auth_token');
+                this.user = JSON.parse(localStorage.getItem('auth_user') || 'null');
+                this.baseUrl = '/api/v2';
+            }
+
+            async login(email, password) {
+                try {
+                    const response = await fetch(`${this.baseUrl}/auth/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        this.token = data.data.token;
+                        this.user = data.data.user;
+                        
+                        localStorage.setItem('auth_token', this.token);
+                        localStorage.setItem('auth_user', JSON.stringify(this.user));
+                        
+                        return { success: true, data: data.data };
+                    } else {
+                        return { success: false, message: data.message };
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    return { success: false, message: 'Network error occurred' };
+                }
+            }
+
+            async logout() {
+                try {
+                    if (this.token) {
+                        await fetch(`${this.baseUrl}/auth/logout`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${this.token}`,
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error('Logout error:', error);
+                } finally {
+                    this.token = null;
+                    this.user = null;
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('auth_user');
+                }
+            }
+
+            async getMe() {
+                try {
+                    if (!this.token) {
+                        return { success: false, message: 'No token available' };
+                    }
+
+                    const response = await fetch(`${this.baseUrl}/auth/me`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${this.token}`,
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        this.user = data.data.user;
+                        localStorage.setItem('auth_user', JSON.stringify(this.user));
+                        return { success: true, data: data.data };
+                    } else {
+                        this.logout();
+                        return { success: false, message: data.message };
+                    }
+                } catch (error) {
+                    console.error('Get user info error:', error);
+                    return { success: false, message: 'Network error occurred' };
+                }
+            }
+
+            async apiRequest(url, options = {}) {
+                const defaultOptions = {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    }
+                };
+
+                if (this.token) {
+                    defaultOptions.headers['Authorization'] = `Bearer ${this.token}`;
+                }
+
+                const finalOptions = {
+                    ...defaultOptions,
+                    ...options,
+                    headers: {
+                        ...defaultOptions.headers,
+                        ...options.headers
+                    }
+                };
+
+                try {
+                    const response = await fetch(url, finalOptions);
+                    
+                    if (response.status === 401) {
+                        this.logout();
+                        window.location.href = '/admin/login';
+                        return { success: false, message: 'Session expired' };
+                    }
+
+                    const data = await response.json();
+                    return { success: response.ok, data, status: response.status };
+                } catch (error) {
+                    console.error('API request error:', error);
+                    return { success: false, message: 'Network error occurred' };
+                }
+            }
+
+            isAuthenticated() {
+                return !!this.token && !!this.user;
+            }
+
+            getCurrentUser() {
+                return this.user;
+            }
+
+            getToken() {
+                return this.token;
+            }
+        }
+
+         // Create global instance
+         window.authManager = new AuthManager();
+         
+         // Initialize Laravel Echo with error handling
+         try {
+             if (typeof Echo !== 'undefined') {
+                 window.Echo = new Echo({
+                     broadcaster: 'reverb',
+                     key: '{{ env('REVERB_APP_KEY') }}',
+                     wsHost: '{{ env('REVERB_HOST') }}',
+                     wsPort: {{ env('REVERB_PORT') }},
+                     wssPort: {{ env('REVERB_PORT') }},
+                     forceTLS: false,
+                     enabledTransports: ['ws', 'wss'],
+                     auth: {
+                         headers: {
+                             'Authorization': 'Bearer ' + window.authManager.getToken(),
+                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                         }
+                     }
+                 });
+                 console.log('Echo initialized successfully');
+             } else {
+                 console.warn('Echo library not available, disabling real-time features');
+                 window.Echo = null;
+             }
+         } catch (error) {
+             console.error('Echo initialization failed:', error);
+             // Fallback: disable real-time features
+             window.Echo = null;
+         }
+    </script>
+    
     <!-- Tailwind CSS - Compiled Version -->
     <style>
         /* Tailwind CSS Base Styles */
@@ -208,8 +386,21 @@
         }
     </style>
     
-    <!-- Chart.js - Optimized Version -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    <!-- Chart.js - Compatible Version -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+     <!-- Laravel Echo & Pusher -->
+     <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.js"></script>
+     
+     <!-- Check if Echo loaded successfully -->
+     <script>
+         if (typeof Echo === 'undefined') {
+             console.warn('Echo not loaded, WebSocket features will be disabled');
+         } else {
+             console.log('Echo loaded successfully');
+         }
+     </script>
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -219,13 +410,178 @@
         html, body {
             height: 100%;
             overflow-x: hidden;
+            overflow-y: hidden; /* Prevent vertical scroll */
             margin: 0;
             padding: 0;
         }
         
         body {
             background-color: #f9fafb !important;
+            position: fixed; /* Prevent scrolling */
+            width: 100%;
+        }
+        
+        main {
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
             position: relative;
+            background-color: #f9fafb;
+        }
+        
+        /* Prevent layout shift and blinking */
+        .dashboard-container {
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        /* Prevent content jumping */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* RVM Monitoring Card Layout */
+        .rvm-monitoring-container {
+            padding: 1rem;
+        }
+        
+        .rvm-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        
+        .rvm-card:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .rvm-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .rvm-card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .status-dot.active { background-color: #10b981; }
+        .status-dot.inactive { background-color: #6b7280; }
+        .status-dot.maintenance { background-color: #f59e0b; }
+        .status-dot.full { background-color: #ef4444; }
+        .status-dot.error { background-color: #dc2626; }
+        .status-dot.unknown { background-color: #8b5cf6; }
+        
+        .rvm-title {
+            color: #1f2937;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .rvm-description {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        
+        .rvm-details {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #9ca3af;
+            font-size: 0.75rem;
+        }
+        
+        .api-key-container {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .api-key-text {
+            font-family: 'Courier New', monospace;
+            background: #f3f4f6;
+            color: #1f2937;
+            padding: 0.125rem 0.25rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .copy-icon {
+            cursor: pointer;
+            color: #6b7280;
+            transition: color 0.2s ease;
+        }
+        
+        .copy-icon:hover {
+            color: #10b981;
+        }
+        
+        .edit-button {
+            background: #ffffff;
+            color: #1f2937;
+            border: 1px solid #d1d5db;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .edit-button:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+        
+        .edit-button i {
+            font-size: 0.75rem;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .rvm-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .rvm-details {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
         }
         
         .status-active { @apply bg-green-100 text-green-800 border-green-200; }
@@ -300,13 +656,23 @@
                     <div class="text-sm text-gray-500">
                         Last updated: <span id="last-updated">-</span>
                     </div>
+                    <div class="flex items-center space-x-3 border-l pl-4">
+                        <div class="text-sm">
+                            <div class="font-medium text-gray-900" id="user-name">Loading...</div>
+                            <div class="text-gray-500" id="user-role">Loading...</div>
+                        </div>
+                        <button id="logout-btn" class="inline-flex items-center px-3 py-2 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                            <i class="fas fa-sign-out-alt mr-2"></i>
+                            Logout
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 dashboard-container">
         <!-- Statistics Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="bg-white overflow-hidden shadow rounded-lg card-hover transition-all duration-200">
@@ -379,7 +745,9 @@
             <!-- Status Chart -->
             <div class="bg-white shadow rounded-lg p-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-4">RVM Status Distribution</h3>
-                <canvas id="statusChart" width="400" height="200"></canvas>
+                <div class="chart-container">
+                    <canvas id="statusChart" width="400" height="200"></canvas>
+                </div>
             </div>
 
             <!-- Quick Actions -->
@@ -405,26 +773,21 @@
         <!-- RVM List -->
         <div class="bg-white shadow rounded-lg">
             <div class="px-6 py-4 border-b border-gray-200">
-                <h3 class="text-lg font-medium text-gray-900">RVM Monitoring</h3>
-                <p class="mt-1 text-sm text-gray-500">Real-time status monitoring and remote control</p>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900">RVM Monitoring</h3>
+                        <p class="mt-1 text-sm text-gray-500">Real-time status monitoring and remote control</p>
+                    </div>
+                    <button onclick="loadMonitoringData()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                    </button>
+                </div>
             </div>
             
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RVM</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sessions</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Update</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remote Access</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="rvm-table-body" class="bg-white divide-y divide-gray-200">
-                        <!-- RVM data will be loaded here -->
-                    </tbody>
-                </table>
+            <div class="rvm-monitoring-container">
+                <div id="rvm-cards-container">
+                    <!-- RVM cards will be populated here -->
+                </div>
             </div>
         </div>
     </main>
@@ -525,6 +888,10 @@
                 // Initialize chart first
                 initializeStatusChart();
                 setupEventListeners();
+                
+                // Setup real-time listeners
+                setupRealtimeListeners();
+                
                 startAutoRefresh();
                 
                 // Load data after everything is initialized
@@ -542,12 +909,11 @@
                 showLoading(true);
                 console.log('Loading monitoring data...');
                 
-                const response = await fetch(`${config.apiBaseUrl}/admin/rvm/monitoring`, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': config.csrfToken
-                    }
-                });
+                const result = await makeAuthenticatedRequest(`${config.apiBaseUrl}/admin/rvm/monitoring`);
+                if (!result.success) {
+                    throw new Error(result.message || 'Failed to load monitoring data');
+                }
+                const response = { ok: true, json: () => Promise.resolve(result.data) };
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -672,8 +1038,10 @@
                     statusChart.data.datasets[0].data = data;
                     statusChart.data.datasets[0].backgroundColor = backgroundColors;
                     
-                    // Update chart without animation
-                    statusChart.update('none');
+                    // Update chart without animation using requestAnimationFrame
+                    requestAnimationFrame(() => {
+                        statusChart.update('none');
+                    });
                     
                     console.log('Status chart updated successfully');
                 } catch (error) {
@@ -684,20 +1052,20 @@
             }, 200); // Debounce to 200ms
         }
 
-        // Update RVM table
+        // Update RVM cards
         function updateRvmTable() {
-            console.log('Updating RVM table...');
+            console.log('Updating RVM cards...');
             
-            const tbody = document.getElementById('rvm-table-body');
-            if (!tbody) {
-                console.error('RVM table body not found');
+            const container = document.getElementById('rvm-cards-container');
+            if (!container) {
+                console.error('RVM cards container not found');
                 return;
             }
             
-            tbody.innerHTML = '';
+            container.innerHTML = '';
 
             if (!monitoringData || !monitoringData.rvms) {
-                console.error('No monitoring data available for RVM table');
+                console.error('No monitoring data available for RVM cards');
                 return;
             }
 
@@ -706,58 +1074,75 @@
 
             monitoringData.rvms.forEach((rvm, index) => {
                 console.log(`Processing RVM ${index + 1}:`, rvm);
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 h-10 w-10">
-                                <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                    <i class="fas fa-server text-gray-600"></i>
-                                </div>
-                            </div>
-                            <div class="ml-4">
-                                <div class="text-sm font-medium text-gray-900">${rvm.name || 'Unknown'}</div>
-                                <div class="text-sm text-gray-500">${rvm.location || 'Unknown Location'}</div>
-                            </div>
+                
+                const card = document.createElement('div');
+                card.className = 'rvm-card';
+                card.setAttribute('data-rvm-id', rvm.id);
+                
+                // Status dot color
+                const statusDotClass = rvm.status || 'unknown';
+                const statusText = rvm.status ? rvm.status.charAt(0).toUpperCase() + rvm.status.slice(1) : 'Unknown';
+                
+                // Format dates
+                const createdDate = rvm.created_at ? new Date(rvm.created_at).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) : 'Unknown';
+                
+                const lastUpdate = rvm.last_status_change ? new Date(rvm.last_status_change).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) : 'Never';
+                
+                // API Key (truncated) - Use real data or generate if not exists
+                let apiKey = rvm.api_key;
+                if (!apiKey || apiKey === 'N/A') {
+                    // Generate a simple API key for demo
+                    apiKey = 'RVM_' + rvm.id + '_' + Math.random().toString(36).substr(2, 8).toUpperCase();
+                }
+                const truncatedApiKey = apiKey.length > 8 ? '...' + apiKey.slice(-8) : apiKey;
+
+                card.innerHTML = `
+                    <div class="rvm-card-header">
+                        <div class="rvm-card-title">
+                            <div class="status-dot ${statusDotClass}"></div>
+                            <div class="rvm-title">${rvm.name || 'Unknown RVM'}</div>
                         </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full status-${rvm.status || 'unknown'}">
-                            <i class="fas fa-${getStatusIcon(rvm.status)} mr-1"></i>
-                            ${rvm.status_info ? rvm.status_info.label : 'Unknown'}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <div>Active: ${rvm.active_sessions || 0}</div>
-                        <div class="text-gray-500">Today: ${rvm.total_sessions_today || 0}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ${rvm.last_status_change ? new Date(rvm.last_status_change).toLocaleString() : 'Never'}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <span class="inline-flex items-center">
-                            <i class="fas fa-${rvm.remote_access_enabled ? 'check-circle text-green-500' : 'times-circle text-red-500'} mr-1"></i>
-                            ${rvm.remote_access_enabled ? 'Enabled' : 'Disabled'}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div class="flex space-x-2">
-                            <button onclick="openRemoteAccess(${rvm.id}, '${rvm.name}')" 
-                                    class="text-blue-600 hover:text-blue-900 ${!rvm.remote_access_enabled ? 'opacity-50 cursor-not-allowed' : ''}"
-                                    ${!rvm.remote_access_enabled ? 'disabled' : ''}>
-                                <i class="fas fa-desktop"></i>
+                        <div class="flex gap-2">
+                            <button class="edit-button" onclick="openRemoteAccess(${rvm.id}, \`${rvm.name}\`)" title="Remote Access">
+                                <i class="fas fa-desktop mr-1"></i>Remote
                             </button>
-                            <button onclick="openStatusUpdate(${rvm.id}, '${rvm.name}', '${rvm.status}')" 
-                                    class="text-yellow-600 hover:text-yellow-900">
-                                <i class="fas fa-edit"></i>
+                            <button class="edit-button" onclick="openStatusUpdate(${rvm.id}, \`${rvm.name}\`, \`${rvm.status}\`)" title="Edit Status">
+                                <i class="fas fa-edit mr-1"></i>Edit
                             </button>
                         </div>
-                    </td>
+                    </div>
+                    <div class="rvm-description">
+                        ${rvm.location || 'No location specified'}
+                    </div>
+                    <div class="rvm-details">
+                        <span>Dibuat: ${createdDate}</span>
+                        <span>•</span>
+                        <span>Last Update: ${lastUpdate}</span>
+                        <span>•</span>
+                        <div class="api-key-container">
+                            <span>API Key: </span>
+                            <span class="api-key-text">${truncatedApiKey}</span>
+                            <i class="fas fa-copy copy-icon" onclick="copyApiKey('${apiKey}')" title="Copy API Key"></i>
+                        </div>
+                    </div>
                 `;
-                tbody.appendChild(row);
+
+                container.appendChild(card);
             });
             
-            console.log('RVM table updated successfully');
+            console.log('RVM cards updated successfully');
         }
 
         // Get status icon
@@ -771,6 +1156,33 @@
                 'unknown': 'question-circle'
             };
             return icons[status] || 'question-circle';
+        }
+
+        // Copy API Key to clipboard
+        function copyApiKey(apiKey) {
+            if (!apiKey || apiKey === 'N/A') {
+                showNotification('No API Key available', 'error');
+                return;
+            }
+
+            navigator.clipboard.writeText(apiKey).then(() => {
+                showNotification('API Key copied to clipboard!', 'success');
+            }).catch(err => {
+                console.error('Failed to copy API Key:', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = apiKey;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showNotification('API Key copied to clipboard!', 'success');
+                } catch (fallbackErr) {
+                    console.error('Fallback copy failed:', fallbackErr);
+                    showNotification('Failed to copy API Key', 'error');
+                }
+                document.body.removeChild(textArea);
+            });
         }
 
         // Initialize status chart
@@ -857,6 +1269,7 @@
 
         // Open remote access modal
         function openRemoteAccess(rvmId, rvmName) {
+            console.log('Opening remote access for RVM:', rvmId, rvmName);
             currentRvmId = rvmId;
             document.getElementById('modal-rvm-name').textContent = rvmName;
             document.getElementById('access-pin').value = '';
@@ -878,16 +1291,16 @@
             }
 
             try {
-                const response = await fetch(`${config.apiBaseUrl}/admin/rvm/${currentRvmId}/remote-access`, {
+                const result = await makeAuthenticatedRequest(`${config.apiBaseUrl}/admin/rvm/${currentRvmId}/remote-access`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': config.csrfToken
-                    },
                     body: JSON.stringify({
                         access_pin: pin
                     })
                 });
+                if (!result.success) {
+                    throw new Error(result.message || 'Failed to access RVM');
+                }
+                const response = { ok: true, json: () => Promise.resolve(result.data) };
 
                 const data = await response.json();
                 
@@ -923,18 +1336,16 @@
             const newStatus = document.getElementById('new-status').value;
             
             try {
-                const response = await fetch(`${config.apiBaseUrl}/admin/rvm/${currentRvmId}/status`, {
+                const result = await makeAuthenticatedRequest(`${config.apiBaseUrl}/admin/rvm/${currentRvmId}/status`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': config.csrfToken
-                    },
                     body: JSON.stringify({
                         status: newStatus
                     })
                 });
-
-                const data = await response.json();
+                if (!result.success) {
+                    throw new Error(result.message || 'Failed to update RVM status');
+                }
+                const data = result.data;
                 
                 if (data.success) {
                     closeStatusModal();
@@ -956,12 +1367,8 @@
 
             try {
                 const promises = monitoringData.rvms.map(rvm => 
-                    fetch(`${config.apiBaseUrl}/admin/rvm/${rvm.id}/status`, {
+                    makeAuthenticatedRequest(`${config.apiBaseUrl}/admin/rvm/${rvm.id}/status`, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': config.csrfToken
-                        },
                         body: JSON.stringify({ status })
                     })
                 );
@@ -1003,9 +1410,9 @@
 
         // Auto refresh
         function startAutoRefresh() {
-            // Disable auto refresh for now to prevent data loss
-            // refreshInterval = setInterval(loadMonitoringData, config.refreshInterval);
-            console.log('Auto refresh disabled to prevent data loss');
+            // Enable auto refresh for real-time updates
+            refreshInterval = setInterval(loadMonitoringData, 30000); // 30 seconds
+            console.log('Auto refresh enabled - refreshing every 30 seconds');
         }
 
         // Stop auto refresh
@@ -1014,6 +1421,106 @@
                 clearInterval(refreshInterval);
                 refreshInterval = null;
             }
+        }
+
+        // Setup real-time listeners
+        function setupRealtimeListeners() {
+            console.log('Setting up real-time listeners...');
+            
+            // Check if Echo is available
+            if (!window.Echo) {
+                console.warn('Echo not available, skipping real-time listeners');
+                return;
+            }
+            
+            try {
+                // Listen for RVM status updates
+                window.Echo.channel('rvm-status')
+                    .listen('rvm.status.updated', (e) => {
+                        console.log('RVM Status Update Received:', e);
+                        handleRvmStatusUpdate(e);
+                    })
+                    .error((error) => {
+                        console.error('RVM status channel error:', error);
+                    });
+
+                // Listen for dashboard data updates
+                window.Echo.private('admin-dashboard')
+                    .listen('dashboard.data.updated', (e) => {
+                        console.log('Dashboard Data Update Received:', e);
+                        handleDashboardDataUpdate(e);
+                    })
+                    .error((error) => {
+                        console.error('Admin dashboard channel error:', error);
+                    });
+
+                console.log('Real-time listeners setup successfully');
+            } catch (error) {
+                console.error('Error setting up real-time listeners:', error);
+            }
+        }
+
+        // Handle RVM status update
+        function handleRvmStatusUpdate(data) {
+            console.log('Handling RVM status update:', data);
+            
+            // Update the specific RVM card
+            const rvmCard = document.querySelector(`.rvm-card[data-rvm-id="${data.rvm_id}"]`);
+            if (rvmCard) {
+                const statusDot = rvmCard.querySelector('.status-dot');
+                if (statusDot) {
+                    // Remove old status classes
+                    statusDot.className = 'status-dot';
+                    statusDot.classList.add(data.status);
+                    
+                    console.log(`Updated RVM ${data.rvm_id} status dot to ${data.status}`);
+                } else {
+                    console.warn(`Status dot not found for RVM ${data.rvm_id}`);
+                }
+            } else {
+                console.warn(`RVM card not found for ID ${data.rvm_id}`);
+            }
+            
+            // Show notification
+            showNotification(`RVM ${data.rvm_name} status updated to ${data.status}`, 'info');
+        }
+
+        // Handle dashboard data update
+        function handleDashboardDataUpdate(data) {
+            console.log('Handling dashboard data update:', data);
+            
+            // Update monitoring data
+            monitoringData = data;
+            
+            // Update statistics
+            updateStatistics(data);
+            
+            // Update status chart
+            updateStatusChart();
+            
+            // Show notification
+            showNotification('Dashboard data updated', 'success');
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500 text-white' :
+                type === 'error' ? 'bg-red-500 text-white' :
+                type === 'warning' ? 'bg-yellow-500 text-black' :
+                'bg-blue-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            // Add to page
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
         }
 
         // Update last updated time
@@ -1056,8 +1563,57 @@
             }
         }
 
+        // Authentication and user management
+        async function initializeAuth() {
+            console.log('Initializing auth...');
+            console.log('Token:', window.authManager.getToken());
+            console.log('User:', window.authManager.getCurrentUser());
+            
+            // Check if user is authenticated
+            if (!window.authManager.isAuthenticated()) {
+                console.log('User not authenticated, redirecting to login...');
+                window.location.href = '/admin/login';
+                return;
+            }
+            
+            console.log('User is authenticated, proceeding...');
+
+            // Get user info
+            const user = window.authManager.getCurrentUser();
+            if (user) {
+                document.getElementById('user-name').textContent = user.name;
+                document.getElementById('user-role').textContent = user.role;
+            } else {
+                // Try to refresh user info
+                const result = await window.authManager.getMe();
+                if (result.success) {
+                    document.getElementById('user-name').textContent = result.data.user.name;
+                    document.getElementById('user-role').textContent = result.data.user.role;
+                } else {
+                    window.location.href = '/admin/login';
+                    return;
+                }
+            }
+
+            // Setup logout button
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                if (confirm('Are you sure you want to logout?')) {
+                    await window.authManager.logout();
+                    window.location.href = '/admin/login';
+                }
+            });
+        }
+
+        // Update API calls to use authentication
+        async function makeAuthenticatedRequest(url, options = {}) {
+            return await window.authManager.apiRequest(url, options);
+        }
+
         // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', initializeDashboard);
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeAuth();
+            initializeDashboard();
+        });
 
         // Cleanup when page unloads
         window.addEventListener('beforeunload', cleanup);

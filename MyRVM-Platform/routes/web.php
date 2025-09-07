@@ -71,8 +71,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
 // Remote RVM UI Route (Public access with token validation)
 Route::get('/admin/rvm/{rvm}/remote/{token}', [AdminRvmController::class, 'remoteRvmUI'])->name('admin.rvm.remote');
 
-// Admin RVM Dashboard Route
+// Admin Login route (different from Laravel Breeze login)
+Route::get('/admin/login', function () {
+    return view('auth.login');
+})->name('admin.login');
+
+// Admin RVM Dashboard Route (Protected with authentication)
 Route::get('/admin/rvm-dashboard', function () {
+    // Always return the dashboard view - let frontend handle authentication
     return view('admin.rvm.dashboard');
 })->name('admin.rvm.dashboard');
 

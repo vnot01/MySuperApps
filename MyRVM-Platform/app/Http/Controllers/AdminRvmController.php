@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\ReverseVendingMachine;
 use App\Models\RvmSession;
+use App\Events\RvmStatusUpdated;
+use App\Events\DashboardDataUpdated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -13,10 +15,8 @@ class AdminRvmController extends Controller
 {
     public function __construct()
     {
-        // Temporarily disabled for testing
-        // $this->middleware('auth:sanctum');
-        // TODO: Add role middleware when available
-        // $this->middleware('role:admin|superadmin|operator|technician');
+        $this->middleware('auth:sanctum')->except(['remoteRvmUI']);
+        $this->middleware('role:super-admin|admin|operator|technician')->except(['remoteRvmUI']);
     }
 
     /**
@@ -168,7 +168,7 @@ class AdminRvmController extends Controller
             'data' => [
                 'access_token' => $accessToken,
                 'rvm' => $rvm,
-                'access_url' => route('admin.rvm.remote', ['rvm' => $rvmId, 'token' => $accessToken]),
+                'access_url' => 'http://localhost:8000/admin/rvm/' . $rvmId . '/remote/' . $accessToken,
                 'expires_at' => now()->addHours(2)->toISOString(),
                 'kiosk_mode_enabled' => $rvm->kiosk_mode_enabled
             ]
@@ -246,6 +246,9 @@ class AdminRvmController extends Controller
             'changed_by' => 'admin',
             'changed_at' => now()
         ]);
+
+        // Broadcast status update event
+        broadcast(new RvmStatusUpdated($rvm, $request->input('status')));
 
         return response()->json([
             'success' => true,
@@ -341,12 +344,14 @@ class AdminRvmController extends Controller
                     'location' => $rvm->location_description,
                     'status' => $rvm->status,
                     'status_info' => $this->getRvmStatusInfo($rvm),
+                    'created_at' => $rvm->created_at,
                     'last_status_change' => $rvm->last_status_change,
                     'active_sessions' => $rvm->active_sessions,
                     'total_sessions_today' => $rvm->total_sessions_today,
                     'deposits_today' => $rvm->deposits_today,
                     'remote_access_enabled' => $rvm->remote_access_enabled,
-                    'kiosk_mode_enabled' => $rvm->kiosk_mode_enabled
+                    'kiosk_mode_enabled' => $rvm->kiosk_mode_enabled,
+                    'api_key' => $rvm->api_key
                 ];
             })
         ];

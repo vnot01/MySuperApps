@@ -102,13 +102,19 @@ if [ "$CONTAINER_ROLE" = "app" ]; then
             # php artisan db:seed --force
         fi
         # su-exec www-data php artisan migrate --force
-        # Optimize Laravel
-        echo "--Entrypoint (App): Optimize Laravel--"
+        # Clear and Optimize Laravel
+        echo "--Entrypoint (App): Clear and Optimize Laravel--"
         if [ "$CONTAINER_ROLE" = "app" ]; then
             echo "Optimizing Laravel..."
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
+            php artisan cache:clear
+            php artisan view:clear
+            php artisan config:clear
+            php artisan route:clear
+            
+            # echo "Optimizing Laravel..."
+            # php artisan config:cache
+            # php artisan route:cache
+            # php artisan view:cache
         fi
         # su-exec www-data php artisan config:clear
         # su-exec www-data php artisan cache:clear # Sekarang seharusnya berhasil

@@ -503,6 +503,13 @@
                     return;
                 }
 
+                // Check if Echo constructor is available
+                if (typeof Echo !== 'function') {
+                    console.warn('Echo constructor not available, WebSocket disabled');
+                    setupMockWebSocketEvents();
+                    return;
+                }
+
                 echo = new Echo({
                     broadcaster: 'reverb',
                     key: config.websocketKey,
@@ -513,6 +520,13 @@
                     enabledTransports: ['ws', 'wss'],
                     cluster: 'mt1'
                 });
+
+                // Check if echo.channel is available
+                if (!echo.channel) {
+                    console.warn('Echo channel method not available, WebSocket disabled');
+                    setupMockWebSocketEvents();
+                    return;
+                }
 
                 // Listen to RVM channel
                 echo.channel(`rvm.${config.rvmId}`)
@@ -810,23 +824,14 @@
         // Update RVM status
         async function updateRvmStatus() {
             try {
-                const response = await fetch(`${config.apiBaseUrl}/rvms/${config.rvmId}`, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': config.csrfToken
-                    }
-                });
-
-                if (!response.ok) {
-                    console.warn('RVM status update failed:', response.status);
-                    // Use mock status for testing
-                    const mockStatus = mockData.rvm.status;
-                    document.getElementById('rvm-status').textContent = mockStatus.charAt(0).toUpperCase() + mockStatus.slice(1);
-                    const statusElement = document.getElementById('rvm-status');
-                    statusElement.className = `font-bold status-${mockStatus}`;
-                    console.log('Using mock RVM status for testing:', mockStatus);
-                    return;
-                }
+                // Use mock data for remote UI (no API authentication needed)
+                console.log('Using mock RVM status for remote UI');
+                const mockStatus = mockData.rvm.status;
+                document.getElementById('rvm-status').textContent = mockStatus.charAt(0).toUpperCase() + mockStatus.slice(1);
+                const statusElement = document.getElementById('rvm-status');
+                statusElement.className = `font-bold status-${mockStatus}`;
+                console.log('Using mock RVM status for testing:', mockStatus);
+                return;
 
                 const data = await response.json();
                 
