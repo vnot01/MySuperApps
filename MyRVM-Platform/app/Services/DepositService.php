@@ -5,10 +5,17 @@ namespace App\Services;
 use App\Models\Deposit;
 use App\Models\UserBalance;
 use App\Models\Transaction;
+use App\Services\EconomyService;
 use Illuminate\Support\Facades\DB;
 
 class DepositService
 {
+    protected EconomyService $economyService;
+
+    public function __construct(EconomyService $economyService)
+    {
+        $this->economyService = $economyService;
+    }
     /**
      * Create a new deposit
      *
@@ -115,7 +122,10 @@ class DepositService
                 'reward_amount' => $deposit->reward_amount
             ]);
             
-            $this->addRewardToUserBalance($deposit);
+            $result = $this->economyService->addRewardToUserBalance($deposit);
+            if (!$result['success']) {
+                throw new \Exception($result['error']);
+            }
         }
 
         return $deposit->fresh();

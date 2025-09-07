@@ -62,6 +62,7 @@ Route::prefix('v2')->middleware('auth:sanctum')->group(function () {
         Route::get('/balance', [BalanceController::class, 'getBalance']);
         Route::get('/balance/transactions', [BalanceController::class, 'getTransactionHistory']);
         Route::get('/balance/statistics', [BalanceController::class, 'getBalanceStatistics']);
+        Route::get('/economy/summary', [BalanceController::class, 'getEconomySummary']);
     });
     
     // Voucher Management

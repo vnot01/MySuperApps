@@ -7,6 +7,7 @@ use App\Models\Voucher;
 use App\Models\VoucherRedemption;
 use App\Models\UserBalance;
 use App\Models\Transaction;
+use App\Services\EconomyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,12 @@ use Illuminate\Support\Facades\DB;
 
 class VoucherController extends Controller
 {
+    protected EconomyService $economyService;
+
+    public function __construct(EconomyService $economyService)
+    {
+        $this->economyService = $economyService;
+    }
     /**
      * Get available vouchers
      *
@@ -99,120 +106,35 @@ class VoucherController extends Controller
                 ], 400);
             }
 
-            DB::beginTransaction();
+            // Use EconomyService to redeem voucher
+            $result = $this->economyService->redeemVoucher($user->id, $voucherId);
 
-            // Get voucher
-            $voucher = Voucher::where('id', $voucherId)
-                ->where('is_active', true)
-                ->first();
-
-            if (!$voucher) {
-                DB::rollBack();
+            if (!$result['success']) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Voucher not found or inactive'
-                ], 404);
-            }
-
-            // Check if voucher is still valid
-            if ($voucher->valid_from > now() || $voucher->valid_until < now()) {
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Voucher is not valid at this time'
+                    'message' => $result['error'],
+                    'data' => $result['data'] ?? null
                 ], 400);
             }
-
-            // Check stock availability
-            if ($voucher->stock <= 0 || $voucher->total_redeemed >= $voucher->stock) {
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Voucher is out of stock'
-                ], 400);
-            }
-
-            // Check if user already redeemed this voucher
-            $existingRedemption = VoucherRedemption::where('user_id', $user->id)
-                ->where('voucher_id', $voucher->id)
-                ->first();
-
-            if ($existingRedemption) {
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You have already redeemed this voucher'
-                ], 400);
-            }
-
-            // Get user balance
-            $userBalance = UserBalance::firstOrCreate(
-                ['user_id' => $user->id],
-                ['balance' => 0, 'currency' => 'IDR']
-            );
-
-            // Check if user has enough balance to redeem voucher
-            if ($userBalance->balance < $voucher->cost) {
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Insufficient balance to redeem voucher',
-                    'data' => [
-                        'required_balance' => $voucher->cost,
-                        'current_balance' => $userBalance->balance
-                    ]
-                ], 400);
-            }
-
-            // Create voucher redemption record
-            $redemption = VoucherRedemption::create([
-                'user_id' => $user->id,
-                'voucher_id' => $voucher->id,
-                'redemption_code' => 'VRM' . strtoupper(uniqid()),
-                'redeemed_at' => now(),
-                'cost_at_redemption' => $voucher->cost
-            ]);
-
-            // Update voucher redemption count
-            $voucher->increment('total_redeemed');
-
-            // Deduct cost from user balance
-            $userBalance->decrement('balance', $voucher->cost);
-
-            // Create transaction record
-            $transaction = Transaction::create([
-                'user_id' => $user->id,
-                'user_balance_id' => $userBalance->id,
-                'type' => 'debit',
-                'amount' => $voucher->cost,
-                'balance_before' => $userBalance->balance + $voucher->cost,
-                'balance_after' => $userBalance->balance,
-                'description' => "Voucher redemption: {$voucher->title}",
-                'sourceable_type' => VoucherRedemption::class,
-                'sourceable_id' => $redemption->id,
-            ]);
-
-            DB::commit();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Voucher redeemed successfully',
                 'data' => [
-                    'redemption_id' => $redemption->id,
-                    'redemption_code' => $redemption->redemption_code,
+                    'redemption_id' => $result['redemption']->id,
+                    'redemption_code' => $result['redemption']->redemption_code,
                     'voucher' => [
-                        'id' => $voucher->id,
-                        'title' => $voucher->title,
-                        'description' => $voucher->description,
-                        'cost' => $voucher->cost
+                        'id' => $result['voucher']->id,
+                        'title' => $result['voucher']->title,
+                        'description' => $result['voucher']->description,
+                        'cost' => $result['voucher']->cost
                     ],
-                    'new_balance' => $userBalance->fresh()->balance,
-                    'transaction_id' => $transaction->id
+                    'new_balance' => $result['user_balance']->balance,
+                    'transaction_id' => $result['transaction']->id
                 ]
             ]);
 
         } catch (\Exception $e) {
-            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to redeem voucher',

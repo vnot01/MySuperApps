@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V2;
 use App\Http\Controllers\Controller;
 use App\Models\UserBalance;
 use App\Models\Transaction;
+use App\Services\EconomyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +13,12 @@ use Illuminate\Support\Facades\DB;
 
 class BalanceController extends Controller
 {
+    protected EconomyService $economyService;
+
+    public function __construct(EconomyService $economyService)
+    {
+        $this->economyService = $economyService;
+    }
     /**
      * Get user's current balance
      *
@@ -222,6 +229,40 @@ class BalanceController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve balance statistics',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get user's economy summary
+     *
+     * @return JsonResponse
+     */
+    public function getEconomySummary(): JsonResponse
+    {
+        try {
+            $user = Auth::user();
+            
+            $result = $this->economyService->getUserEconomySummary($user->id);
+
+            if (!$result['success']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['error']
+                ], 500);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Economy summary retrieved successfully',
+                'data' => $result['data']
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve economy summary',
                 'error' => $e->getMessage()
             ], 500);
         }
