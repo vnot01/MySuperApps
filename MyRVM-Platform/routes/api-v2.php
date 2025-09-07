@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V2\VoucherController;
 use App\Http\Controllers\Api\V2\AdminController;
 use App\Http\Controllers\Api\V2\TenantController;
 use App\Http\Controllers\Api\V2\RVMController;
+use App\Http\Controllers\Api\V2\UserManagementController;
 
 /*
 |--------------------------------------------------------------------------
@@ -106,5 +107,17 @@ Route::prefix('v2')->middleware('auth:sanctum')->group(function () {
         Route::get('/{id}/statistics', [RVMController::class, 'getRVMStatistics']);
         Route::patch('/{id}/status', [RVMController::class, 'updateRVMStatus']);
         Route::patch('/{id}/regenerate-api-key', [RVMController::class, 'regenerateAPIKey']);
+    });
+
+    // User Management Routes
+    Route::prefix('users')->group(function () {
+        Route::get('/', [UserManagementController::class, 'getUsers']);
+        Route::get('/roles', [UserManagementController::class, 'getRoles']);
+        Route::get('/{id}', [UserManagementController::class, 'getUser']);
+        Route::post('/', [UserManagementController::class, 'createUser']);
+        Route::put('/{id}', [UserManagementController::class, 'updateUser']);
+        Route::delete('/{id}', [UserManagementController::class, 'deleteUser']);
+        Route::get('/{id}/statistics', [UserManagementController::class, 'getUserStatistics']);
+        Route::patch('/{id}/balance', [UserManagementController::class, 'updateUserBalance']);
     });
 });
