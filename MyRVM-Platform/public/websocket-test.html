@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test - MyRVM</title>
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+</head>
+<body>
+    <h1>WebSocket Test - MyRVM</h1>
+    <div id="messages"></div>
+    <button onclick="subscribeToChannel()">Subscribe to RVM Channel</button>
+    <button onclick="testCreateSession()">Test Create Session</button>
+    <button onclick="testClaimSession()">Test Claim Session</button>
+    
+    <script>
+        // Konfigurasi Pusher untuk Laravel Reverb
+        const pusher = new Pusher('f7dg1ppc1uvphgkdwnal', {
+            wsHost: 'localhost',
+            wsPort: 8080,
+            forceTLS: false,
+            disableStats: true,
+            enabledTransports: ['ws', 'wss'],
+        });
+
+        function addMessage(message) {
+            const div = document.createElement('div');
+            div.innerHTML = '<strong>' + new Date().toLocaleTimeString() + ':</strong> ' + message;
+            document.getElementById('messages').appendChild(div);
+        }
+
+        function subscribeToChannel() {
+            const channel = pusher.subscribe('private-rvm.1');
+            
+            channel.bind('sesi.diotorisasi', function(data) {
+                addMessage('Sesi Diotorisasi: ' + JSON.stringify(data));
+            });
+            
+            channel.bind('sesi.tamu.aktif', function(data) {
+                addMessage('Sesi Tamu Aktif: ' + JSON.stringify(data));
+            });
+            
+            addMessage('Subscribed to private-rvm.1 channel');
+        }
+
+        async function testCreateSession() {
+            try {
+                const response = await fetch('http://localhost:8000/api/v2/rvm/session/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ rvm_id: 1 })
+                });
+                
+                const data = await response.json();
+                addMessage('Create Session Response: ' + JSON.stringify(data));
+                
+                if (data.success) {
+                    window.sessionToken = data.data.session_token;
+                    addMessage('Session Token saved: ' + window.sessionToken);
+                }
+            } catch (error) {
+                addMessage('Error: ' + error.message);
+            }
+        }
+
+        async function testClaimSession() {
+            if (!window.sessionToken) {
+                addMessage('Please create session first!');
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/v2/rvm/session/claim', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer YOUR_SANCTUM_TOKEN' // Ganti dengan token yang valid
+                    },
+                    body: JSON.stringify({ session_token: window.sessionToken })
+                });
+                
+                const data = await response.json();
+                addMessage('Claim Session Response: ' + JSON.stringify(data));
+            } catch (error) {
+                addMessage('Error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

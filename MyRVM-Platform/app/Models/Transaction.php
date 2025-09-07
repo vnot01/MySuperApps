@@ -19,8 +19,8 @@ class Transaction extends Model
         'balance_before',
         'balance_after',
         'description',
-        'sourceable_id',
         'sourceable_type',
+        'sourceable_id',
     ];
 
     protected $casts = [

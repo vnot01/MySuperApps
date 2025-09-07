@@ -105,6 +105,14 @@ services:
     depends_on:
       - app # Bergantung pada 'app' untuk kode Laravel
 
+  mailpit:
+      image: 'axllent/mailpit:latest'
+      container_name: myrvm_mailpit_dev
+      ports:
+        - '1025:1025' # Port SMTP
+        - '8025:8025' # Port Web UI -> akses via http://localhost:8025
+      networks:
+        - myrvm_network
 # Definisi Jaringan Kustom
 networks:
   myrvm_network:

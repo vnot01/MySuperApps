@@ -4,29 +4,67 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-# Event untuk memberitahu UI RVM dan aplikasi Python tentang hasil analisis item
 class AnalisisSelesai implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public int $rvmId;
-    public array $hasilAnalisis; // e.g., ['item' => 'PET_BOTTLE', 'reward' => 100]
+    public $rvmId;
+    public $depositId;
+    public $analysisResult;
 
-    public function __construct(int $rvmId, array $hasilAnalisis)
+    /**
+     * Create a new event instance.
+     */
+    public function __construct(int $rvmId, int $depositId, array $analysisResult)
     {
         $this->rvmId = $rvmId;
-        $this->hasilAnalisis = $hasilAnalisis;
+        $this->depositId = $depositId;
+        $this->analysisResult = $analysisResult;
     }
 
+    /**
+     * Get the channels the event should broadcast on.
+     *
+     * @return array<int, \Illuminate\Broadcasting\Channel>
+     */
     public function broadcastOn(): array
     {
         return [
             new PrivateChannel('rvm.' . $this->rvmId),
+        ];
+    }
+
+    /**
+     * The event's broadcast name.
+     */
+    public function broadcastAs(): string
+    {
+        return 'analisis.selesai';
+    }
+
+    /**
+     * Get the data to broadcast.
+     *
+     * @return array<string, mixed>
+     */
+    public function broadcastWith(): array
+    {
+        return [
+            'deposit_id' => $this->depositId,
+            'rvm_id' => $this->rvmId,
+            'waste_type' => $this->analysisResult['waste_type'],
+            'quality_grade' => $this->analysisResult['quality_grade'],
+            'ai_confidence' => $this->analysisResult['ai_confidence'],
+            'reward_amount' => $this->analysisResult['reward_amount'],
+            'status' => $this->analysisResult['status'],
+            'analysis_details' => $this->analysisResult['analysis_details'],
+            'timestamp' => now()->toISOString(),
         ];
     }
 }
