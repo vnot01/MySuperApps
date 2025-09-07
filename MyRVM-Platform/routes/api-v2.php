@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V2\RvmSessionController;
 use App\Http\Controllers\Api\V2\AuthController;
 use App\Http\Controllers\Api\V2\DepositController;
 use App\Http\Controllers\Api\V2\BalanceController;
+use App\Http\Controllers\Api\V2\VoucherController;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,22 +64,10 @@ Route::prefix('v2')->middleware('auth:sanctum')->group(function () {
         Route::get('/balance/statistics', [BalanceController::class, 'getBalanceStatistics']);
     });
     
+    // Voucher Management
     Route::prefix('vouchers')->group(function () {
-        Route::get('/', function (Request $request) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Vouchers list endpoint - to be implemented',
-                'data' => []
-            ]);
-        });
-        
-        Route::post('/redeem', function (Request $request) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Voucher redeem endpoint - to be implemented',
-                'data' => []
-            ]);
-        });
+        Route::get('/', [VoucherController::class, 'getAvailableVouchers']);
+        Route::post('/redeem', [VoucherController::class, 'redeemVoucher']);
     });
     
 });

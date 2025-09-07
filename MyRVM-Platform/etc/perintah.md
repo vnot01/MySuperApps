@@ -3,6 +3,8 @@ Ok kita lanjut ke Langkah 2.2: Implementasi Autentikasi Email & Verifikasi. Laku
 
 Ok kita lanjut tahap selanjutnya. Lakukan dengan bertahap, kita akan seperti ini agar terstruktur dan efisien
 
+Ok kita lanjut Tahap 2.3.2: Buat VoucherController untuk API voucher.
+
 Anda jangan melanjutkan ke Langkah selanjutnya tunggu perintah saya. kita akan seperti ini agar terstruktur dan efisien.
 
 bagus, silahkan lanjutkan ke Langkah 1.4: Definisi Channel & Event Broadcasting. kita akan lakukan pertahap seperti ini agar terstruktur dan efisien.
