@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RvmUIController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -49,5 +50,8 @@ Route::middleware(['auth', 'verified']) // Anda bisa tambahkan 'role:...' di sin
         // ... (rute admin lainnya: users, tenants, dll.)
     });
 
+
+// RVM UI Routes (Public access for RVM displays)
+Route::get('/rvm-ui/{rvm}', [RvmUIController::class, 'show'])->name('rvm.ui');
 
 require __DIR__ . '/auth.php';

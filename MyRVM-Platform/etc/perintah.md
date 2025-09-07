@@ -1,3 +1,7 @@
+kita double check lagi... ada berapa tahapan pengembangan sistem ini. Kemudian kita sudah sampai tahap apa?
+
+Ok Baik, kita lanjut ke Fase selanjutnya. atau Fase 3. kita akan seperti ini agar terstruktur dan efisien.
+
 Ok Lanjutkan ke Langkah 1.2: Konfigurasi Lingkungan Docker Terpusat.. kita akan seperti ini agar terstruktur dan efisien.
 Ok kita lanjut ke Langkah 2.2: Implementasi Autentikasi Email & Verifikasi. Lakukan dengan bertahap, kita akan seperti ini agar terstruktur dan efisien.
 
