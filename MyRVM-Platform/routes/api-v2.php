@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V2\AuthController;
 use App\Http\Controllers\Api\V2\DepositController;
 use App\Http\Controllers\Api\V2\BalanceController;
 use App\Http\Controllers\Api\V2\VoucherController;
+use App\Http\Controllers\Api\V2\AdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,4 +72,14 @@ Route::prefix('v2')->middleware('auth:sanctum')->group(function () {
         Route::post('/redeem', [VoucherController::class, 'redeemVoucher']);
     });
     
+    // Admin Management (Admin & SuperAdmin only)
+    Route::prefix('admin')->group(function () {
+        Route::get('/dashboard/stats', [AdminController::class, 'getDashboardStats']);
+        Route::get('/users', [AdminController::class, 'getUsers']);
+        Route::post('/users', [AdminController::class, 'createUser']);
+        Route::put('/users/{id}', [AdminController::class, 'updateUser']);
+        Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
+        Route::get('/settings', [AdminController::class, 'getSystemSettings']);
+        Route::put('/settings', [AdminController::class, 'updateSystemSettings']);
+    });
 });
