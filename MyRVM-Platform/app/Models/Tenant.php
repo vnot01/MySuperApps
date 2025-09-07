@@ -35,4 +35,5 @@ class Tenant extends Model
     {
         return $this->hasMany(Voucher::class);
     }
+
 }

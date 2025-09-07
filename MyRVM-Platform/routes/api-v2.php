@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V2\DepositController;
 use App\Http\Controllers\Api\V2\BalanceController;
 use App\Http\Controllers\Api\V2\VoucherController;
 use App\Http\Controllers\Api\V2\AdminController;
+use App\Http\Controllers\Api\V2\TenantController;
 
 /*
 |--------------------------------------------------------------------------
@@ -81,5 +82,16 @@ Route::prefix('v2')->middleware('auth:sanctum')->group(function () {
         Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
         Route::get('/settings', [AdminController::class, 'getSystemSettings']);
         Route::put('/settings', [AdminController::class, 'updateSystemSettings']);
+    });
+
+    // Tenant Management Routes
+    Route::prefix('tenants')->group(function () {
+        Route::get('/', [TenantController::class, 'getTenants']);
+        Route::get('/{id}', [TenantController::class, 'getTenant']);
+        Route::post('/', [TenantController::class, 'createTenant']);
+        Route::put('/{id}', [TenantController::class, 'updateTenant']);
+        Route::delete('/{id}', [TenantController::class, 'deleteTenant']);
+        Route::get('/{id}/statistics', [TenantController::class, 'getTenantStatistics']);
+        Route::patch('/{id}/toggle-status', [TenantController::class, 'toggleTenantStatus']);
     });
 });
