@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V2\BalanceController;
 use App\Http\Controllers\Api\V2\VoucherController;
 use App\Http\Controllers\Api\V2\AdminController;
 use App\Http\Controllers\Api\V2\TenantController;
+use App\Http\Controllers\Api\V2\RVMController;
 
 /*
 |--------------------------------------------------------------------------
@@ -93,5 +94,17 @@ Route::prefix('v2')->middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [TenantController::class, 'deleteTenant']);
         Route::get('/{id}/statistics', [TenantController::class, 'getTenantStatistics']);
         Route::patch('/{id}/toggle-status', [TenantController::class, 'toggleTenantStatus']);
+    });
+
+    // RVM Management Routes
+    Route::prefix('rvms')->group(function () {
+        Route::get('/', [RVMController::class, 'getRVMs']);
+        Route::get('/{id}', [RVMController::class, 'getRVM']);
+        Route::post('/', [RVMController::class, 'createRVM']);
+        Route::put('/{id}', [RVMController::class, 'updateRVM']);
+        Route::delete('/{id}', [RVMController::class, 'deleteRVM']);
+        Route::get('/{id}/statistics', [RVMController::class, 'getRVMStatistics']);
+        Route::patch('/{id}/status', [RVMController::class, 'updateRVMStatus']);
+        Route::patch('/{id}/regenerate-api-key', [RVMController::class, 'regenerateAPIKey']);
     });
 });

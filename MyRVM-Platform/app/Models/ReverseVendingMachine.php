@@ -24,4 +24,12 @@ class ReverseVendingMachine extends Model
     {
         return $this->hasMany(Deposit::class, 'rvm_id');
     }
+
+    /**
+     * RVM ini memiliki banyak session.
+     */
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(RvmSession::class, 'rvm_id');
+    }
 }
