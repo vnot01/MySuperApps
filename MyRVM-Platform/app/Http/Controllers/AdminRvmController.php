@@ -10,6 +10,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use App\Services\DatabaseOptimizationService;
 
 class AdminRvmController extends Controller
 {
@@ -20,23 +23,17 @@ class AdminRvmController extends Controller
     }
 
     /**
-     * Get list of RVMs for admin dashboard
+     * Get list of RVMs for admin dashboard with caching and optimization
      */
     public function getRvmList()
     {
-        $rvms = ReverseVendingMachine::select('id', 'name', 'location_description', 'status', 'last_status_change', 'created_at')
-            ->withCount(['sessions as active_sessions' => function($query) {
-                $query->where('status', 'active');
-            }])
-            ->withCount(['sessions as total_sessions_today' => function($query) {
-                $query->whereDate('created_at', today());
-            }])
-            ->orderBy('name')
-            ->get();
+        $rvms = ReverseVendingMachine::getCachedAdminList();
 
         return response()->json([
             'success' => true,
-            'data' => $rvms
+            'data' => $rvms,
+            'cached' => true,
+            'optimized' => true
         ]);
     }
 
@@ -247,6 +244,9 @@ class AdminRvmController extends Controller
             'changed_at' => now()
         ]);
 
+        // Clear related caches
+        $this->clearRvmCaches();
+        
         // Broadcast status update event
         broadcast(new RvmStatusUpdated($rvm, $request->input('status')));
 
@@ -313,53 +313,49 @@ class AdminRvmController extends Controller
     }
 
     /**
-     * Get RVM status monitoring dashboard data
+     * Get RVM status monitoring dashboard data with caching
      */
     public function getRvmMonitoring()
     {
-        $rvms = ReverseVendingMachine::withCount([
-            'sessions as active_sessions' => function($query) {
-                $query->where('status', 'active');
-            },
-            'sessions as total_sessions_today' => function($query) {
-                $query->whereDate('created_at', today());
-            },
-            'deposits as deposits_today' => function($query) {
-                $query->whereDate('created_at', today());
-            }
-        ])->get();
-
-        $statusCounts = $rvms->groupBy('status')->map->count();
+        $monitoringData = ReverseVendingMachine::getCachedMonitoringData();
         
-        $monitoringData = [
-            'total_rvms' => $rvms->count(),
-            'status_counts' => $statusCounts,
-            'active_sessions' => $rvms->sum('active_sessions'),
-            'total_sessions_today' => $rvms->sum('total_sessions_today'),
-            'total_deposits_today' => $rvms->sum('deposits_today'),
-            'rvms' => $rvms->map(function($rvm) {
-                return [
-                    'id' => $rvm->id,
-                    'name' => $rvm->name,
-                    'location' => $rvm->location_description,
-                    'status' => $rvm->status,
-                    'status_info' => $this->getRvmStatusInfo($rvm),
-                    'created_at' => $rvm->created_at,
-                    'last_status_change' => $rvm->last_status_change,
-                    'active_sessions' => $rvm->active_sessions,
-                    'total_sessions_today' => $rvm->total_sessions_today,
-                    'deposits_today' => $rvm->deposits_today,
-                    'remote_access_enabled' => $rvm->remote_access_enabled,
-                    'kiosk_mode_enabled' => $rvm->kiosk_mode_enabled,
-                    'api_key' => $rvm->api_key
-                ];
-            })
-        ];
+        // Add status info to each RVM
+        $monitoringData['rvms'] = collect($monitoringData['rvms'])->map(function($rvm) {
+            $rvm['status_info'] = $this->getRvmStatusInfo((object) $rvm);
+            return $rvm;
+        });
 
         return response()->json([
             'success' => true,
-            'data' => $monitoringData
+            'data' => $monitoringData,
+            'cached' => true
         ]);
+    }
+
+    /**
+     * Clear RVM related caches
+     */
+    private function clearRvmCaches()
+    {
+        // Clear RVM model cache
+        ReverseVendingMachine::clearAllModelCache();
+        
+        // Clear specific cache prefixes
+        $patterns = [
+            'rvm:*',
+            'admin_rvm_list_*',
+            'admin_rvm_monitoring_*',
+            'admin_rvm_details_*'
+        ];
+        
+        foreach ($patterns as $pattern) {
+            $keys = Cache::getRedis()->keys($pattern);
+            if (!empty($keys)) {
+                Cache::getRedis()->del($keys);
+            }
+        }
+        
+        \Log::info('RVM caches cleared', ['patterns' => $patterns]);
     }
 
     /**

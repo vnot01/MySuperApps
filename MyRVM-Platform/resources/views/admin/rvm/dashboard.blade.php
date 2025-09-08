@@ -406,23 +406,23 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Fix body height and prevent infinite scrolling */
+        /* Fix body height and allow proper scrolling */
         html, body {
             height: 100%;
             overflow-x: hidden;
-            overflow-y: hidden; /* Prevent vertical scroll */
+            overflow-y: auto; /* Allow vertical scroll */
             margin: 0;
             padding: 0;
         }
         
         body {
             background-color: #f9fafb !important;
-            position: fixed; /* Prevent scrolling */
+            position: relative; /* Allow scrolling */
             width: 100%;
         }
         
         main {
-            height: 100vh;
+            min-height: 100vh;
             overflow-y: auto;
             overflow-x: hidden;
             position: relative;
@@ -452,6 +452,9 @@
         /* RVM Monitoring Card Layout */
         .rvm-monitoring-container {
             padding: 1rem;
+            max-height: 60vh; /* Set maximum height */
+            overflow-y: auto; /* Enable vertical scrolling */
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
         
         .rvm-card {
@@ -613,10 +616,20 @@
         /* Ensure main content has proper height */
         main {
             min-height: calc(100vh - 80px);
-            max-height: calc(100vh - 80px);
             overflow-y: auto;
             position: relative;
             background-color: #f9fafb;
+            padding-top: 0; /* Remove top padding since header is sticky */
+        }
+        
+        /* Sticky header styles */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background-color: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
         }
         
         /* Fix table container */
@@ -639,7 +652,7 @@
 </head>
 <body class="h-full bg-gray-50">
     <!-- Header -->
-    <header class="bg-white shadow-sm border-b">
+    <header class="bg-white shadow-sm border-b sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-4">
                 <div class="flex items-center">
@@ -880,6 +893,12 @@
         let refreshInterval = null;
         let chartUpdateTimeout = null;
         let isChartUpdating = false;
+        let eventListeners = new Map(); // Track event listeners for cleanup
+        let performanceMetrics = {
+            lastUpdate: Date.now(),
+            updateCount: 0,
+            averageUpdateTime: 0
+        };
 
         // Initialize dashboard
         async function initializeDashboard() {
@@ -1016,6 +1035,7 @@
                 isChartUpdating = true;
                 
                 try {
+                    const startTime = performance.now();
                     const statusCounts = monitoringData.status_counts;
                     console.log('Status counts:', statusCounts);
                     
@@ -1041,6 +1061,19 @@
                     // Update chart without animation using requestAnimationFrame
                     requestAnimationFrame(() => {
                         statusChart.update('none');
+                        
+                        // Performance monitoring
+                        const endTime = performance.now();
+                        const updateTime = endTime - startTime;
+                        performanceMetrics.updateCount++;
+                        performanceMetrics.averageUpdateTime = 
+                            (performanceMetrics.averageUpdateTime * (performanceMetrics.updateCount - 1) + updateTime) / performanceMetrics.updateCount;
+                        performanceMetrics.lastUpdate = Date.now();
+                        
+                        // Log performance if update takes too long
+                        if (updateTime > 16) { // More than one frame (16ms)
+                            console.warn(`Chart update took ${updateTime.toFixed(2)}ms`);
+                        }
                     });
                     
                     console.log('Status chart updated successfully');
@@ -1246,25 +1279,45 @@
             }
         }
 
-        // Setup event listeners
+        // Setup event listeners with cleanup tracking
         function setupEventListeners() {
+            // Clear existing listeners first
+            cleanupEventListeners();
+            
             // Refresh button
-            document.getElementById('refresh-btn').addEventListener('click', loadMonitoringData);
+            addEventListener('refresh-btn', 'click', loadMonitoringData);
 
             // Remote access modal
-            document.getElementById('close-modal').addEventListener('click', closeRemoteAccessModal);
-            document.getElementById('cancel-access').addEventListener('click', closeRemoteAccessModal);
-            document.getElementById('connect-rvm').addEventListener('click', connectToRvm);
+            addEventListener('close-modal', 'click', closeRemoteAccessModal);
+            addEventListener('cancel-access', 'click', closeRemoteAccessModal);
+            addEventListener('connect-rvm', 'click', connectToRvm);
 
             // Status update modal
-            document.getElementById('close-status-modal').addEventListener('click', closeStatusModal);
-            document.getElementById('cancel-status').addEventListener('click', closeStatusModal);
-            document.getElementById('update-status').addEventListener('click', updateRvmStatus);
+            addEventListener('close-status-modal', 'click', closeStatusModal);
+            addEventListener('cancel-status', 'click', closeStatusModal);
+            addEventListener('update-status', 'click', updateRvmStatus);
 
             // Quick actions
-            document.getElementById('bulk-maintenance-btn').addEventListener('click', () => bulkUpdateStatus('maintenance'));
-            document.getElementById('bulk-active-btn').addEventListener('click', () => bulkUpdateStatus('active'));
-            document.getElementById('export-data-btn').addEventListener('click', exportData);
+            addEventListener('bulk-maintenance-btn', 'click', () => bulkUpdateStatus('maintenance'));
+            addEventListener('bulk-active-btn', 'click', () => bulkUpdateStatus('active'));
+            addEventListener('export-data-btn', 'click', exportData);
+        }
+
+        // Add event listener with tracking
+        function addEventListener(elementId, event, handler) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.addEventListener(event, handler);
+                eventListeners.set(`${elementId}-${event}`, { element, event, handler });
+            }
+        }
+
+        // Cleanup event listeners
+        function cleanupEventListeners() {
+            eventListeners.forEach(({ element, event, handler }) => {
+                element.removeEventListener(event, handler);
+            });
+            eventListeners.clear();
         }
 
         // Open remote access modal
@@ -1547,8 +1600,11 @@
 
         // Auth token not needed for testing
 
-        // Cleanup function
+        // Cleanup function with comprehensive cleanup
         function cleanup() {
+            console.log('Cleaning up dashboard resources...');
+            
+            // Clear intervals and timeouts
             if (chartUpdateTimeout) {
                 clearTimeout(chartUpdateTimeout);
                 chartUpdateTimeout = null;
@@ -1557,10 +1613,29 @@
                 clearInterval(refreshInterval);
                 refreshInterval = null;
             }
+            
+            // Cleanup event listeners
+            cleanupEventListeners();
+            
+            // Destroy chart
             if (statusChart) {
                 statusChart.destroy();
                 statusChart = null;
             }
+            
+            // Clear global variables
+            monitoringData = null;
+            currentRvmId = null;
+            isChartUpdating = false;
+            
+            // Log performance metrics
+            console.log('Performance Metrics:', {
+                totalUpdates: performanceMetrics.updateCount,
+                averageUpdateTime: `${performanceMetrics.averageUpdateTime.toFixed(2)}ms`,
+                lastUpdate: new Date(performanceMetrics.lastUpdate).toLocaleTimeString()
+            });
+            
+            console.log('Dashboard cleanup completed');
         }
 
         // Authentication and user management

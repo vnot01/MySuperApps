@@ -25,6 +25,9 @@ lakukan dengan bertahap, kita akan seperti ini agar terstruktur dan efisien.
 Baik, Sebelum kita melanjutkan pengerjaan Bagaimana cara mengujinya? Setelah itu tunggu perintah saya untuk melanjutkan Penyempurnaan Fase 3.2 dengan 6 tahap yang akan dikerjakan secara bertahap dan terstruktur.
 yaitu TAHAP 2: Real WebSocket Integration. Sesuai dengan Prioritas Kerja.
 
+Ayo lanjutkan Penyempurnaan Fase 3.2 dengan 6 tahap yang akan dikerjakan secara bertahap dan terstruktur.
+Kali ini TAHAP 3 Performance Optimization. Sesuai dengan Prioritas Kerja.
+
 ## Memarahi!
 
 Anda pasti berasumi bahwa ini adalah lanjutan proyek!

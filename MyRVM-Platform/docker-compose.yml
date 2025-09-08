@@ -24,6 +24,7 @@ services:
     depends_on:
       - db
       - minio
+      - redis
 
   # Service Web Server (Nginx)
   web:
@@ -91,6 +92,24 @@ services:
     networks:
       - myrvm_network
 
+  # Service Redis untuk Caching
+  redis:
+    image: redis:7-alpine
+    container_name: myrvm_redis_dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - myrvm_redis_data:/data
+    networks:
+      - myrvm_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
   reverb:
     image: myrvm-platform-app:latest # Menggunakan image yang sama dengan 'app'
     container_name: myrvm_reverb_dev
@@ -104,6 +123,7 @@ services:
       - myrvm_network
     depends_on:
       - app # Bergantung pada 'app' untuk kode Laravel
+      - redis # Bergantung pada Redis untuk caching
 
   mailpit:
       image: 'axllent/mailpit:latest'
@@ -123,4 +143,6 @@ volumes:
   myrvm_postgres_data:
     driver: local
   myrvm_minio_data:
+    driver: local
+  myrvm_redis_data:
     driver: local

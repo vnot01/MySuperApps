@@ -44,8 +44,8 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     pdo_pgsql pgsql \
     zip \
     pcntl \
-    && pecl install imagick \
-    && docker-php-ext-enable imagick
+    && pecl install imagick redis \
+    && docker-php-ext-enable imagick redis
 # Instal ekstensi tambahan jika diperlukan
 # RUN pecl install xdebug && docker-php-ext-enable xdebug
 
