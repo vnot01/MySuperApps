@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V2\RVMController;
 use App\Http\Controllers\Api\V2\UserManagementController;
 use App\Http\Controllers\Api\V2\AnalyticsController;
 use App\Http\Controllers\AdminRvmController;
+use App\Http\Controllers\GeminiVisionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,6 +45,16 @@ Route::prefix('v2')->group(function () {
         Route::get('/', [RVMController::class, 'getRVMs']);
         Route::get('/{id}', [RVMController::class, 'getRVM']);
         Route::get('/{id}/statistics', [RVMController::class, 'getRVMStatistics']);
+    });
+    
+    // Gemini Vision Testing Routes (Public for Testing)
+    Route::prefix('gemini')->group(function () {
+        Route::get('/status', [GeminiVisionController::class, 'getStatus']);
+        Route::get('/configurations', [GeminiVisionController::class, 'getConfigurations']);
+        Route::get('/sample-images', [GeminiVisionController::class, 'testSampleImages']);
+        Route::post('/test-analysis', [GeminiVisionController::class, 'testAnalysis']);
+        Route::post('/upload-analyze', [GeminiVisionController::class, 'uploadAndAnalyze']);
+        Route::post('/compare-models', [GeminiVisionController::class, 'compareModels']);
     });
     
 });

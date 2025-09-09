@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RvmUIController;
 use App\Http\Controllers\AdminRvmController;
+use App\Http\Controllers\GeminiDashboardController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -70,6 +71,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 // Remote RVM UI Route (Public access with token validation)
 Route::get('/admin/rvm/{rvm}/remote/{token}', [AdminRvmController::class, 'remoteRvmUI'])->name('admin.rvm.remote');
+
+// Gemini Vision Dashboard Routes
+Route::prefix('gemini/dashboard')->group(function () {
+    Route::get('/', [GeminiDashboardController::class, 'index'])->name('gemini.dashboard');
+    Route::post('/analyze', [GeminiDashboardController::class, 'analyzeImage'])->name('gemini.analyze');
+    Route::post('/test-sample', [GeminiDashboardController::class, 'testSampleImage'])->name('gemini.test-sample');
+    Route::post('/compare-models', [GeminiDashboardController::class, 'compareModels'])->name('gemini.compare-models');
+    Route::get('/status', [GeminiDashboardController::class, 'getStatus'])->name('gemini.status');
+    Route::post('/clear-results', [GeminiDashboardController::class, 'clearResults'])->name('gemini.clear-results');
+});
 
 // Admin Login route (different from Laravel Breeze login)
 Route::get('/admin/login', function () {

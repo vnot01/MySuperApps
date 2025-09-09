@@ -417,7 +417,7 @@
         
         body {
             background-color: #f9fafb !important;
-            position: relative; /* Allow scrolling */
+            position: relative; /* Allow normal scrolling */
             width: 100%;
         }
         
