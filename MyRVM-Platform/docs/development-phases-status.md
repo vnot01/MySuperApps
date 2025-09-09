@@ -92,19 +92,28 @@ Berdasarkan dokumentasi yang ada, sistem MyRVM Platform dibagi menjadi **5 Fase 
 - ❌ **Model Timeout**: Timeout issues dengan complex prompts
 - ❌ **Frontend Inconsistency**: Visual result tidak match dengan backend data
 
-### ⏳ **Tahap 3.4: Pengembangan Aplikasi Jembatan (MyRVM-EdgeControl - Python)** - PENDING
+### 🚀 **Tahap 3.4: Computer Vision Playground v1** - PLANNING
+- 🚀 **Dedicated Dashboard**: Separate dashboard untuk YOLO+SAM testing
+- 🚀 **Model Management**: Upload dan manage best.pt files
+- 🚀 **Real-time Inference**: YOLO detection + SAM segmentation
+- 🚀 **Visual Results**: Bounding boxes + segmentation masks
+- 🚀 **Performance Metrics**: Processing time, confidence, accuracy
+- 🚀 **Python Integration**: FastAPI service untuk inference
+- 🚀 **Microservice Architecture**: Laravel + Python API
+
+### ⏳ **Tahap 3.5: Pengembangan Aplikasi Jembatan (MyRVM-EdgeControl - Python)** - PENDING
 - ⏳ Python application untuk Jetson Orin Nano
 - ⏳ Hardware control integration
 - ⏳ AI pipeline integration
 - ⏳ Camera integration untuk QR scanning
 
-### ⏳ **Tahap 3.5: Integrasi Hardware Control** - PENDING
+### ⏳ **Tahap 3.6: Integrasi Hardware Control** - PENDING
 - ⏳ Sensor integration
 - ⏳ Motor control
 - ⏳ Weight sensor integration
 - ⏳ LED/Display control
 
-### ⏳ **Tahap 3.6: Testing RVM Interface** - PENDING
+### ⏳ **Tahap 3.7: Testing RVM Interface** - PENDING
 - ⏳ End-to-end testing
 - ⏳ Hardware testing
 - ⏳ Performance testing
