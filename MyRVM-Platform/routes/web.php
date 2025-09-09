@@ -80,6 +80,7 @@ Route::prefix('gemini/dashboard')->group(function () {
     Route::post('/compare-models', [GeminiDashboardController::class, 'compareModels'])->name('gemini.compare-models');
     Route::get('/status', [GeminiDashboardController::class, 'getStatus'])->name('gemini.status');
     Route::post('/clear-results', [GeminiDashboardController::class, 'clearResults'])->name('gemini.clear-results');
+    Route::get('/result/{id}', [GeminiDashboardController::class, 'getResult'])->name('gemini.get-result');
 });
 
 // Admin Login route (different from Laravel Breeze login)

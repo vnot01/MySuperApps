@@ -238,24 +238,38 @@ Analyze the image and identify ALL waste items (maximum {$maxItems} items). For 
 3. **Quality Grade**: A, B, C, D
 4. **Estimated Weight**: in grams
 5. **Confidence**: 0-100
+6. **2D Bounding Box**: [x, y, width, height] coordinates
+7. **Segmentation Mask**: Base64 encoded mask image data
+8. **Label**: Descriptive label for the item
 
 **Important**: 
 - Focus on recyclable materials only
 - Be precise with classifications
 - Consider contamination levels
 - Provide realistic weight estimates
+- Provide accurate bounding box coordinates for object detection
+- Generate segmentation masks for precise object boundaries
+- Use descriptive labels like 'mineral bottle empty', 'coca cola bottle fill', etc.
+
+**Special Instructions for Segmentation**:
+- Generate segmentation masks that show the exact pixel boundaries of each object
+- Masks should be binary (black background, white object) or grayscale
+- Encode masks as base64 image data (PNG format preferred)
+- Ensure masks align with bounding box coordinates
 
 Respond in JSON format:
 {
   \"items\": [
     {
       \"id\": 1,
+      \"box_2d\": [100, 150, 200, 300],
+      \"mask\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...\",
       \"waste_type\": \"plastic\",
       \"condition\": \"good\",
       \"quality_grade\": \"B\",
       \"estimated_weight_grams\": 25.5,
       \"confidence\": 85,
-      \"label\": \"PET bottle\"
+      \"label\": \"mineral bottle empty\"
     }
   ],
   \"total_items\": 1,
@@ -285,26 +299,38 @@ Analyze the image and identify waste items with spatial information. For each it
 3. **Quality Grade**: A, B, C, D
 4. **Estimated Weight**: in grams
 5. **Confidence**: 0-100
-6. **Position**: Approximate location in image
+6. **2D Bounding Box**: [x, y, width, height] coordinates
+7. **Segmentation Mask**: Base64 encoded mask image data
+8. **Label**: Descriptive label for the item
 
 **Important**: 
 - Focus on recyclable materials only
 - Be precise with classifications
 - Consider contamination levels
 - Provide realistic weight estimates
+- Provide accurate bounding box coordinates for object detection
+- Generate segmentation masks for precise object boundaries
+- Use descriptive labels like 'mineral bottle empty', 'coca cola bottle fill', etc.
+
+**Special Instructions for Segmentation**:
+- Generate segmentation masks that show the exact pixel boundaries of each object
+- Masks should be binary (black background, white object) or grayscale
+- Encode masks as base64 image data (PNG format preferred)
+- Ensure masks align with bounding box coordinates
 
 Respond in JSON format:
 {
   \"detections\": [
     {
       \"id\": 1,
+      \"box_2d\": [100, 150, 200, 300],
+      \"mask\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...\",
       \"waste_type\": \"plastic\",
       \"condition\": \"good\",
       \"quality_grade\": \"B\",
       \"estimated_weight_grams\": 25.5,
       \"confidence\": 85,
-      \"label\": \"PET plastic bottle\",
-      \"position\": \"center\"
+      \"label\": \"mineral bottle empty\"
     }
   ],
   \"image_analysis\": {
@@ -346,15 +372,68 @@ Respond in JSON format:
             'safetySettings' => $this->config->safety_settings
         ];
 
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-        ])->timeout(30)->post($this->config->endpoint_url . '?key=' . $this->apiKey, $requestData);
-
-        if (!$response->successful()) {
-            throw new \Exception('Gemini API request failed: ' . $response->body());
+        // Retry mechanism for overloaded models and timeouts
+        $maxRetries = 3;
+        $baseDelay = 2; // seconds
+        
+        // Adjust timeout based on model type
+        $timeout = 30;
+        if (strpos($this->config->name, '2.5-pro') !== false) {
+            $timeout = 60; // Longer timeout for pro models
+        } elseif (strpos($this->config->name, '2.5-flash') !== false) {
+            $timeout = 45; // Medium timeout for flash models
+        } elseif (strpos($this->config->name, '2.0-flash') !== false) {
+            $timeout = 60; // Longer timeout for 2.0 flash models (they're slower)
         }
+        
+        for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+            ])->timeout($timeout)->post($this->config->endpoint_url . '?key=' . $this->apiKey, $requestData);
 
-        return $response->json();
+            if ($response->successful()) {
+                return $response->json();
+            }
+            
+            $errorBody = $response->body();
+            $statusCode = $response->status();
+            
+            // Check if it's an overloaded model error or timeout
+            $isRetryableError = (
+                $statusCode === 503 || 
+                strpos($errorBody, 'overloaded') !== false || 
+                strpos($errorBody, 'UNAVAILABLE') !== false ||
+                strpos($errorBody, 'timeout') !== false ||
+                strpos($errorBody, 'cURL error 28') !== false ||
+                strpos($errorBody, 'Operation timed out') !== false
+            );
+            
+            if ($isRetryableError && $attempt < $maxRetries) {
+                $delay = $baseDelay * pow(2, $attempt - 1); // Exponential backoff
+                Log::warning("Gemini API error, retrying in {$delay} seconds", [
+                    'attempt' => $attempt,
+                    'max_retries' => $maxRetries,
+                    'config' => $this->config->name,
+                    'status_code' => $statusCode,
+                    'timeout' => $timeout,
+                    'error_type' => 'retryable'
+                ]);
+                
+                sleep($delay);
+                continue;
+            }
+            
+            // For other errors or max retries reached
+            Log::error('Gemini API request failed', [
+                'error' => $errorBody,
+                'config' => $this->config->name,
+                'attempt' => $attempt,
+                'max_retries' => $maxRetries,
+                'status_code' => $statusCode,
+                'timeout' => $timeout
+            ]);
+            throw new \Exception('Gemini API request failed: ' . $errorBody);
+        }
     }
 
     /**
@@ -424,14 +503,44 @@ Respond in JSON format:
             $content = $candidate['content']['parts'][0]['text'];
             Log::debug('Gemini multiple items response content', ['content' => $content]);
             
+            // Try multiple JSON extraction methods
+            $data = null;
+            
+            // Method 1: Extract from markdown code block (handle long data)
+            $jsonMatch = preg_match('/```json\s*(\{.*?\})\s*```/s', $content, $matches);
+            if ($jsonMatch) {
+                $jsonString = $matches[1];
+                // Handle very long base64 strings that might cause JSON parsing issues
+                $jsonString = preg_replace('/"mask":\s*"data:image\/[^"]*"/', '"mask": "data:image/png;base64,truncated"', $jsonString);
+                $data = json_decode($jsonString, true);
+                if ($data && json_last_error() === JSON_ERROR_NONE) {
+                    Log::debug('Successfully parsed JSON from markdown block');
+                    return $this->normalizeMultipleItemsResult($data);
+                }
+            }
+            
+            // Method 2: Extract JSON from content
             $jsonMatch = preg_match('/\{.*\}/s', $content, $matches);
             if ($jsonMatch) {
                 $data = json_decode($matches[0], true);
                 if ($data && json_last_error() === JSON_ERROR_NONE) {
+                    Log::debug('Successfully parsed JSON from content');
                     return $this->normalizeMultipleItemsResult($data);
                 }
             }
-
+            
+            // Method 3: Try to parse the entire content as JSON
+            $data = json_decode($content, true);
+            if ($data && json_last_error() === JSON_ERROR_NONE) {
+                Log::debug('Successfully parsed entire content as JSON');
+                return $this->normalizeMultipleItemsResult($data);
+            }
+            
+            Log::error('Failed to parse JSON from multiple items response', [
+                'content' => $content,
+                'json_error' => json_last_error_msg()
+            ]);
+            
             return $this->getDefaultMultipleAnalysis();
 
         } catch (\Exception $e) {
@@ -466,14 +575,80 @@ Respond in JSON format:
             $content = $candidate['content']['parts'][0]['text'];
             Log::debug('Gemini spatial response content', ['content' => $content]);
             
+            // Try multiple JSON extraction methods
+            $data = null;
+            
+            // Method 1: Extract from markdown code block (handle long mask data)
+            $jsonMatch = preg_match('/```json\s*(\{.*?\})\s*```/s', $content, $matches);
+            if ($jsonMatch) {
+                $jsonString = $matches[1];
+                // Handle very long base64 strings that might cause JSON parsing issues
+                $jsonString = preg_replace('/"mask":\s*"data:image\/[^"]*"/', '"mask": "data:image/png;base64,truncated"', $jsonString);
+                $data = json_decode($jsonString, true);
+                if ($data && json_last_error() === JSON_ERROR_NONE) {
+                    Log::debug('Successfully parsed JSON from markdown block');
+                    // Log mask data for debugging
+                    if (isset($data['detections'])) {
+                        foreach ($data['detections'] as $index => $detection) {
+                            if (isset($detection['mask']) && !empty($detection['mask'])) {
+                                Log::debug('Found mask data in detection', [
+                                    'index' => $index,
+                                    'mask_length' => strlen($detection['mask']),
+                                    'mask_preview' => substr($detection['mask'], 0, 50) . '...'
+                                ]);
+                            }
+                        }
+                    }
+                    return $this->normalizeSpatialResult($data);
+                }
+            }
+            
+            // Method 2: Extract JSON from content
             $jsonMatch = preg_match('/\{.*\}/s', $content, $matches);
             if ($jsonMatch) {
                 $data = json_decode($matches[0], true);
                 if ($data && json_last_error() === JSON_ERROR_NONE) {
+                    Log::debug('Successfully parsed JSON from content');
+                    // Log mask data for debugging
+                    if (isset($data['detections'])) {
+                        foreach ($data['detections'] as $index => $detection) {
+                            if (isset($detection['mask']) && !empty($detection['mask'])) {
+                                Log::debug('Found mask data in detection', [
+                                    'index' => $index,
+                                    'mask_length' => strlen($detection['mask']),
+                                    'mask_preview' => substr($detection['mask'], 0, 50) . '...'
+                                ]);
+                            }
+                        }
+                    }
                     return $this->normalizeSpatialResult($data);
                 }
             }
-
+            
+            // Method 3: Try to parse the entire content as JSON
+            $data = json_decode($content, true);
+            if ($data && json_last_error() === JSON_ERROR_NONE) {
+                Log::debug('Successfully parsed entire content as JSON');
+                // Log mask data for debugging
+                if (isset($data['detections'])) {
+                    foreach ($data['detections'] as $index => $detection) {
+                        if (isset($detection['mask']) && !empty($detection['mask'])) {
+                            Log::debug('Found mask data in detection', [
+                                'index' => $index,
+                                'mask_length' => strlen($detection['mask']),
+                                'mask_preview' => substr($detection['mask'], 0, 50) . '...'
+                            ]);
+                        }
+                    }
+                }
+                return $this->normalizeSpatialResult($data);
+            }
+            
+            Log::error('Failed to parse JSON from spatial response', [
+                'content' => $content,
+                'json_error' => json_last_error_msg()
+            ]);
+            
             return $this->getDefaultSpatialAnalysis();
 
         } catch (\Exception $e) {
@@ -512,6 +687,7 @@ Respond in JSON format:
             $items[] = [
                 'id' => $item['id'] ?? 0,
                 'box_2d' => $item['box_2d'] ?? [0, 0, 0, 0],
+                'mask' => $item['mask'] ?? '',
                 'waste_type' => $item['waste_type'] ?? 'unknown',
                 'condition' => $item['condition'] ?? 'unknown',
                 'quality_grade' => $item['quality_grade'] ?? 'D',
@@ -521,11 +697,29 @@ Respond in JSON format:
             ];
         }
 
+        // Log the normalization for debugging
+        Log::debug('Normalizing multiple items result', [
+            'original_items_count' => count($data['items'] ?? []),
+            'normalized_items_count' => count($items),
+            'total_items_from_data' => $data['total_items'] ?? 0,
+            'analysis_summary' => $data['analysis_summary'] ?? []
+        ]);
+
+        // Store raw response with truncated mask data to avoid memory issues
+        $rawResponse = $data;
+        if (isset($rawResponse['items'])) {
+            foreach ($rawResponse['items'] as &$item) {
+                if (isset($item['mask']) && strlen($item['mask']) > 1000) {
+                    $item['mask'] = substr($item['mask'], 0, 1000) . '...truncated';
+                }
+            }
+        }
+
         return [
             'items' => $items,
-            'total_items' => count($items),
+            'total_items' => $data['total_items'] ?? count($items), // Use original total_items if available
             'analysis_summary' => $data['analysis_summary'] ?? [],
-            'raw_response' => $data
+            'raw_response' => $rawResponse
         ];
     }
 
@@ -547,10 +741,20 @@ Respond in JSON format:
             ];
         }
 
+        // Store raw response with truncated mask data to avoid memory issues
+        $rawResponse = $data;
+        if (isset($rawResponse['detections'])) {
+            foreach ($rawResponse['detections'] as &$detection) {
+                if (isset($detection['mask']) && strlen($detection['mask']) > 1000) {
+                    $detection['mask'] = substr($detection['mask'], 0, 1000) . '...truncated';
+                }
+            }
+        }
+
         return [
             'detections' => $detections,
             'image_analysis' => $data['image_analysis'] ?? [],
-            'raw_response' => $data
+            'raw_response' => $rawResponse
         ];
     }
 
@@ -634,7 +838,10 @@ Respond in JSON format:
                 'recyclable_items' => 0,
                 'non_recyclable_items' => 0
             ],
-            'raw_response' => null
+            'raw_response' => [
+                'error' => 'Multiple items analysis failed - unable to parse response',
+                'status' => 'failed'
+            ]
         ];
     }
 
@@ -652,7 +859,10 @@ Respond in JSON format:
                 'image_quality' => 'unknown',
                 'lighting_conditions' => 'unknown'
             ],
-            'raw_response' => null
+            'raw_response' => [
+                'error' => 'Spatial analysis failed - unable to parse response',
+                'status' => 'failed'
+            ]
         ];
     }
 

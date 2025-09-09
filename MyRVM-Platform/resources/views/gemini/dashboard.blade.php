@@ -648,30 +648,562 @@
 
         // View detailed results
         function viewDetailedResults(resultId) {
-            const result = currentResults.find(r => r.id === resultId);
-            if (!result) return;
+            console.log('View Details clicked for result:', resultId);
             
+            // Find result in current results
+            let result = currentResults.find(r => r.id === resultId);
+            
+            // If not found in current results, try to find in all results from session
+            if (!result) {
+                console.log('Result not found in currentResults, checking session...');
+                // Try to get from session storage or make a request
+                fetch(`/gemini/dashboard/result/${resultId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.result) {
+                            result = data.result;
+                            showModalWithResult(result);
+                        } else {
+                            console.error('Result not found in session:', resultId);
+                            alert('Analysis result not found. Please refresh the page.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching result:', error);
+                        alert('Error loading analysis result. Please refresh the page.');
+                    });
+                return;
+            }
+            
+            showModalWithResult(result);
+        }
+        
+        function showModalWithResult(result) {
+            console.log('Showing modal with result:', result);
             const modalContent = document.getElementById('modal-content');
+            const modal = document.getElementById('results-modal');
+            
+            if (!modalContent || !modal) {
+                console.error('Modal elements not found');
+                return;
+            }
+            
+            // Show loading state immediately
             modalContent.innerHTML = `
-                <div class="space-y-4">
-                    <div class="flex items-center space-x-4">
-                        <img src="${result.image_url}" alt="Analysis result" class="w-24 h-24 object-cover rounded-lg border">
-                        <div>
-                            <h4 class="text-lg font-semibold">${result.analysis_type.charAt(0).toUpperCase() + result.analysis_type.slice(1)} Analysis</h4>
-                            <p class="text-sm text-gray-600">${new Date(result.timestamp).toLocaleString()}</p>
-                            <p class="text-sm text-gray-600">Model: ${result.config_used?.display_name || 'Unknown'}</p>
-                            <p class="text-sm text-gray-600">Processing Time: ${result.processing_time_ms}ms</p>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <h5 class="font-medium mb-2">Raw Analysis Result:</h5>
-                        <pre class="text-sm text-gray-700 overflow-x-auto">${JSON.stringify(result.result, null, 2)}</pre>
-                    </div>
+                <div class="flex items-center justify-center py-8">
+                    <div class="loading-spinner"></div>
+                    <span class="ml-3 text-gray-600">Loading analysis details...</span>
                 </div>
             `;
             
-            document.getElementById('results-modal').classList.remove('hidden');
+            // Show modal immediately
+            modal.classList.remove('hidden');
+            console.log('Modal shown');
+            
+            // Create analysis result image with bounding boxes asynchronously
+            createAnalysisResultImage(result).then(analysisImageHtml => {
+                console.log('Analysis image created successfully');
+                modalContent.innerHTML = `
+                    <div class="space-y-6">
+                        <!-- Analysis Info -->
+                        <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                            <img src="${result.image_url}" alt="Analysis result" class="w-20 h-20 object-cover rounded-lg border">
+                            <div>
+                                <h4 class="text-lg font-semibold">${result.analysis_type.charAt(0).toUpperCase() + result.analysis_type.slice(1)} Analysis</h4>
+                                <p class="text-sm text-gray-600">${new Date(result.timestamp).toLocaleString()}</p>
+                                <p class="text-sm text-gray-600">Model: ${result.config_used?.display_name || 'Unknown'}</p>
+                                <p class="text-sm text-gray-600">Processing Time: ${result.processing_time_ms}ms</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Image Comparison -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Original Image -->
+                            <div class="space-y-2">
+                                <h5 class="font-medium text-gray-900">Original Image</h5>
+                                <div class="relative border rounded-lg overflow-hidden">
+                                    <img src="${result.image_url}" alt="Original image" class="w-full h-auto">
+                                </div>
+                            </div>
+                            
+                            <!-- Analysis Result Image -->
+                            <div class="space-y-2">
+                                <h5 class="font-medium text-gray-900">Analysis Result</h5>
+                                <div class="relative border rounded-lg overflow-hidden">
+                                    ${analysisImageHtml}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Analysis Details -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h5 class="font-medium mb-3 text-gray-900">Analysis Details</h5>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                ${createAnalysisDetails(result)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).catch(error => {
+                console.error('Error creating analysis image:', error);
+                // Fallback to original image if canvas fails
+                modalContent.innerHTML = `
+                    <div class="space-y-6">
+                        <!-- Analysis Info -->
+                        <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                            <img src="${result.image_url}" alt="Analysis result" class="w-20 h-20 object-cover rounded-lg border">
+                            <div>
+                                <h4 class="text-lg font-semibold">${result.analysis_type.charAt(0).toUpperCase() + result.analysis_type.slice(1)} Analysis</h4>
+                                <p class="text-sm text-gray-600">${new Date(result.timestamp).toLocaleString()}</p>
+                                <p class="text-sm text-gray-600">Model: ${result.config_used?.display_name || 'Unknown'}</p>
+                                <p class="text-sm text-gray-600">Processing Time: ${result.processing_time_ms}ms</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Image Comparison -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Original Image -->
+                            <div class="space-y-2">
+                                <h5 class="font-medium text-gray-900">Original Image</h5>
+                                <div class="relative border rounded-lg overflow-hidden">
+                                    <img src="${result.image_url}" alt="Original image" class="w-full h-auto">
+                                </div>
+                            </div>
+                            
+                            <!-- Analysis Result Image -->
+                            <div class="space-y-2">
+                                <h5 class="font-medium text-gray-900">Analysis Result</h5>
+                                <div class="relative border rounded-lg overflow-hidden">
+                                    <img src="${result.image_url}" alt="Analysis result" class="w-full h-auto">
+                                    <div class="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 text-sm rounded">
+                                        Canvas rendering failed - showing original image
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Analysis Details -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h5 class="font-medium mb-3 text-gray-900">Analysis Details</h5>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                ${createAnalysisDetails(result)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        function createAnalysisResultImage(result) {
+            console.log('Creating analysis result image for:', result);
+            // Create a canvas to draw bounding boxes on the original image
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            return new Promise((resolve) => {
+                img.onload = function() {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    
+                    // Draw original image
+                    ctx.drawImage(img, 0, 0);
+                    
+                    console.log('Canvas dimensions:', canvas.width, 'x', canvas.height);
+                    
+                    // Draw bounding boxes and masks based on analysis type
+                    console.log('Full result object:', result);
+                    console.log('Result.result:', result.result);
+                    
+                    if (result.analysis_type === 'spatial') {
+                        const detections = result.result?.detections || [];
+                        console.log('Processing spatial detections:', detections);
+                        
+                        if (detections.length === 0) {
+                            console.log('No detections found, checking raw_response...');
+                            const rawDetections = result.result?.raw_response?.detections || [];
+                            console.log('Raw detections:', rawDetections);
+                            
+                            rawDetections.forEach((detection, index) => {
+                                if (detection.box_2d && detection.box_2d.length === 4) {
+                                    const [x, y, width, height] = detection.box_2d;
+                                    console.log(`Drawing raw detection ${index}:`, {x, y, width, height, label: detection.label});
+                                    drawBoundingBox(ctx, x, y, width, height, detection.label, index);
+                                    
+                                    // Draw segmentation mask if available
+                                    if (detection.mask && detection.mask.trim() !== '') {
+                                        console.log(`Drawing raw mask for detection ${index}, mask length:`, detection.mask.length);
+                                        drawSegmentationMask(ctx, x, y, width, height, detection.mask, index);
+                                    } else {
+                                        console.log(`No raw mask data for detection ${index}`);
+                                    }
+                                }
+                            });
+                        } else {
+                            detections.forEach((detection, index) => {
+                                if (detection.box_2d && detection.box_2d.length === 4) {
+                                    const [x, y, width, height] = detection.box_2d;
+                                    console.log(`Drawing detection ${index}:`, {x, y, width, height, label: detection.label});
+                                    drawBoundingBox(ctx, x, y, width, height, detection.label, index);
+                                    
+                                    // Draw segmentation mask if available
+                                    if (detection.mask && detection.mask.trim() !== '') {
+                                        console.log(`Drawing mask for detection ${index}, mask length:`, detection.mask.length);
+                                        drawSegmentationMask(ctx, x, y, width, height, detection.mask, index);
+                                    } else {
+                                        console.log(`No mask data for detection ${index}`);
+                                    }
+                                }
+                            });
+                        }
+                    } else if (result.analysis_type === 'multiple') {
+                        const items = result.result?.items || [];
+                        console.log('Processing multiple items:', items);
+                        
+                        if (items.length === 0) {
+                            console.log('No items found, checking raw_response...');
+                            const rawItems = result.result?.raw_response?.items || [];
+                            console.log('Raw items:', rawItems);
+                            
+                            if (rawItems.length > 0) {
+                                rawItems.forEach((item, index) => {
+                                    if (item.box_2d && item.box_2d.length === 4) {
+                                        const [x, y, width, height] = item.box_2d;
+                                        console.log(`Drawing raw item ${index}:`, {x, y, width, height, label: item.label});
+                                        drawBoundingBox(ctx, x, y, width, height, item.label, index);
+                                        
+                                        // Draw segmentation mask if available
+                                        if (item.mask && item.mask.trim() !== '') {
+                                            console.log(`Drawing raw mask for item ${index}, mask length:`, item.mask.length);
+                                            drawSegmentationMask(ctx, x, y, width, height, item.mask, index);
+                                        } else {
+                                            console.log(`No raw mask data for item ${index}`);
+                                        }
+                                    }
+                                });
+                            } else {
+                                console.log('No raw items found either, checking if we can extract from raw_response directly...');
+                                // Try to extract from the raw response structure
+                                const rawResponse = result.result?.raw_response;
+                                if (rawResponse && rawResponse.items) {
+                                    console.log('Found items in raw_response:', rawResponse.items);
+                                    rawResponse.items.forEach((item, index) => {
+                                        if (item.box_2d && item.box_2d.length === 4) {
+                                            const [x, y, width, height] = item.box_2d;
+                                            console.log(`Drawing extracted item ${index}:`, {x, y, width, height, label: item.label});
+                                            drawBoundingBox(ctx, x, y, width, height, item.label, index);
+                                            
+                                            if (item.mask && item.mask.trim() !== '') {
+                                                console.log(`Drawing extracted mask for item ${index}, mask length:`, item.mask.length);
+                                                drawSegmentationMask(ctx, x, y, width, height, item.mask, index);
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        } else {
+                            items.forEach((item, index) => {
+                                if (item.box_2d && item.box_2d.length === 4) {
+                                    const [x, y, width, height] = item.box_2d;
+                                    console.log(`Drawing item ${index}:`, {x, y, width, height, label: item.label});
+                                    drawBoundingBox(ctx, x, y, width, height, item.label, index);
+                                    
+                                    // Draw segmentation mask if available
+                                    if (item.mask && item.mask.trim() !== '') {
+                                        console.log(`Drawing mask for item ${index}, mask length:`, item.mask.length);
+                                        drawSegmentationMask(ctx, x, y, width, height, item.mask, index);
+                                    } else {
+                                        console.log(`No mask data for item ${index}`);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    
+                    // Convert canvas to data URL
+                    const dataUrl = canvas.toDataURL();
+                    console.log('Canvas rendered successfully');
+                    resolve(`<img src="${dataUrl}" alt="Analysis result with bounding boxes and masks" class="w-full h-auto">`);
+                };
+                
+                img.onerror = function() {
+                    console.error('Failed to load image:', result.image_url);
+                    resolve(`<img src="${result.image_url}" alt="Analysis result" class="w-full h-auto">`);
+                };
+                
+                img.src = result.image_url;
+            }).then(html => html).catch((error) => {
+                console.error('Error creating analysis image:', error);
+                // Fallback to original image if canvas fails
+                return `<img src="${result.image_url}" alt="Analysis result" class="w-full h-auto">`;
+            });
+        }
+        
+        function drawBoundingBox(ctx, x, y, width, height, label, index) {
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
+            const color = colors[index % colors.length];
+            
+            // Draw bounding box
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, width, height);
+            
+            // Draw label background
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y - 25, label.length * 8 + 10, 25);
+            
+            // Draw label text
+            ctx.fillStyle = 'white';
+            ctx.font = '14px Arial';
+            ctx.fillText(label, x + 5, y - 8);
+        }
+        
+        function drawSegmentationMask(ctx, x, y, width, height, maskData, index) {
+            console.log('Drawing segmentation mask:', {x, y, width, height, maskLength: maskData.length, index});
+            
+            const segmentationColors = [
+                [230, 25, 75],   // #E6194B
+                [60, 137, 208],  // #3C89D0
+                [60, 180, 75],   // #3CB44B
+                [255, 225, 25],  // #FFE119
+                [145, 30, 180],  // #911EB4
+                [66, 212, 244],  // #42D4F4
+                [245, 130, 49],  // #F58231
+                [240, 50, 230],  // #F032E6
+                [191, 239, 69],  // #BFEF45
+                [70, 153, 144],  // #469990
+            ];
+            
+            const rgb = segmentationColors[index % segmentationColors.length];
+            
+            try {
+                // If maskData is a base64 image
+                if (typeof maskData === 'string' && maskData.startsWith('data:image')) {
+                    console.log('Processing base64 mask image');
+                    const maskImg = new Image();
+                    maskImg.onload = function() {
+                        console.log('Mask image loaded, dimensions:', maskImg.width, 'x', maskImg.height);
+                        
+                        // Create a temporary canvas for the mask
+                        const maskCanvas = document.createElement('canvas');
+                        const maskCtx = maskCanvas.getContext('2d');
+                        maskCanvas.width = maskImg.width;
+                        maskCanvas.height = maskImg.height;
+                        
+                        // Draw the mask image
+                        maskCtx.drawImage(maskImg, 0, 0);
+                        
+                        // Get image data
+                        const imageData = maskCtx.getImageData(0, 0, maskImg.width, maskImg.height);
+                        const data = imageData.data;
+                        
+                        // Process pixels to create colored mask
+                        for (let i = 0; i < data.length; i += 4) {
+                            // Use alpha channel from mask as opacity
+                            const alpha = data[i + 3];
+                            if (alpha > 0) {
+                                data[i] = rgb[0];     // Red
+                                data[i + 1] = rgb[1]; // Green
+                                data[i + 2] = rgb[2]; // Blue
+                                data[i + 3] = Math.floor(alpha * 0.5); // Semi-transparent
+                            }
+                        }
+                        
+                        // Put the processed image data back
+                        maskCtx.putImageData(imageData, 0, 0);
+                        
+                        // Draw the colored mask onto the main canvas
+                        ctx.globalAlpha = 0.5;
+                        ctx.drawImage(maskCanvas, x, y, width, height);
+                        ctx.globalAlpha = 1.0;
+                        console.log('Mask drawn successfully');
+                    };
+                    maskImg.onerror = function() {
+                        console.error('Failed to load mask image');
+                        // Fallback: draw a simple colored overlay
+                        ctx.globalAlpha = 0.3;
+                        ctx.fillStyle = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+                        ctx.fillRect(x, y, width, height);
+                        ctx.globalAlpha = 1.0;
+                    };
+                    maskImg.src = maskData;
+                }
+                // If maskData is a simple mask array or other format
+                else if (Array.isArray(maskData)) {
+                    console.log('Processing array-based mask');
+                    // Draw a simple colored overlay for array-based masks
+                    ctx.globalAlpha = 0.3;
+                    ctx.fillStyle = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+                    ctx.fillRect(x, y, width, height);
+                    ctx.globalAlpha = 1.0;
+                }
+                // If maskData is just a string (might be base64 without data:image prefix)
+                else if (typeof maskData === 'string' && maskData.length > 100) {
+                    console.log('Processing string mask data, adding data:image prefix');
+                    // Try to add the data:image prefix
+                    const base64Data = maskData.startsWith('data:') ? maskData : `data:image/png;base64,${maskData}`;
+                    const maskImg = new Image();
+                    maskImg.onload = function() {
+                        console.log('String mask image loaded, dimensions:', maskImg.width, 'x', maskImg.height);
+                        
+                        // Create a temporary canvas for the mask
+                        const maskCanvas = document.createElement('canvas');
+                        const maskCtx = maskCanvas.getContext('2d');
+                        maskCanvas.width = maskImg.width;
+                        maskCanvas.height = maskImg.height;
+                        
+                        // Draw the mask image
+                        maskCtx.drawImage(maskImg, 0, 0);
+                        
+                        // Get image data
+                        const imageData = maskCtx.getImageData(0, 0, maskImg.width, maskImg.height);
+                        const data = imageData.data;
+                        
+                        // Process pixels to create colored mask
+                        for (let i = 0; i < data.length; i += 4) {
+                            // Use alpha channel from mask as opacity
+                            const alpha = data[i + 3];
+                            if (alpha > 0) {
+                                data[i] = rgb[0];     // Red
+                                data[i + 1] = rgb[1]; // Green
+                                data[i + 2] = rgb[2]; // Blue
+                                data[i + 3] = Math.floor(alpha * 0.5); // Semi-transparent
+                            }
+                        }
+                        
+                        // Put the processed image data back
+                        maskCtx.putImageData(imageData, 0, 0);
+                        
+                        // Draw the colored mask onto the main canvas
+                        ctx.globalAlpha = 0.5;
+                        ctx.drawImage(maskCanvas, x, y, width, height);
+                        ctx.globalAlpha = 1.0;
+                        console.log('String mask drawn successfully');
+                    };
+                    maskImg.onerror = function() {
+                        console.error('Failed to load string mask image');
+                        // Fallback: draw a simple colored overlay
+                        ctx.globalAlpha = 0.3;
+                        ctx.fillStyle = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+                        ctx.fillRect(x, y, width, height);
+                        ctx.globalAlpha = 1.0;
+                    };
+                    maskImg.src = base64Data;
+                }
+                else {
+                    console.log('Unknown mask data format, using fallback overlay');
+                    // Fallback: draw a simple colored overlay
+                    ctx.globalAlpha = 0.3;
+                    ctx.fillStyle = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+                    ctx.fillRect(x, y, width, height);
+                    ctx.globalAlpha = 1.0;
+                }
+            } catch (error) {
+                console.warn('Error drawing segmentation mask:', error);
+                // Fallback: draw a simple colored overlay
+                ctx.globalAlpha = 0.3;
+                ctx.fillStyle = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+                ctx.fillRect(x, y, width, height);
+                ctx.globalAlpha = 1.0;
+            }
+        }
+        
+        function createAnalysisDetails(result) {
+            let details = '';
+            
+            if (result.analysis_type === 'single') {
+                details = `
+                    <div><span class="font-medium">Waste Type:</span> ${result.result.waste_type || 'N/A'}</div>
+                    <div><span class="font-medium">Condition:</span> ${result.result.condition || 'N/A'}</div>
+                    <div><span class="font-medium">Quality Grade:</span> ${result.result.quality_grade || 'N/A'}</div>
+                    <div><span class="font-medium">Weight:</span> ${result.result.estimated_weight_grams || 0}g</div>
+                    <div><span class="font-medium">Confidence:</span> ${result.result.confidence || 0}%</div>
+                `;
+            } else if (result.analysis_type === 'multiple') {
+                // Check if analysis failed
+                const analysisSummary = result.result?.analysis_summary || {};
+                const hasError = analysisSummary.error || analysisSummary.status === 'failed';
+                
+                if (hasError) {
+                    details = `
+                        <div class="text-red-600"><span class="font-medium">Status:</span> ${analysisSummary.status || 'failed'}</div>
+                        <div class="text-red-600"><span class="font-medium">Error:</span> ${analysisSummary.error || 'Analysis failed'}</div>
+                        <div><span class="font-medium">Total Items:</span> 0</div>
+                        <div><span class="font-medium">Total Weight:</span> 0g</div>
+                        <div><span class="font-medium">Recyclable Items:</span> 0</div>
+                        <div><span class="font-medium">Non-Recyclable Items:</span> 0</div>
+                    `;
+                } else {
+                    // Check both normalized and raw response for accurate counts
+                    const normalizedItems = result.result?.items || [];
+                    const rawItems = result.result?.raw_response?.items || [];
+                    const totalItems = Math.max(
+                        result.result?.total_items || 0,
+                        normalizedItems.length,
+                        rawItems.length
+                    );
+                    
+                    const totalWeight = result.result?.analysis_summary?.total_weight_grams || 
+                                       result.result?.raw_response?.analysis_summary?.total_weight_grams || 0;
+                    const recyclableItems = result.result?.analysis_summary?.recyclable_items || 
+                                           result.result?.raw_response?.analysis_summary?.recyclable_items || 0;
+                    const nonRecyclableItems = result.result?.analysis_summary?.non_recyclable_items || 
+                                              result.result?.raw_response?.analysis_summary?.non_recyclable_items || 0;
+                    
+                    console.log('Multiple analysis details:', {
+                        normalizedItems: normalizedItems.length,
+                        rawItems: rawItems.length,
+                        totalItems: totalItems,
+                        totalWeight: totalWeight,
+                        recyclableItems: recyclableItems,
+                        nonRecyclableItems: nonRecyclableItems
+                    });
+                    
+                    details = `
+                        <div><span class="font-medium">Total Items:</span> ${totalItems}</div>
+                        <div><span class="font-medium">Total Weight:</span> ${totalWeight}g</div>
+                        <div><span class="font-medium">Recyclable Items:</span> ${recyclableItems}</div>
+                        <div><span class="font-medium">Non-Recyclable Items:</span> ${nonRecyclableItems}</div>
+                        <div><span class="font-medium">Bounding Boxes:</span> ${totalItems}</div>
+                        <div><span class="font-medium">Segmentation Masks:</span> ${rawItems.filter(item => item.mask).length}</div>
+                    `;
+                }
+            } else if (result.analysis_type === 'spatial') {
+                // Check if analysis failed
+                const imageAnalysis = result.result?.image_analysis || {};
+                const hasError = imageAnalysis.error || imageAnalysis.status === 'failed';
+                
+                if (hasError) {
+                    details = `
+                        <div class="text-red-600"><span class="font-medium">Status:</span> ${imageAnalysis.status || 'failed'}</div>
+                        <div class="text-red-600"><span class="font-medium">Error:</span> ${imageAnalysis.error || 'Analysis failed'}</div>
+                        <div><span class="font-medium">Total Detections:</span> 0</div>
+                        <div><span class="font-medium">Image Quality:</span> unknown</div>
+                        <div><span class="font-medium">Lighting Conditions:</span> unknown</div>
+                    `;
+                } else {
+                    // Check both normalized and raw response for detections
+                    const normalizedDetections = result.result?.detections || [];
+                    const rawDetections = result.result?.raw_response?.detections || [];
+                    const totalDetections = Math.max(normalizedDetections.length, rawDetections.length);
+                    
+                    console.log('Spatial analysis details:', {
+                        normalizedDetections: normalizedDetections.length,
+                        rawDetections: rawDetections.length,
+                        totalDetections: totalDetections
+                    });
+                    
+                    details = `
+                        <div><span class="font-medium">Total Detections:</span> ${totalDetections}</div>
+                        <div><span class="font-medium">Image Quality:</span> ${result.result.image_analysis?.image_quality || result.result.raw_response?.image_analysis?.image_quality || 'N/A'}</div>
+                        <div><span class="font-medium">Lighting Conditions:</span> ${result.result.image_analysis?.lighting_conditions || result.result.raw_response?.image_analysis?.lighting_conditions || 'N/A'}</div>
+                        <div><span class="font-medium">Bounding Boxes:</span> ${totalDetections}</div>
+                        <div><span class="font-medium">Segmentation Masks:</span> ${rawDetections.filter(d => d.mask).length}</div>
+                    `;
+                }
+            }
+            
+            return details;
         }
 
         // Utility functions

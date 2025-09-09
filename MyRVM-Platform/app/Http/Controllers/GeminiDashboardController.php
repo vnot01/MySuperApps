@@ -329,6 +329,27 @@ class GeminiDashboardController extends Controller
             'message' => 'Test results cleared successfully'
         ]);
     }
+    
+    /**
+     * Get specific result by ID
+     */
+    public function getResult($id)
+    {
+        $results = session()->get('gemini_test_results', []);
+        $result = collect($results)->firstWhere('id', $id);
+        
+        if (!$result) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Result not found'
+            ], 404);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'result' => $result
+        ]);
+    }
 
     /**
      * Get sample images
@@ -365,11 +386,43 @@ class GeminiDashboardController extends Controller
 
         switch ($analysisType) {
             case 'multiple':
-                return isset($result['total_items']) && $result['total_items'] > 0;
+                // Check both normalized and raw response
+                $normalizedItems = $result['items'] ?? [];
+                $rawItems = $result['raw_response']['items'] ?? [];
+                $totalItems = $result['total_items'] ?? 0;
+                
+                Log::debug('Determining multiple analysis success', [
+                    'normalized_items_count' => count($normalizedItems),
+                    'raw_items_count' => count($rawItems),
+                    'total_items' => $totalItems,
+                    'success' => count($normalizedItems) > 0 || count($rawItems) > 0 || $totalItems > 0
+                ]);
+                
+                return count($normalizedItems) > 0 || count($rawItems) > 0 || $totalItems > 0;
+                
             case 'spatial':
-                return isset($result['detections']) && count($result['detections']) > 0;
+                // Check both normalized and raw response
+                $normalizedDetections = $result['detections'] ?? [];
+                $rawDetections = $result['raw_response']['detections'] ?? [];
+                
+                Log::debug('Determining spatial analysis success', [
+                    'normalized_detections_count' => count($normalizedDetections),
+                    'raw_detections_count' => count($rawDetections),
+                    'success' => count($normalizedDetections) > 0 || count($rawDetections) > 0
+                ]);
+                
+                return count($normalizedDetections) > 0 || count($rawDetections) > 0;
+                
             default:
-                return isset($result['confidence']) && $result['confidence'] > 0;
+                $confidence = $result['confidence'] ?? 0;
+                $success = $confidence > 0;
+                
+                Log::debug('Determining single analysis success', [
+                    'confidence' => $confidence,
+                    'success' => $success
+                ]);
+                
+                return $success;
         }
     }
 }
