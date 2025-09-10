@@ -31,6 +31,22 @@ RUN apk update && apk add --no-cache \
     postgresql-dev \
     oniguruma-dev \
     su-exec \
+    # Python dependencies for Computer Vision Playground V2
+    python3 \
+    py3-pip \
+    py3-numpy \
+    py3-opencv \
+    py3-pillow \
+    py3-matplotlib \
+    py3-requests \
+    py3-yaml \
+    py3-scikit-learn \
+    py3-tqdm \
+    libgomp \
+    libwebp-dev \
+    openblas-dev \
+    lapack-dev \
+    gfortran \
     && rm -rf /var/cache/apk/*
 
 # Konfigurasi dan instal ekstensi PHP
@@ -51,6 +67,17 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
 
 # Instal Composer secara global
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+    # Install Python dependencies for Computer Vision Playground V2
+    # COPY ./docker/app/requirements.txt /tmp/requirements.txt
+    # RUN pip3 install --no-cache-dir --break-system-packages -r /tmp/requirements.txt
+    # Temporarily disabled for testing
+
+# Create CV directories
+RUN mkdir -p /var/www/html/storage/app/cv_models \
+    /var/www/html/storage/app/cv_test_images \
+    /var/www/html/storage/app/cv_test_results \
+    /var/www/html/storage/app/cv_scripts
 
 # Copy file konfigurasi PHP-FPM kustom (sebagai root)
 # COPY./docker/php/zz-fpm-pool.conf /usr/local/etc/php-fpm.d/zz-fpm-pool.conf

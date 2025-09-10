@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RvmUIController;
 use App\Http\Controllers\AdminRvmController;
 use App\Http\Controllers\GeminiDashboardController;
+use App\Http\Controllers\CvPlaygroundController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -97,6 +98,13 @@ Route::get('/admin/rvm-dashboard', function () {
 // Test route to check if middleware is the issue
 Route::get('/test-remote', function() {
     return response()->json(['message' => 'Test route works']);
+});
+
+// CV Playground V2 Routes
+Route::prefix('cv-playground')->name('cv-playground.')->group(function () {
+    Route::get('/', [CvPlaygroundController::class, 'index'])->name('index');
+    Route::post('/run-test', [CvPlaygroundController::class, 'runTest'])->name('run-test');
+    Route::get('/result/{filepath}', [CvPlaygroundController::class, 'serveResult'])->name('serve-result');
 });
 
 require __DIR__ . '/auth.php';

@@ -8,15 +8,11 @@ services:
     restart: unless-stopped
     working_dir: /var/www/html
     environment:
-    #   STARTUP_COMMAND_1: sudo chown docker /proc/self/fd/{1,2}
       CONTAINER_ROLE: app # Menandai kontainer ini sebagai 'app'
       DB_HOST: ${DB_HOST:-db}
       DB_DATABASE: ${DB_DATABASE:-docker_db}
       DB_USERNAME: ${DB_USERNAME:-docker}
       DB_PASSWORD: ${DB_PASSWORD:-docker}
-      # POSTGRES_USERNAME: ${DB_USERNAME:-postgres}
-      # POSTGRES_USER: ${DB_USERNAME:-postgres} # Ini adalah user SUPERUSER postgres
-      # POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres_password} # Ini adalah password SUPERUSER postgres
     volumes:
       - ./:/var/www/html
     networks:

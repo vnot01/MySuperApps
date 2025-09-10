@@ -1,0 +1,5 @@
+# Computer Vision Playground V2 - Python Dependencies
+# Basic Python packages for testing (ultralytics will be installed manually)
+
+# Basic utilities only
+# More complex packages will be installed manually after container is running
