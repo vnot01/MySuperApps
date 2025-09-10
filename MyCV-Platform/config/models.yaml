@@ -1,0 +1,100 @@
+# MyCV-Platform Model Configuration
+# Dynamic model management dengan URL downloads
+
+yolo:
+  models:
+    yolo11n:
+      url: "https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt"
+      filename: "yolo11n.pt"
+      active: false
+      description: "YOLO11 Nano - Fastest, lowest accuracy"
+      size: "5.1MB"
+      params: "2.6M"
+      flops: "6.5B"
+      mAP: 39.5
+      
+    yolo11s:
+      url: "https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s.pt"
+      filename: "yolo11s.pt"
+      active: true
+      description: "YOLO11 Small - Balanced speed/accuracy"
+      size: "21.5MB"
+      params: "9.4M"
+      flops: "21.5B"
+      mAP: 47.0
+      
+    yolo11m:
+      url: "https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11m.pt"
+      filename: "yolo11m.pt"
+      active: false
+      description: "YOLO11 Medium - Higher accuracy"
+      size: "49.7MB"
+      params: "20.1M"
+      flops: "68.0B"
+      mAP: 51.5
+      
+    yolo11l:
+      url: "https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11l.pt"
+      filename: "yolo11l.pt"
+      active: false
+      description: "YOLO11 Large - High accuracy"
+      size: "83.7MB"
+      params: "25.3M"
+      flops: "87.7B"
+      mAP: 53.2
+      
+    yolo11x:
+      url: "https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x.pt"
+      filename: "yolo11x.pt"
+      active: false
+      description: "YOLO11 Extra Large - Highest accuracy"
+      size: "136.0MB"
+      params: "68.2M"
+      flops: "209.8B"
+      mAP: 54.4
+      
+    custom:
+      url: "upload"
+      filename: "best.pt"
+      active: true
+      description: "Custom trained model"
+      size: "unknown"
+      params: "unknown"
+      flops: "unknown"
+      mAP: "unknown"
+
+sam:
+  models:
+    sam2.1_b:
+      url: "https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2.1_b.pt"
+      filename: "sam2.1_b.pt"
+      active: false
+      description: "SAM2 Base - Fastest segmentation"
+      size: "358MB"
+      params: "91.0M"
+      
+    sam2.1_l:
+      url: "https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2.1_l.pt"
+      filename: "sam2.1_l.pt"
+      active: true
+      description: "SAM2 Large - Best segmentation quality"
+      size: "2.4GB"
+      params: "308.0M"
+
+# Model management settings
+settings:
+  auto_download: true
+  validate_checksums: true
+  backup_old_models: true
+  max_concurrent_downloads: 2
+  download_timeout: 300
+  retry_attempts: 3
+  
+# Storage paths
+paths:
+  yolo_active: "/app/data/models/yolo/active"
+  yolo_downloads: "/app/data/models/yolo/downloads"
+  sam_active: "/app/data/models/sam/active"
+  sam_downloads: "/app/data/models/sam/downloads"
+  output: "/app/data/output"
+  logs: "/app/logs"
