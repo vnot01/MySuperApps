@@ -78,6 +78,129 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 print_status "Installing ultralytics..."
 pip install ultralytics
 
+# Function to detect system capabilities
+detect_system_capabilities() {
+    print_status "Detecting system capabilities..."
+    
+    # Check if running in virtual environment
+    if [[ "$VIRTUAL_ENV" != "" ]]; then
+        print_success "✅ Running in virtual environment: $VIRTUAL_ENV"
+    else
+        print_warning "⚠️  Not running in virtual environment"
+    fi
+    
+    # Check GPU availability
+    if command -v nvidia-smi &> /dev/null; then
+        print_success "✅ NVIDIA GPU detected"
+        nvidia-smi --query-gpu=name,memory.total,memory.used --format=csv,noheader,nounits | while read line; do
+            print_status "   GPU: $line"
+        done
+    else
+        print_warning "⚠️  NVIDIA GPU not detected - will use CPU mode"
+    fi
+    
+    # Check PyTorch CUDA support
+    print_status "Checking PyTorch CUDA support..."
+    python3 -c "
+import torch
+import sys
+from termcolor import colored
+
+def log_message(message, level):
+    if level == 'info':
+        print(colored('INFO: ' + message, 'blue'))
+    elif level == 'warning':
+        print(colored('WARNING: ' + message, 'yellow'))
+    elif level == 'error':
+        print(colored('ERROR: ' + message, 'red'))
+    elif level == 'success':
+        print(colored('SUCCESS: ' + message, 'green'))
+
+try:
+    if torch.cuda.is_available():
+        log_message(f'✅ PyTorch CUDA available - {torch.cuda.get_device_name(0)}', 'success')
+        log_message(f'   CUDA Version: {torch.version.cuda}', 'info')
+        log_message(f'   GPU Count: {torch.cuda.device_count()}', 'info')
+        log_message(f'   GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB', 'info')
+    else:
+        log_message('⚠️  PyTorch CUDA not available - will use CPU mode', 'warning')
+        log_message(f'   PyTorch Version: {torch.__version__}', 'info')
+        log_message(f'   CPU Threads: {torch.get_num_threads()}', 'info')
+except Exception as e:
+    log_message(f'❌ Error checking PyTorch: {e}', 'error')
+    sys.exit(1)
+"
+}
+
+# Function to test with mock data
+test_mock_data() {
+    print_status "Testing with mock data..."
+    
+    python3 -c "
+import torch
+import numpy as np
+import sys
+import os
+from termcolor import colored
+
+def log_message(message, level):
+    if level == 'info':
+        print(colored('INFO: ' + message, 'blue'))
+    elif level == 'warning':
+        print(colored('WARNING: ' + message, 'yellow'))
+    elif level == 'error':
+        print(colored('ERROR: ' + message, 'red'))
+    elif level == 'success':
+        print(colored('SUCCESS: ' + message, 'green'))
+
+def check_environment():
+    # Check virtual environment
+    if 'VIRTUAL_ENV' in os.environ:
+        log_message(f'✅ Running in virtual environment: {os.environ[\"VIRTUAL_ENV\"]}', 'success')
+    else:
+        log_message('⚠️  Not running in virtual environment', 'warning')
+    
+    # Check GPU/CPU mode
+    if torch.cuda.is_available():
+        log_message(f'🚀 GPU MODE: Using CUDA device - {torch.cuda.get_device_name(0)}', 'success')
+        log_message(f'   GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB', 'info')
+    else:
+        log_message('💻 CPU MODE: Using CPU for inference', 'warning')
+        log_message(f'   CPU Threads: {torch.get_num_threads()}', 'info')
+
+try:
+    check_environment()
+    
+    # Test PyTorch with mock data
+    log_message('🧪 Testing PyTorch with mock data...', 'info')
+    mock_tensor = torch.randn(1, 3, 224, 224)
+    if torch.cuda.is_available():
+        mock_tensor = mock_tensor.cuda()
+        log_message('✅ Mock tensor created on GPU', 'success')
+    else:
+        log_message('✅ Mock tensor created on CPU', 'success')
+    
+    # Test basic operations
+    result = torch.nn.functional.relu(mock_tensor)
+    log_message('✅ Basic tensor operations successful', 'success')
+    
+    # Test with random image data
+    log_message('🧪 Testing with mock image data...', 'info')
+    mock_image = np.random.randint(0, 255, (640, 640, 3), dtype=np.uint8)
+    mock_tensor = torch.from_numpy(mock_image).permute(2, 0, 1).float().unsqueeze(0)
+    if torch.cuda.is_available():
+        mock_tensor = mock_tensor.cuda()
+    
+    log_message('✅ Mock image processing successful', 'success')
+    log_message(f'   Image shape: {mock_tensor.shape}', 'info')
+    log_message(f'   Device: {mock_tensor.device}', 'info')
+    
+except Exception as e:
+    log_message(f'❌ Mock data test failed: {e}', 'error')
+    sys.exit(1)
+"
+}
+
 print_status "Creating necessary directories..."
 mkdir -p data/models/yolo/{active,downloads}
 mkdir -p data/models/sam/{active,downloads}
@@ -127,6 +250,12 @@ EOF
 else
     print_warning ".env file already exists, skipping..."
 fi
+
+# Detect system capabilities
+detect_system_capabilities
+
+# Test with mock data
+test_mock_data
 
 print_status "Setting up Docker..."
 sudo systemctl enable docker

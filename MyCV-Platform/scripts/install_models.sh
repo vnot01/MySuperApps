@@ -36,12 +36,14 @@ declare -A YOLO_MODELS
 YOLO_MODELS[yolo11n.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt"
 YOLO_MODELS[yolo11s.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s.pt"
 YOLO_MODELS[yolo11m.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11m.pt"
-YOLO_MODELS[yolo11l.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11l.pt"
-YOLO_MODELS[yolo11x.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x.pt"
+# YOLO_MODELS[yolo11l.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11l.pt"
+# YOLO_MODELS[yolo11x.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x.pt"
 
 declare -A SAM_MODELS
-SAM_MODELS[sam2.1_b.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2.1_b.pt"
-SAM_MODELS[sam2.1_l.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2.1_l.pt"
+SAM_MODELS[sam2_b.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2_b.pt"
+# SAM_MODELS[sam2_l.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2_l.pt"
+# SAM_MODELS[sam2.1_b.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2.1_b.pt"
+# SAM_MODELS[sam2.1_l.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2.1_l.pt"
 
 # Function to download model
 download_model() {
@@ -106,8 +108,8 @@ install_sam_models() {
     local sam_dir="data/models/sam/active"
     local download_dir="data/models/sam/downloads"
     
-    # Download default model (sam2.1_l)
-    local default_model="sam2.1_l.pt"
+    # Download default model (sam2_b)
+    local default_model="sam2_b.pt"
     
     if [ -n "${SAM_MODELS[$default_model]}" ]; then
         if download_model "$default_model" "${SAM_MODELS[$default_model]}" "$download_dir"; then
@@ -164,17 +166,11 @@ create_model_info() {
         }
     },
     "sam_models": {
-        "sam2.1_b": {
-            "filename": "sam2.1_b.pt",
+        "sam2_b": {
+            "filename": "sam2_b.pt",
             "size": "358MB",
             "params": "91.0M",
             "description": "SAM2 Base - Fastest segmentation"
-        },
-        "sam2.1_l": {
-            "filename": "sam2.1_l.pt",
-            "size": "2.4GB",
-            "params": "308.0M",
-            "description": "SAM2 Large - Best segmentation quality"
         }
     },
     "installation_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
@@ -185,38 +181,184 @@ EOF
     print_success "Model information file created"
 }
 
+# Function to check virtual environment
+check_venv() {
+    if [ ! -d "venv" ]; then
+        print_error "Virtual environment not found! Please run ./scripts/setup.sh first"
+        exit 1
+    fi
+    
+    if [ ! -f "venv/bin/activate" ]; then
+        print_error "Virtual environment activation script not found!"
+        exit 1
+    fi
+    
+    print_success "Virtual environment found and ready"
+}
+
+# Function to detect system capabilities
+detect_system_capabilities() {
+    print_status "Detecting system capabilities..."
+    
+    # Check if running in virtual environment
+    if [[ "$VIRTUAL_ENV" != "" ]]; then
+        print_success "✅ Running in virtual environment: $VIRTUAL_ENV"
+    else
+        print_warning "⚠️  Not running in virtual environment"
+    fi
+    
+    # Check GPU availability
+    if command -v nvidia-smi &> /dev/null; then
+        print_success "✅ NVIDIA GPU detected"
+        nvidia-smi --query-gpu=name,memory.total,memory.used --format=csv,noheader,nounits | while read line; do
+            print_status "   GPU: $line"
+        done
+    else
+        print_warning "⚠️  NVIDIA GPU not detected - will use CPU mode"
+    fi
+    
+    # Check PyTorch CUDA support
+    print_status "Checking PyTorch CUDA support..."
+    source venv/bin/activate && python3 -c "
+import torch
+import sys
+from termcolor import colored
+
+def log_message(message, level):
+    if level == 'info':
+        print(colored('INFO: ' + message, 'blue'))
+    elif level == 'warning':
+        print(colored('WARNING: ' + message, 'yellow'))
+    elif level == 'error':
+        print(colored('ERROR: ' + message, 'red'))
+    elif level == 'success':
+        print(colored('SUCCESS: ' + message, 'green'))
+
+try:
+    if torch.cuda.is_available():
+        log_message(f'✅ PyTorch CUDA available - {torch.cuda.get_device_name(0)}', 'success')
+        log_message(f'   CUDA Version: {torch.version.cuda}', 'info')
+        log_message(f'   GPU Count: {torch.cuda.device_count()}', 'info')
+    else:
+        log_message('⚠️  PyTorch CUDA not available - will use CPU mode', 'warning')
+        log_message(f'   PyTorch Version: {torch.__version__}', 'info')
+        log_message(f'   CPU Threads: {torch.get_num_threads()}', 'info')
+except Exception as e:
+    log_message(f'❌ Error checking PyTorch: {e}', 'error')
+    sys.exit(1)
+"
+}
+
 # Function to test model loading
 test_models() {
     print_status "Testing model loading..."
     
+    # Check virtual environment first
+    check_venv
+    
     # Test YOLO model
     if [ -f "data/models/yolo/active/yolo11s.pt" ]; then
         print_status "Testing YOLO11s model..."
-        python3 -c "
+        source venv/bin/activate && python3 -c "
+import torch
 from ultralytics import YOLO
 import sys
+import os
+from termcolor import colored
+
+def log_message(message, level):
+    if level == 'info':
+        print(colored('INFO: ' + message, 'blue'))
+    elif level == 'warning':
+        print(colored('WARNING: ' + message, 'yellow'))
+    elif level == 'error':
+        print(colored('ERROR: ' + message, 'red'))
+    elif level == 'success':
+        print(colored('SUCCESS: ' + message, 'green'))
+
+def check_environment():
+    # Check virtual environment
+    if 'VIRTUAL_ENV' in os.environ:
+        log_message(f'✅ Running in virtual environment: {os.environ[\"VIRTUAL_ENV\"]}', 'success')
+    else:
+        log_message('⚠️  Not running in virtual environment', 'warning')
+    
+    # Check GPU/CPU mode
+    if torch.cuda.is_available():
+        log_message(f'🚀 GPU MODE: Using CUDA device - {torch.cuda.get_device_name(0)}', 'success')
+        log_message(f'   GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB', 'info')
+    else:
+        log_message('💻 CPU MODE: Using CPU for inference', 'warning')
+        log_message(f'   CPU Threads: {torch.get_num_threads()}', 'info')
+
 try:
+    check_environment()
+    log_message('Loading YOLO11s model...', 'info')
     model = YOLO('data/models/yolo/active/yolo11s.pt')
-    print('✅ YOLO11s model loaded successfully')
-    print(f'Model info: {model.info()}')
+    log_message('✅ YOLO11s model loaded successfully', 'success')
+    
+    # Test inference with mock data
+    log_message('🧪 Testing with mock data...', 'info')
+    import numpy as np
+    mock_image = np.random.randint(0, 255, (640, 640, 3), dtype=np.uint8)
+    results = model(mock_image, verbose=False)
+    log_message('✅ Mock data inference successful', 'success')
+    log_message(f'   Detected objects: {len(results[0].boxes) if results[0].boxes is not None else 0}', 'info')
+    
 except Exception as e:
-    print(f'❌ YOLO11s model test failed: {e}')
+    log_message(f'❌ YOLO11s model test failed: {e}', 'error')
     sys.exit(1)
 "
     fi
     
     # Test SAM model
-    if [ -f "data/models/sam/active/sam2.1_l.pt" ]; then
-        print_status "Testing SAM2.1_l model..."
-        python3 -c "
+    if [ -f "data/models/sam/active/sam2_b.pt" ]; then
+        print_status "Testing SAM2_b model..."
+        source venv/bin/activate && python3 -c "
+import torch
 from ultralytics import SAM
 import sys
+import os
+import numpy as np
+from termcolor import colored
+
+def log_message(message, level):
+    if level == 'info':
+        print(colored('INFO: ' + message, 'blue'))
+    elif level == 'warning':
+        print(colored('WARNING: ' + message, 'yellow'))
+    elif level == 'error':
+        print(colored('ERROR: ' + message, 'red'))
+    elif level == 'success':
+        print(colored('SUCCESS: ' + message, 'green'))
+
+def check_environment():
+    # Check virtual environment
+    if 'VIRTUAL_ENV' in os.environ:
+        log_message(f'✅ Running in virtual environment: {os.environ[\"VIRTUAL_ENV\"]}', 'success')
+    else:
+        log_message('⚠️  Not running in virtual environment', 'warning')
+    
+    # Check GPU/CPU mode
+    if torch.cuda.is_available():
+        log_message(f'🚀 GPU MODE: Using CUDA device - {torch.cuda.get_device_name(0)}', 'success')
+    else:
+        log_message('💻 CPU MODE: Using CPU for inference', 'warning')
+
 try:
-    model = SAM('data/models/sam/active/sam2.1_l.pt')
-    print('✅ SAM2.1_l model loaded successfully')
-    print(f'Model info: {model.info()}')
+    check_environment()
+    log_message('Loading SAM2_b model...', 'info')
+    model = SAM('data/models/sam/active/sam2_b.pt')
+    log_message('✅ SAM2_b model loaded successfully', 'success')
+    
+    # Test inference with mock data
+    log_message('🧪 Testing with mock data...', 'info')
+    mock_image = np.random.randint(0, 255, (640, 640, 3), dtype=np.uint8)
+    results = model(mock_image, verbose=False)
+    log_message('✅ Mock data inference successful', 'success')
+    
 except Exception as e:
-    print(f'❌ SAM2.1_l model test failed: {e}')
+    log_message(f'❌ SAM2_b model test failed: {e}', 'error')
     sys.exit(1)
 "
     fi
@@ -227,6 +369,12 @@ except Exception as e:
 # Main installation process
 main() {
     print_status "Starting model installation process..."
+    
+    # Check virtual environment first
+    check_venv
+    
+    # Detect system capabilities
+    detect_system_capabilities
     
     # Create directories
     mkdir -p data/models/yolo/{active,downloads}

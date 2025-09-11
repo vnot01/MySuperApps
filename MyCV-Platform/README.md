@@ -22,11 +22,14 @@
 git clone <repository-url>
 cd MyCV-Platform
 
-# Setup environment
+# Setup environment (includes virtual environment, GPU/CPU detection, mock data testing)
 ./scripts/setup.sh
 
-# Install models
+# Install models (with virtual environment and capability detection)
 ./scripts/install_models.sh
+
+# Detect environment capabilities (optional)
+./scripts/detect_environment.sh
 
 # Start services
 docker-compose up -d
@@ -48,6 +51,10 @@ docker-compose up -d
 - ✅ **REST API** untuk production integration
 - ✅ **GPU Acceleration** (CUDA support)
 - ✅ **Model Validation** dan integrity checking
+- ✅ **Virtual Environment Support** (konsisten di semua eksekusi Python)
+- ✅ **Automatic GPU/CPU Detection** dengan informasi yang jelas
+- ✅ **Mock Data Testing** untuk validasi sistem
+- ✅ **Environment Detection Utility** untuk troubleshooting
 
 ---
 
@@ -88,6 +95,46 @@ $response = Http::post('http://cv-host:8000/api/v1/analyze', [
     'confidence' => 0.7
 ]);
 ```
+
+---
+
+## 🔧 **Environment Detection**
+
+### **Virtual Environment:**
+- ✅ Konsisten menggunakan virtual environment di semua eksekusi Python
+- ✅ Otomatis deteksi dan aktivasi virtual environment
+- ✅ Validasi virtual environment sebelum menjalankan script
+
+### **GPU/CPU Mode Detection:**
+- 🚀 **GPU MODE**: Otomatis deteksi NVIDIA GPU dan CUDA support
+- 💻 **CPU MODE**: Fallback ke CPU jika GPU tidak tersedia
+- 📊 Informasi detail tentang GPU memory, CUDA version, dan CPU threads
+
+### **Mock Data Testing:**
+- 🧪 **MOCK DATA MODE**: Testing dengan data sintetis untuk validasi
+- ✅ Validasi tensor operations dan image processing
+- 🔍 Deteksi device (GPU/CPU) yang digunakan untuk processing
+
+### **Usage:**
+```bash
+# Deteksi environment capabilities
+./scripts/detect_environment.sh
+
+# Deteksi environment di Docker container
+./scripts/docker_detect_environment.sh
+
+# Jalankan semua environment tests
+./scripts/run_all_environment_tests.sh
+
+# Atau gunakan Python utility langsung
+python3 app/utils/environment_detector.py
+```
+
+### **Available Scripts:**
+- `detect_environment.sh` - Deteksi environment di host system
+- `docker_detect_environment.sh` - Deteksi environment di Docker container
+- `run_all_environment_tests.sh` - Jalankan semua environment tests
+- `startup_environment_check.sh` - Environment check pada startup
 
 ---
 
