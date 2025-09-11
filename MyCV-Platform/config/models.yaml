@@ -65,21 +65,29 @@ yolo:
 
 sam:
   models:
-    sam2.1_b:
-      url: "https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2.1_b.pt"
-      filename: "sam2.1_b.pt"
-      active: false
+    sam2_b:
+      url: "https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2_b.pt"
+      filename: "sam2_b.pt"
+      active: true
       description: "SAM2 Base - Fastest segmentation"
       size: "358MB"
       params: "91.0M"
+
+    # sam2.1_b:
+    #   url: "https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2.1_b.pt"
+    #   filename: "sam2.1_b.pt"
+    #   active: false
+    #   description: "SAM2 Base - Fastest segmentation"
+    #   size: "358MB"
+    #   params: "91.0M"
       
-    sam2.1_l:
-      url: "https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2.1_l.pt"
-      filename: "sam2.1_l.pt"
-      active: true
-      description: "SAM2 Large - Best segmentation quality"
-      size: "2.4GB"
-      params: "308.0M"
+    # sam2.1_l:
+    #   url: "https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2.1_l.pt"
+    #   filename: "sam2.1_l.pt"
+    #   active: true
+    #   description: "SAM2 Large - Best segmentation quality"
+    #   size: "2.4GB"
+    #   params: "308.0M"
 
 # Model management settings
 settings:

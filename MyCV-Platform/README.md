@@ -18,8 +18,7 @@
 
 ### **Installation:**
 ```bash
-# Clone repository
-git clone <repository-url>
+# Navigate to MyCV-Platform directory
 cd MyCV-Platform
 
 # Setup environment (includes virtual environment, GPU/CPU detection, mock data testing)
