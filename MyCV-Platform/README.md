@@ -11,10 +11,17 @@
 ## 🚀 **Quick Start**
 
 ### **Prerequisites:**
-- Ubuntu 22.04 LTS
+- Ubuntu 22.04 LTS (recommended) atau macOS/Linux lainnya
 - Python 3.11+
 - Docker & Docker Compose
 - NVIDIA GPU (optional, untuk acceleration)
+- Bash 3.2+ (untuk macOS) atau Bash 4.0+ (untuk Linux)
+
+### **System Compatibility:**
+- **Bash 4.0+**: Gunakan `install_models.sh` (Linux)
+- **Bash 3.2**: Gunakan `install_models_compatible.sh` (macOS, older Linux)
+- **Docker**: Required untuk production deployment
+- **Virtual Environment**: Otomatis dibuat dan dikelola
 
 ### **Installation:**
 ```bash
@@ -25,7 +32,11 @@ cd MyCV-Platform
 ./scripts/setup.sh
 
 # Install models (with virtual environment and capability detection)
+# For Bash 4.0+ systems:
 ./scripts/install_models.sh
+
+# For Bash 3.2 systems (macOS, older Linux):
+./scripts/install_models_compatible.sh
 
 # Detect environment capabilities (optional)
 ./scripts/detect_environment.sh
@@ -70,14 +81,32 @@ docker-compose up -d
 - `yolo11x.pt` - Extra Large (68.2M params, highest accuracy)
 
 ### **Available SAM2 Models:**
-- `sam2.1_b.pt` - Base (fastest segmentation)
-- `sam2.1_l.pt` - Large (best segmentation quality)
+- `sam2_b.pt` - Base (91.0M params, fastest segmentation)
+- `sam2.1_b.pt` - Base (358MB, fastest segmentation) - Available but not active by default
+- `sam2.1_l.pt` - Large (2.4GB, best segmentation quality) - Available but not active by default
 
 ### **Available Trained Models:**
 - `best.pt` - Custom trained YOLO model from MySuperApps
   - **Source**: GitHub Releases
+  - **URL**: `https://github.com/vnot01/MySuperApps/releases/download/trained-models/best.pt`
   - **Location**: `data/models/trained/`
   - **Description**: Pre-trained model untuk production use
+  - **Auto-download**: Included in install_models.sh
+
+### **Model Storage Structure:**
+```
+data/models/
+├── yolo/
+│   ├── active/          # YOLO models yang aktif
+│   └── downloads/       # YOLO models yang didownload
+├── sam/
+│   ├── active/          # SAM models yang aktif
+│   └── downloads/       # SAM models yang didownload
+├── trained/             # Trained models (best.pt, dll)
+├── cloud/               # Cloud storage cache
+├── backups/             # Local backups
+└── downloads/           # General downloads
+```
 
 ---
 
@@ -139,12 +168,16 @@ python3 app/utils/environment_detector.py
 ```
 
 ### **Available Scripts:**
+- `setup.sh` - Initial setup dan environment configuration
+- `install_models.sh` - Install models (Bash 4.0+)
+- `install_models_compatible.sh` - Install models (Bash 3.2 compatible)
 - `detect_environment.sh` - Deteksi environment di host system
 - `docker_detect_environment.sh` - Deteksi environment di Docker container
 - `run_all_environment_tests.sh` - Jalankan semua environment tests
 - `startup_environment_check.sh` - Environment check pada startup
 - `model_manager.sh` - Manajemen model (upload, download, backup, restore)
 - `download_models.sh` - Download model dari cloud storage
+- `apply_all_changes.sh` - Apply semua environment changes
 
 ### **Model Management:**
 ```bash
@@ -160,8 +193,26 @@ python3 app/utils/environment_detector.py
 # Backup model lokal
 ./scripts/model_manager.sh backup best.pt
 
+# Restore model dari backup
+./scripts/model_manager.sh restore best_backup_20231201_120000.pt
+
 # List semua model
 ./scripts/model_manager.sh list
+```
+
+### **Troubleshooting:**
+```bash
+# Jika install_models.sh gagal (Bash version issue)
+./scripts/install_models_compatible.sh
+
+# Apply semua environment changes
+./scripts/apply_all_changes.sh
+
+# Run comprehensive environment tests
+./scripts/run_all_environment_tests.sh
+
+# Check environment capabilities
+./scripts/detect_environment.sh
 ```
 
 ---
