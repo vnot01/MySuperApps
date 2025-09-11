@@ -1,7 +1,7 @@
 # MyCV-Platform Dockerfile
 # Computer Vision Processing Service
 
-FROM nvidia/cuda:11.8-devel-ubuntu22.04
+FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
@@ -164,6 +164,9 @@ RUN mkdir -p /app/data/models/yolo/active \
     /app/data/models/yolo/downloads \
     /app/data/models/sam/active \
     /app/data/models/sam/downloads \
+    /app/data/models/trained \
+    /app/data/models/cloud \
+    /app/data/models/backups \
     /app/data/input/test_images \
     /app/data/output/detections \
     /app/data/output/segmentations \
