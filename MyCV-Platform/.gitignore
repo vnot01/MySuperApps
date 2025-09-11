@@ -107,6 +107,7 @@ Thumbs.db
 *.backup
 *_backup_*
 backup_*
+backups1/
 
 # Large datasets
 data/input/
