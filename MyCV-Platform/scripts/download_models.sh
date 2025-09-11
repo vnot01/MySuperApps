@@ -29,7 +29,7 @@ print_error() {
 
 # Model URLs (update these with your actual model URLs)
 declare -A MODEL_URLS
-MODEL_URLS[best.pt]="https://your-cloud-storage.com/models/best.pt"
+MODEL_URLS[best.pt]="https://github.com/vnot01/MySuperApps/releases/download/trained-models/best.pt"
 MODEL_URLS[yolo11s.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s.pt"
 MODEL_URLS[yolo11m.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11m.pt"
 MODEL_URLS[sam2_b.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2_b.pt"

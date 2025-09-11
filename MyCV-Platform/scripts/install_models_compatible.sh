@@ -1,17 +1,9 @@
 #!/bin/bash
 
-# MyCV-Platform Model Installation Script
+# MyCV-Platform Model Installation Script (Bash 3.2 Compatible)
 # Download and setup YOLO11 and SAM2 models
 
 set -e
-
-# Check if bash supports associative arrays
-if [[ "${BASH_VERSION%%.*}" -lt 4 ]]; then
-    echo "❌ This script requires Bash 4.0 or later for associative arrays"
-    echo "Current Bash version: $BASH_VERSION"
-    echo "Please upgrade Bash or use a different shell"
-    exit 1
-fi
 
 echo "📥 MyCV-Platform Model Installation Starting..."
 
@@ -39,23 +31,12 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Model URLs and info
-declare -A YOLO_MODELS
-YOLO_MODELS[yolo11n.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt"
-YOLO_MODELS[yolo11s.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s.pt"
-YOLO_MODELS[yolo11m.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11m.pt"
-# YOLO_MODELS[yolo11l.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11l.pt"
-# YOLO_MODELS[yolo11x.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11x.pt"
-
-declare -A SAM_MODELS
-SAM_MODELS[sam2_b.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2_b.pt"
-# SAM_MODELS[sam2_l.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2_l.pt"
-# SAM_MODELS[sam2.1_b.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2.1_b.pt"
-# SAM_MODELS[sam2.1_l.pt]="https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2.1_l.pt"
-
-# Trained models from MySuperApps releases
-declare -A TRAINED_MODELS
-TRAINED_MODELS[best.pt]="https://github.com/vnot01/MySuperApps/releases/download/trained-models/best.pt"
+# Model URLs (using simple variables instead of associative arrays)
+YOLO11N_URL="https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt"
+YOLO11S_URL="https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11s.pt"
+YOLO11M_URL="https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11m.pt"
+SAM2_B_URL="https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2_b.pt"
+BEST_PT_URL="https://github.com/vnot01/MySuperApps/releases/download/trained-models/best.pt"
 
 # Function to download model
 download_model() {
@@ -90,6 +71,74 @@ download_model() {
     fi
 }
 
+# Function to check virtual environment
+check_venv() {
+    if [ ! -d "venv" ]; then
+        print_error "Virtual environment not found! Please run ./scripts/setup.sh first"
+        exit 1
+    fi
+    
+    if [ ! -f "venv/bin/activate" ]; then
+        print_error "Virtual environment activation script not found!"
+        exit 1
+    fi
+    
+    print_success "Virtual environment found and ready"
+}
+
+# Function to detect system capabilities
+detect_system_capabilities() {
+    print_status "Detecting system capabilities..."
+    
+    # Check if running in virtual environment
+    if [[ "$VIRTUAL_ENV" != "" ]]; then
+        print_success "✅ Running in virtual environment: $VIRTUAL_ENV"
+    else
+        print_warning "⚠️  Not running in virtual environment"
+    fi
+    
+    # Check GPU availability
+    if command -v nvidia-smi &> /dev/null; then
+        print_success "✅ NVIDIA GPU detected"
+        nvidia-smi --query-gpu=name,memory.total,memory.used --format=csv,noheader,nounits | while read line; do
+            print_status "   GPU: $line"
+        done
+    else
+        print_warning "⚠️  NVIDIA GPU not detected - will use CPU mode"
+    fi
+    
+    # Check PyTorch CUDA support
+    print_status "Checking PyTorch CUDA support..."
+    source venv/bin/activate && python3 -c "
+import torch
+import sys
+from termcolor import colored
+
+def log_message(message, level):
+    if level == 'info':
+        print(colored('INFO: ' + message, 'blue'))
+    elif level == 'warning':
+        print(colored('WARNING: ' + message, 'yellow'))
+    elif level == 'error':
+        print(colored('ERROR: ' + message, 'red'))
+    elif level == 'success':
+        print(colored('SUCCESS: ' + message, 'green'))
+
+try:
+    if torch.cuda.is_available():
+        log_message(f'✅ PyTorch CUDA available - {torch.cuda.get_device_name(0)}', 'success')
+        log_message(f'   CUDA Version: {torch.version.cuda}', 'info')
+        log_message(f'   GPU Count: {torch.cuda.device_count()}', 'info')
+    else:
+        log_message('⚠️  PyTorch CUDA not available - will use CPU mode', 'warning')
+        log_message(f'   PyTorch Version: {torch.__version__}', 'info')
+        log_message(f'   CPU Threads: {torch.get_num_threads()}', 'info')
+except Exception as e:
+    log_message(f'❌ Error checking PyTorch: {e}', 'error')
+    sys.exit(1)
+"
+}
+
 # Function to install YOLO models
 install_yolo_models() {
     print_status "Installing YOLO11 models..."
@@ -98,17 +147,17 @@ install_yolo_models() {
     local download_dir="data/models/yolo/downloads"
     
     # Download default models (yolo11s and yolo11m)
-    local default_models=("yolo11s.pt" "yolo11m.pt")
+    download_model "yolo11s.pt" "$YOLO11S_URL" "$download_dir"
+    if [ $? -eq 0 ]; then
+        mv "$download_dir/yolo11s.pt" "$yolo_dir/"
+        print_success "Installed yolo11s.pt to active directory"
+    fi
     
-    for model in "${default_models[@]}"; do
-        if [ -n "${YOLO_MODELS[$model]}" ]; then
-            if download_model "$model" "${YOLO_MODELS[$model]}" "$download_dir"; then
-                # Move to active directory
-                mv "$download_dir/$model" "$yolo_dir/"
-                print_success "Installed $model to active directory"
-            fi
-        fi
-    done
+    download_model "yolo11m.pt" "$YOLO11M_URL" "$download_dir"
+    if [ $? -eq 0 ]; then
+        mv "$download_dir/yolo11m.pt" "$yolo_dir/"
+        print_success "Installed yolo11m.pt to active directory"
+    fi
     
     print_status "YOLO11 models installation completed"
 }
@@ -121,14 +170,10 @@ install_sam_models() {
     local download_dir="data/models/sam/downloads"
     
     # Download default model (sam2_b)
-    local default_model="sam2_b.pt"
-    
-    if [ -n "${SAM_MODELS[$default_model]}" ]; then
-        if download_model "$default_model" "${SAM_MODELS[$default_model]}" "$download_dir"; then
-            # Move to active directory
-            mv "$download_dir/$default_model" "$sam_dir/"
-            print_success "Installed $default_model to active directory"
-        fi
+    download_model "sam2_b.pt" "$SAM2_B_URL" "$download_dir"
+    if [ $? -eq 0 ]; then
+        mv "$download_dir/sam2_b.pt" "$sam_dir/"
+        print_success "Installed sam2_b.pt to active directory"
     fi
     
     print_status "SAM2 models installation completed"
@@ -141,16 +186,12 @@ install_trained_models() {
     local trained_dir="data/models/trained"
     local download_dir="data/models/downloads"
     
-    # Download trained models
-    for model in "${!TRAINED_MODELS[@]}"; do
-        if [ -n "${TRAINED_MODELS[$model]}" ]; then
-            if download_model "$model" "${TRAINED_MODELS[$model]}" "$download_dir"; then
-                # Move to trained directory
-                mv "$download_dir/$model" "$trained_dir/"
-                print_success "Installed $model to trained directory"
-            fi
-        fi
-    done
+    # Download trained model (best.pt)
+    download_model "best.pt" "$BEST_PT_URL" "$download_dir"
+    if [ $? -eq 0 ]; then
+        mv "$download_dir/best.pt" "$trained_dir/"
+        print_success "Installed best.pt to trained directory"
+    fi
     
     print_status "Trained models installation completed"
 }
@@ -220,74 +261,6 @@ create_model_info() {
 EOF
     
     print_success "Model information file created"
-}
-
-# Function to check virtual environment
-check_venv() {
-    if [ ! -d "venv" ]; then
-        print_error "Virtual environment not found! Please run ./scripts/setup.sh first"
-        exit 1
-    fi
-    
-    if [ ! -f "venv/bin/activate" ]; then
-        print_error "Virtual environment activation script not found!"
-        exit 1
-    fi
-    
-    print_success "Virtual environment found and ready"
-}
-
-# Function to detect system capabilities
-detect_system_capabilities() {
-    print_status "Detecting system capabilities..."
-    
-    # Check if running in virtual environment
-    if [[ "$VIRTUAL_ENV" != "" ]]; then
-        print_success "✅ Running in virtual environment: $VIRTUAL_ENV"
-    else
-        print_warning "⚠️  Not running in virtual environment"
-    fi
-    
-    # Check GPU availability
-    if command -v nvidia-smi &> /dev/null; then
-        print_success "✅ NVIDIA GPU detected"
-        nvidia-smi --query-gpu=name,memory.total,memory.used --format=csv,noheader,nounits | while read line; do
-            print_status "   GPU: $line"
-        done
-    else
-        print_warning "⚠️  NVIDIA GPU not detected - will use CPU mode"
-    fi
-    
-    # Check PyTorch CUDA support
-    print_status "Checking PyTorch CUDA support..."
-    source venv/bin/activate && python3 -c "
-import torch
-import sys
-from termcolor import colored
-
-def log_message(message, level):
-    if level == 'info':
-        print(colored('INFO: ' + message, 'blue'))
-    elif level == 'warning':
-        print(colored('WARNING: ' + message, 'yellow'))
-    elif level == 'error':
-        print(colored('ERROR: ' + message, 'red'))
-    elif level == 'success':
-        print(colored('SUCCESS: ' + message, 'green'))
-
-try:
-    if torch.cuda.is_available():
-        log_message(f'✅ PyTorch CUDA available - {torch.cuda.get_device_name(0)}', 'success')
-        log_message(f'   CUDA Version: {torch.version.cuda}', 'info')
-        log_message(f'   GPU Count: {torch.cuda.device_count()}', 'info')
-    else:
-        log_message('⚠️  PyTorch CUDA not available - will use CPU mode', 'warning')
-        log_message(f'   PyTorch Version: {torch.__version__}', 'info')
-        log_message(f'   CPU Threads: {torch.get_num_threads()}', 'info')
-except Exception as e:
-    log_message(f'❌ Error checking PyTorch: {e}', 'error')
-    sys.exit(1)
-"
 }
 
 # Function to test model loading

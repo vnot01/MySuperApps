@@ -197,16 +197,22 @@ Edit `scripts/download_models.sh` dan update URL model:
 ```bash
 # Model URLs (update these with your actual model URLs)
 declare -A MODEL_URLS
-MODEL_URLS[best.pt]="https://your-cloud-storage.com/models/best.pt"
+MODEL_URLS[best.pt]="https://github.com/vnot01/MySuperApps/releases/download/trained-models/best.pt"
 MODEL_URLS[my_model.pt]="https://your-cloud-storage.com/models/my_model.pt"
 ```
 
 ### **2. Supported Cloud Storage**
+- **GitHub Releases**: Upload sebagai release asset (Recommended)
 - **Google Drive**: Upload file dan dapatkan shareable link
 - **Dropbox**: Upload file dan dapatkan direct link
 - **AWS S3**: Setup bucket dan upload file
-- **GitHub Releases**: Upload sebagai release asset
 - **Custom Server**: Upload ke server sendiri
+
+### **3. Pre-configured Trained Models**
+- **best.pt**: Custom trained YOLO model from MySuperApps
+  - **URL**: `https://github.com/vnot01/MySuperApps/releases/download/trained-models/best.pt`
+  - **Location**: `data/models/trained/`
+  - **Auto-download**: Included in install_models.sh
 
 ---
 

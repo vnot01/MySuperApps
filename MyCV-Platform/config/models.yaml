@@ -63,6 +63,18 @@ yolo:
       flops: "unknown"
       mAP: "unknown"
 
+trained:
+  models:
+    best:
+      url: "https://github.com/vnot01/MySuperApps/releases/download/trained-models/best.pt"
+      filename: "best.pt"
+      active: true
+      description: "Custom trained YOLO model from MySuperApps"
+      size: "unknown"
+      params: "unknown"
+      flops: "unknown"
+      mAP: "unknown"
+
 sam:
   models:
     sam2_b:

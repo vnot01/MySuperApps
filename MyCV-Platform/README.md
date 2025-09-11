@@ -73,6 +73,12 @@ docker-compose up -d
 - `sam2.1_b.pt` - Base (fastest segmentation)
 - `sam2.1_l.pt` - Large (best segmentation quality)
 
+### **Available Trained Models:**
+- `best.pt` - Custom trained YOLO model from MySuperApps
+  - **Source**: GitHub Releases
+  - **Location**: `data/models/trained/`
+  - **Description**: Pre-trained model untuk production use
+
 ---
 
 ## 📚 **Documentation**
