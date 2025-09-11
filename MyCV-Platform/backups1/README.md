@@ -18,7 +18,8 @@
 
 ### **Installation:**
 ```bash
-# Navigate to MyCV-Platform directory
+# Clone repository
+git clone <repository-url>
 cd MyCV-Platform
 
 # Setup environment (includes virtual environment, GPU/CPU detection, mock data testing)
@@ -54,9 +55,6 @@ docker-compose up -d
 - ✅ **Automatic GPU/CPU Detection** dengan informasi yang jelas
 - ✅ **Mock Data Testing** untuk validasi sistem
 - ✅ **Environment Detection Utility** untuk troubleshooting
-- ✅ **Model Management System** untuk file model besar (best.pt, dll)
-- ✅ **Cloud Storage Integration** untuk upload/download model
-- ✅ **Local Backup System** untuk backup dan restore model
 
 ---
 
@@ -137,26 +135,6 @@ python3 app/utils/environment_detector.py
 - `docker_detect_environment.sh` - Deteksi environment di Docker container
 - `run_all_environment_tests.sh` - Jalankan semua environment tests
 - `startup_environment_check.sh` - Environment check pada startup
-- `model_manager.sh` - Manajemen model (upload, download, backup, restore)
-- `download_models.sh` - Download model dari cloud storage
-
-### **Model Management:**
-```bash
-# Setup model management
-./scripts/model_manager.sh setup
-
-# Upload model ke cloud storage
-./scripts/model_manager.sh upload best.pt my_model.pt
-
-# Download model dari cloud storage
-./scripts/model_manager.sh download my_model.pt
-
-# Backup model lokal
-./scripts/model_manager.sh backup best.pt
-
-# List semua model
-./scripts/model_manager.sh list
-```
 
 ---
 
