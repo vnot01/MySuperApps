@@ -25,14 +25,10 @@ ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJnJWvzX4nL1HFdY59pLyUGHUI0uVA/JovCmji9wQ++b
 5. **Key**: Copy paste public key di atas
 6. Klik **Add SSH key**
 
-### **2. Buat Repository di GitHub**
-1. Pergi ke GitHub.com
-2. Klik **New repository**
-3. **Repository name**: `MyRVM-Platform`
-4. **Description**: `MyRVM Platform - Reverse Vending Machine Management System with Edge Vision Dashboard`
-5. **Visibility**: Private (recommended) atau Public
-6. **JANGAN** centang "Initialize with README" (karena sudah ada code)
-7. Klik **Create repository**
+### **2. Repository Target**
+Repository yang sudah ada: **MySuperApps** (https://github.com/vnot01/MySuperApps)
+- MyRVM-Platform akan di-push sebagai subfolder di dalam MySuperApps
+- Repository sudah ada dan berisi MyCV-Platform dan MyRVM-Platform
 
 ### **3. Push ke GitHub**
 Setelah SSH key ditambahkan, jalankan:
@@ -40,6 +36,8 @@ Setelah SSH key ditambahkan, jalankan:
 cd /home/my/MySuperApps/MyRVM-Platform
 git push -u origin main
 ```
+
+**Note**: Karena kita push ke repository MySuperApps yang sudah ada, MyRVM-Platform akan menjadi subfolder di dalam MySuperApps.
 
 ## 📊 **Fitur yang Sudah Di-commit**
 
