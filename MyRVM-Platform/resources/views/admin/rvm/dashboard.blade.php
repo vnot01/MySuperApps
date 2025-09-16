@@ -1819,14 +1819,154 @@
             });
         }
 
+        // --- Dynamic Data Loading Functions ---
+
+        // Load Processing Engines for dropdowns
+        async function loadProcessingEngines() {
+            try {
+                const response = await fetch('/admin/processing-engines/all');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const engines = data.data;
+                    const cudaEngines = engines.filter(engine => engine.type === 'nvidia_cuda');
+                    const jetsonEngines = engines.filter(engine => engine.type === 'jetson_edge');
+                    
+                    // Update Processing Engine dropdown in Upload & Process modal
+                    updateProcessingEngineDropdown(cudaEngines, jetsonEngines);
+                    
+                    // Update Jetson dropdowns in Live Camera and Upload modals
+                    updateJetsonDropdowns(jetsonEngines);
+                    
+                    // Update Engine Configuration modal with CUDA data
+                    updateEngineConfigModal(cudaEngines);
+                    
+                    console.log('Processing engines loaded:', engines.length);
+                }
+            } catch (error) {
+                console.error('Error loading processing engines:', error);
+            }
+        }
+
+        // Update Processing Engine dropdown
+        function updateProcessingEngineDropdown(cudaEngines, jetsonEngines) {
+            const processingEngineSelect = document.getElementById('processingEngine');
+            if (!processingEngineSelect) return;
+
+            // Clear existing options
+            processingEngineSelect.innerHTML = '';
+
+            // Add CUDA engines
+            cudaEngines.forEach(engine => {
+                if (engine.is_active) {
+                    const option = document.createElement('option');
+                    option.value = `cuda-${engine.id}`;
+                    option.textContent = `${engine.name} (${engine.server_address}:${engine.port})`;
+                    if (engine.docker_gpu_passthrough) {
+                        option.textContent += ' - Docker GPU Passthrough';
+                    }
+                    processingEngineSelect.appendChild(option);
+                }
+            });
+
+            // Add Jetson Edge option
+            if (jetsonEngines.length > 0) {
+                const option = document.createElement('option');
+                option.value = 'jetson-edge';
+                option.textContent = 'Jetson Edge Computing';
+                processingEngineSelect.appendChild(option);
+            }
+        }
+
+        // Update Jetson dropdowns
+        function updateJetsonDropdowns(jetsonEngines) {
+            const jetsonSelects = [
+                document.getElementById('jetsonSelect'), // Live Camera modal
+                document.getElementById('jetsonDevice'),   // Upload & Process modal
+                document.getElementById('defaultJetson')   // Engine Configuration modal
+            ];
+
+            jetsonSelects.forEach(select => {
+                if (!select) return;
+
+                // Clear existing options except first one
+                const firstOption = select.querySelector('option[value=""]') || select.querySelector('option');
+                select.innerHTML = '';
+                
+                if (firstOption) {
+                    select.appendChild(firstOption);
+                }
+
+                // Add Jetson engines
+                jetsonEngines.forEach((engine, index) => {
+                    const option = document.createElement('option');
+                    option.value = `jetson-${engine.id}`;
+                    option.textContent = `${engine.name} (${engine.server_address}:${engine.port})`;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        // Update Engine Configuration modal with CUDA data
+        function updateEngineConfigModal(cudaEngines) {
+            // Update CUDA server dropdown
+            const cudaServerSelect = document.getElementById('cudaServerSelect');
+            if (cudaServerSelect) {
+                cudaServerSelect.innerHTML = '';
+                
+                cudaEngines.forEach(engine => {
+                    const option = document.createElement('option');
+                    option.value = engine.id;
+                    option.textContent = `${engine.name} (${engine.server_address}:${engine.port})`;
+                    if (engine.is_active) {
+                        option.textContent += ' - Active';
+                    } else {
+                        option.textContent += ' - Inactive';
+                    }
+                    cudaServerSelect.appendChild(option);
+                });
+
+                // Add event listener for server selection
+                cudaServerSelect.addEventListener('change', function() {
+                    const selectedEngine = cudaEngines.find(engine => engine.id == this.value);
+                    if (selectedEngine) {
+                        document.getElementById('cudaServer').value = `${selectedEngine.server_address}:${selectedEngine.port}`;
+                        document.getElementById('gpuMemory').value = selectedEngine.gpu_memory_limit?.replace('GB', '') || '8';
+                        document.getElementById('enableDockerGPU').checked = selectedEngine.docker_gpu_passthrough;
+                        document.getElementById('cudaModelPath').value = selectedEngine.model_path || '/models/yolo11n.pt';
+                    }
+                });
+            }
+        }
+
+        // Load RVM data for Jetson generation
+        async function loadRvmData() {
+            try {
+                const response = await fetch('/admin/rvm/monitoring-data');
+                const data = await response.json();
+                
+                if (data.success) {
+                    console.log('RVM data loaded for Jetson generation:', data.data.rvms.length);
+                    return data.data.rvms;
+                }
+            } catch (error) {
+                console.error('Error loading RVM data:', error);
+            }
+            return [];
+        }
+
         // --- Page Lifecycle ---
 
         window.addEventListener('load', () => {
             // Add small delay to ensure Chart.js is fully loaded
-            setTimeout(() => {
+            setTimeout(async () => {
                 initializeDashboard();
                 initializeMenuToggle();
                 initializeStickyNavbar();
+                
+                // Load dynamic data for dropdowns
+                await loadProcessingEngines();
+                await loadRvmData();
             }, 100);
         });
         window.addEventListener('beforeunload', stopAutoRefresh);
@@ -2899,8 +3039,15 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
+                                        <label class="form-label">CUDA Server</label>
+                                        <select class="form-select" id="cudaServerSelect">
+                                            <option value="">Choose CUDA Server...</option>
+                                            <!-- Options will be populated dynamically -->
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
                                         <label class="form-label">Server Address</label>
-                                        <input type="text" class="form-control" id="cudaServer" value="192.168.1.50:8000">
+                                        <input type="text" class="form-control" id="cudaServer" value="192.168.1.50:8000" readonly>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">GPU Memory Limit</label>
@@ -2934,9 +3081,8 @@
                                     <div class="mb-3">
                                         <label class="form-label">Default Jetson</label>
                                         <select class="form-select" id="defaultJetson">
-                                            <option value="jetson-1">Jetson Orin 1 (192.168.1.100)</option>
-                                            <option value="jetson-2">Jetson Orin 2 (192.168.1.101)</option>
-                                            <option value="jetson-3">Jetson Orin 3 (192.168.1.102)</option>
+                                            <option value="">Choose Jetson...</option>
+                                            <!-- Options will be populated dynamically -->
                                         </select>
                                     </div>
                                     <div class="mb-3">
