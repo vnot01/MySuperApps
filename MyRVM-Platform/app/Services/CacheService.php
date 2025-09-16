@@ -125,12 +125,20 @@ class CacheService
     public static function clearByPrefix(string $prefix): bool
     {
         try {
-            $pattern = self::getKey($prefix, '*');
-            $keys = Cache::getRedis()->keys($pattern);
+            $cacheDriver = config('cache.default');
             
-            if (!empty($keys)) {
-                Cache::getRedis()->del($keys);
-                Log::info("Cleared cache for prefix: {$prefix}", ['keys_count' => count($keys)]);
+            if ($cacheDriver === 'redis') {
+                $pattern = self::getKey($prefix, '*');
+                $keys = Cache::getRedis()->keys($pattern);
+                
+                if (!empty($keys)) {
+                    Cache::getRedis()->del($keys);
+                    Log::info("Cleared cache for prefix: {$prefix}", ['keys_count' => count($keys)]);
+                }
+            } else {
+                // For database or other cache drivers, flush all cache
+                Cache::flush();
+                Log::info("Cleared all cache (driver: {$cacheDriver}) for prefix: {$prefix}");
             }
             
             return true;

@@ -1,0 +1,220 @@
+/*
+* custom.css
+* File include item custom only specific css only
+******************************************************************************/
+
+.menu .app-brand.custom {
+  height: 64px;
+}
+
+.app-brand-logo.custom svg {
+  width: 34px;
+  height: 24px;
+}
+
+.app-brand-text.custom {
+  font-size: 1.375rem;
+}
+
+/* ! For .layout-navbar-fixed added fix padding top to .layout-page */
+/* Default navbar */
+.layout-navbar-fixed .layout-wrapper:not(.layout-without-menu) .layout-page {
+  padding-top: 64px !important;
+}
+.layout-navbar-fixed .layout-wrapper:not(.layout-horizontal):not(.layout-without-menu) .layout-page {
+  padding-top: 72px !important;
+}
+/* Navbar page z-index issue solution */
+.content-wrapper .navbar {
+  z-index: auto;
+}
+
+/*
+* Content
+******************************************************************************/
+
+.custom-blocks > * {
+  display: block !important;
+}
+
+.custom-inline-spacing > * {
+  margin: 1rem 0.375rem 0 0 !important;
+}
+
+/* ? .custom-vertical-spacing class is used to have vertical margins between elements. To remove margin-top from the first-child, use .custom-only-element class with .custom-vertical-spacing class. For example, we have used this class in forms-input-groups.html file. */
+.custom-vertical-spacing > * {
+  margin-top: 1rem !important;
+  margin-bottom: 0 !important;
+}
+.custom-vertical-spacing.custom-only-element > :first-child {
+  margin-top: 0 !important;
+}
+
+.demo-vertical-spacing-lg > * {
+  margin-top: 1.875rem !important;
+  margin-bottom: 0 !important;
+}
+.demo-vertical-spacing-lg.demo-only-element > :first-child {
+  margin-top: 0 !important;
+}
+
+.demo-vertical-spacing-xl > * {
+  margin-top: 5rem !important;
+  margin-bottom: 0 !important;
+}
+.demo-vertical-spacing-xl.demo-only-element > :first-child {
+  margin-top: 0 !important;
+}
+
+/* Dropdown buttons going out of small screens */
+@media (max-width: 576px) {
+  #dropdown-variation-demo .btn-group .text-truncate {
+    width: 254px;
+    position: relative;
+  }
+  #dropdown-variation-demo .btn-group .text-truncate::after {
+    position: absolute;
+    top: 45%;
+    right: 0.65rem;
+  }
+}
+
+/*
+* Layout demo
+******************************************************************************/
+
+.layout-demo-wrapper {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  margin-top: 1rem;
+}
+.layout-demo-placeholder img {
+  width: 900px;
+}
+.layout-demo-info {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+/*
+* Horizontal Menu Layout
+******************************************************************************/
+
+/* Horizontal menu styling */
+.layout-menu-horizontal {
+  background: #fff;
+  border-bottom: 1px solid #e7eaf3;
+  box-shadow: 0 2px 6px 0 rgba(67, 89, 113, 0.12);
+}
+
+.layout-menu-horizontal .menu-inner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.layout-menu-horizontal .menu-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.layout-menu-horizontal .menu-link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  color: #697a8d;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.layout-menu-horizontal .menu-link:hover {
+  color: #5d4e75;
+  background-color: rgba(93, 78, 117, 0.04);
+}
+
+.layout-menu-horizontal .menu-icon {
+  margin-right: 0.5rem;
+  font-size: 1.125rem;
+}
+
+.layout-menu-horizontal .menu-sub {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  background: #fff;
+  border: 1px solid #e7eaf3;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 8px 0 rgba(67, 89, 113, 0.12);
+  display: none;
+  z-index: 1000;
+  padding: 0.5rem 0;
+  margin: 0;
+  list-style: none;
+}
+
+.layout-menu-horizontal .menu-item:hover .menu-sub {
+  display: block;
+}
+
+.layout-menu-horizontal .menu-sub .menu-link {
+  padding: 0.5rem 1rem;
+  white-space: nowrap;
+}
+
+/*
+* Navbar Icons
+******************************************************************************/
+
+/* Ensure navbar icons are visible */
+.navbar-nav .nav-link i {
+  display: inline-block !important;
+  font-size: 1.375rem;
+  line-height: 1;
+}
+
+.navbar-nav .btn-icon {
+  width: 2.375rem;
+  height: 2.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Icon font loading - Use iconify for tabler icons */
+.ti {
+  display: inline-block !important;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure horizontal menu displays properly */
+.layout-menu-horizontal.menu-horizontal {
+  display: flex !important;
+  flex-direction: row !important;
+}
+
+.layout-menu-horizontal .menu-inner {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  width: 100% !important;
+}

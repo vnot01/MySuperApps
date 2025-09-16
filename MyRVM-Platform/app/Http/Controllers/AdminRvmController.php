@@ -6,6 +6,7 @@ use App\Models\ReverseVendingMachine;
 use App\Models\RvmSession;
 use App\Events\RvmStatusUpdated;
 use App\Events\DashboardDataUpdated;
+use App\Helpers\TimezoneHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -18,8 +19,49 @@ class AdminRvmController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:sanctum')->except(['remoteRvmUI']);
-        $this->middleware('role:super-admin|admin|operator|technician')->except(['remoteRvmUI']);
+        $this->middleware('auth:sanctum')->except(['remoteRvmUI', 'dashboard']);
+        $this->middleware('role:super-admin|admin|operator|technician')->except(['remoteRvmUI', 'dashboard']);
+    }
+
+    /**
+     * Show RVM Dashboard with real data
+     */
+    public function dashboard()
+    {
+        // Get all RVMs with their calculated status
+        $rvms = ReverseVendingMachine::all()->map(function ($rvm) {
+            return [
+                'id' => $rvm->id,
+                'name' => $rvm->name,
+                'location' => $rvm->location_description ?? 'Unknown Location',
+                'capacity' => $rvm->capacity ?? 0,
+                'special_status' => $rvm->special_status,
+                'calculated_status' => $rvm->calculated_status,
+                'status_info' => $rvm->status_info,
+                'last_seen' => $rvm->last_capacity_update ? 
+                    TimezoneHelper::formatTime($rvm->last_capacity_update) : 
+                    TimezoneHelper::formatTime($rvm->updated_at),
+                'admin_access_pin' => $rvm->admin_access_pin,
+                'remote_access_enabled' => $rvm->remote_access_enabled,
+                'created_at' => $rvm->created_at,
+                'updated_at' => $rvm->updated_at,
+            ];
+        });
+
+        // Calculate statistics
+        $statistics = [
+            'total_rvm' => $rvms->count(),
+            'active_sessions' => $rvms->where('calculated_status', 'active')->count(),
+            'total_issues' => $rvms->where('calculated_status', 'full')->count(),
+            'maintenance_count' => $rvms->where('calculated_status', 'maintenance')->count(),
+            'inactive_count' => $rvms->where('calculated_status', 'inactive')->count(),
+            'error_count' => $rvms->where('calculated_status', 'error')->count(),
+        ];
+
+        // Get timezone configuration
+        $timezoneConfig = TimezoneHelper::getTimezoneInfo();
+
+        return view('admin.rvm.dashboard', compact('rvms', 'statistics', 'timezoneConfig'));
     }
 
     /**
@@ -317,18 +359,45 @@ class AdminRvmController extends Controller
      */
     public function getRvmMonitoring()
     {
-        $monitoringData = ReverseVendingMachine::getCachedMonitoringData();
-        
-        // Add status info to each RVM
-        $monitoringData['rvms'] = collect($monitoringData['rvms'])->map(function($rvm) {
-            $rvm['status_info'] = $this->getRvmStatusInfo((object) $rvm);
-            return $rvm;
+        // Get RVMs with capacity and special status
+        $rvms = ReverseVendingMachine::select([
+            'id', 'name', 'location_description', 'status', 'capacity', 'special_status',
+            'last_status_change', 'last_capacity_update', 'created_at', 'updated_at'
+        ])->get();
+
+        // Process RVM data with correct status logic
+        $processedRvms = $rvms->map(function($rvm) {
+            return [
+                'id' => $rvm->id,
+                'name' => $rvm->name,
+                'location' => $rvm->location_description,
+                'capacity' => $rvm->capacity ?? 0,
+                'status' => $rvm->calculated_status,
+                'special_status' => $rvm->special_status,
+                'status_info' => $rvm->status_info,
+                'last_seen' => $rvm->last_capacity_update ? 
+                    TimezoneHelper::formatTime($rvm->last_capacity_update) : 
+                    TimezoneHelper::formatTime($rvm->updated_at)
+            ];
         });
+
+        // Calculate statistics
+        $statistics = [
+            'total_rvm' => $rvms->count(),
+            'active_sessions' => $processedRvms->where('status', 'active')->count(),
+            'deposits_today' => $processedRvms->sum('capacity'),
+            'total_issues' => $processedRvms->whereIn('status', ['error', 'full'])->count()
+        ];
+
+        $monitoringData = [
+            'statistics' => $statistics,
+            'rvms' => $processedRvms->toArray()
+        ];
 
         return response()->json([
             'success' => true,
             'data' => $monitoringData,
-            'cached' => true
+            'cached' => false
         ]);
     }
 

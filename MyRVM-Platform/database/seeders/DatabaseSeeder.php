@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             RvmSeeder::class,
             UserSeeder::class,
+            DemoCredentialsSeeder::class,
             // Panggil seeder lain di sini jika ada
         ]);
 

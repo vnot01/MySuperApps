@@ -139,13 +139,156 @@
             color: #374151;
             font-size: 0.875rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
         }
 
-        .demo-credentials p {
-            color: #6b7280;
-            font-size: 0.75rem;
-            margin-bottom: 0.25rem;
+        .demo-account {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .demo-account:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+
+        .demo-account:last-child {
+            margin-bottom: 0;
+        }
+
+        .demo-account-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .demo-account-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #2c3e50;
+            flex: 1;
+        }
+
+        .demo-account-role {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .demo-account-role.super-admin {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);
+        }
+
+        .demo-account-role.admin {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+        }
+
+        .demo-account-role.operator {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            box-shadow: 0 2px 4px rgba(243, 156, 18, 0.3);
+        }
+
+        .demo-account-role.tenant {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            box-shadow: 0 2px 4px rgba(155, 89, 182, 0.3);
+        }
+
+        .demo-account-role.user {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+            box-shadow: 0 2px 4px rgba(39, 174, 96, 0.3);
+        }
+
+        .demo-credentials-text {
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #495057;
+            margin-bottom: 12px;
+        }
+
+        .demo-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .demo-button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-align: center;
+        }
+
+        .demo-button.copy {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+            color: white;
+        }
+
+        .demo-button.copy:hover {
+            background: linear-gradient(135deg, #5a6268, #495057);
+            transform: translateY(-1px);
+        }
+
+        .demo-button.signin {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .demo-button.signin:hover {
+            background: linear-gradient(135deg, #20c997, #17a2b8);
+            transform: translateY(-1px);
+        }
+
+        .copy-success {
+            display: none;
+            background: #d4edda;
+            color: #155724;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-top: 8px;
+            text-align: center;
+            border: 1px solid #c3e6cb;
+        }
+
+        .copy-success.show {
+            display: block;
+            animation: fadeInOut 2s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-10px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
         }
     </style>
 </head>
@@ -180,10 +323,77 @@
         </div>
 
         <div class="demo-credentials">
-            <h3>Demo Credentials</h3>
-            <p><strong>Super Admin:</strong> admin@myrvm.com / password</p>
-            <p><strong>Admin:</strong> admin2@myrvm.com / password</p>
-            <p><strong>Operator:</strong> operator@myrvm.com / password</p>
+            <h3>🚀 Demo Credentials - Try Now!</h3>
+            
+            <!-- Super Admin Account -->
+            <div class="demo-account">
+                <div class="demo-account-header">
+                    <div class="demo-account-title">Super Admin</div>
+                    <div class="demo-account-role super-admin">SUPER ADMIN</div>
+                </div>
+                <div class="demo-credentials-text">admin@myrvm.com / password</div>
+                <div class="demo-buttons">
+                    <button class="demo-button copy" onclick="copyCredentials('admin@myrvm.com', 'password', this)">📋 Copy</button>
+                    <button class="demo-button signin" onclick="quickSignin('admin@myrvm.com', 'password')">🚀 Sign In</button>
+                </div>
+                <div class="copy-success">Credentials copied!</div>
+            </div>
+
+            <!-- Admin Account -->
+            <div class="demo-account">
+                <div class="demo-account-header">
+                    <div class="demo-account-title">Admin</div>
+                    <div class="demo-account-role admin">ADMIN</div>
+                </div>
+                <div class="demo-credentials-text">admin2@myrvm.com / password</div>
+                <div class="demo-buttons">
+                    <button class="demo-button copy" onclick="copyCredentials('admin2@myrvm.com', 'password', this)">📋 Copy</button>
+                    <button class="demo-button signin" onclick="quickSignin('admin2@myrvm.com', 'password')">🚀 Sign In</button>
+                </div>
+                <div class="copy-success">Credentials copied!</div>
+            </div>
+
+            <!-- Operator Account -->
+            <div class="demo-account">
+                <div class="demo-account-header">
+                    <div class="demo-account-title">Operator</div>
+                    <div class="demo-account-role operator">OPERATOR</div>
+                </div>
+                <div class="demo-credentials-text">operator@myrvm.com / password</div>
+                <div class="demo-buttons">
+                    <button class="demo-button copy" onclick="copyCredentials('operator@myrvm.com', 'password', this)">📋 Copy</button>
+                    <button class="demo-button signin" onclick="quickSignin('operator@myrvm.com', 'password')">🚀 Sign In</button>
+                </div>
+                <div class="copy-success">Credentials copied!</div>
+            </div>
+
+            <!-- Tenant Account -->
+            <div class="demo-account">
+                <div class="demo-account-header">
+                    <div class="demo-account-title">Tenant</div>
+                    <div class="demo-account-role tenant">TENANT</div>
+                </div>
+                <div class="demo-credentials-text">tenant@myrvm.com / password</div>
+                <div class="demo-buttons">
+                    <button class="demo-button copy" onclick="copyCredentials('tenant@myrvm.com', 'password', this)">📋 Copy</button>
+                    <button class="demo-button signin" onclick="quickSignin('tenant@myrvm.com', 'password')">🚀 Sign In</button>
+                </div>
+                <div class="copy-success">Credentials copied!</div>
+            </div>
+
+            <!-- User Account -->
+            <div class="demo-account">
+                <div class="demo-account-header">
+                    <div class="demo-account-title">User</div>
+                    <div class="demo-account-role user">USER</div>
+                </div>
+                <div class="demo-credentials-text">user@myrvm.com / password</div>
+                <div class="demo-buttons">
+                    <button class="demo-button copy" onclick="copyCredentials('user@myrvm.com', 'password', this)">📋 Copy</button>
+                    <button class="demo-button signin" onclick="quickSignin('user@myrvm.com', 'password')">🚀 Sign In</button>
+                </div>
+                <div class="copy-success">Credentials copied!</div>
+            </div>
         </div>
     </div>
 
@@ -291,6 +501,112 @@
         });
     </script>
     <script>
+        function copyCredentials(email, password, button) {
+            // Copy to clipboard
+            const textToCopy = `Email: ${email}\nPassword: ${password}`;
+            
+            if (navigator.clipboard && window.isSecureContext) {
+                // Use modern clipboard API
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    showCopySuccess(button);
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                    fallbackCopyTextToClipboard(textToCopy, button);
+                });
+            } else {
+                // Fallback for older browsers
+                fallbackCopyTextToClipboard(textToCopy, button);
+            }
+        }
+
+        function fallbackCopyTextToClipboard(text, button) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showCopySuccess(button);
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        function showCopySuccess(button) {
+            const demoAccount = button.closest('.demo-account');
+            const successMessage = demoAccount.querySelector('.copy-success');
+            
+            successMessage.classList.add('show');
+            
+            setTimeout(() => {
+                successMessage.classList.remove('show');
+            }, 2000);
+        }
+
+        function quickSignin(email, password) {
+            // Fill the form fields
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            
+            if (emailInput && passwordInput) {
+                emailInput.value = email;
+                passwordInput.value = password;
+                
+                // Add visual feedback
+                emailInput.style.background = '#e8f5e8';
+                passwordInput.style.background = '#e8f5e8';
+                
+                // Focus on submit button
+                const submitButton = document.querySelector('button[type="submit"]');
+                if (submitButton) {
+                    submitButton.focus();
+                    submitButton.style.background = '#28a745';
+                    submitButton.style.transform = 'scale(1.05)';
+                    
+                    // Reset button style after animation
+                    setTimeout(() => {
+                        submitButton.style.background = '';
+                        submitButton.style.transform = '';
+                    }, 300);
+                }
+                
+                // Reset input backgrounds after a moment
+                setTimeout(() => {
+                    emailInput.style.background = '';
+                    passwordInput.style.background = '';
+                }, 1000);
+                
+                // Scroll to form if needed
+                const loginForm = document.querySelector('form');
+                if (loginForm) {
+                    loginForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+
+        // Add some interactive effects on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add stagger animation to demo accounts
+            const demoAccounts = document.querySelectorAll('.demo-account');
+            demoAccounts.forEach((account, index) => {
+                account.style.opacity = '0';
+                account.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    account.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    account.style.opacity = '1';
+                    account.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             

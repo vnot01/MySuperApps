@@ -15,8 +15,11 @@ class ReverseVendingMachine extends Model
         'name',
         'location_description',
         'status',
+        'capacity',
+        'special_status',
         'api_key',
         'last_status_change',
+        'last_capacity_update',
         'admin_access_pin',
         'remote_access_enabled',
         'kiosk_mode_enabled',
@@ -28,12 +31,83 @@ class ReverseVendingMachine extends Model
         'remote_access_enabled' => 'boolean',
         'kiosk_mode_enabled' => 'boolean',
         'last_status_change' => 'datetime',
+        'last_capacity_update' => 'datetime',
+        'capacity' => 'integer',
     ];
 
     /**
      * Cache configuration
      */
     protected int $cacheTtl = 300; // 5 minutes
+
+    /**
+     * Determine RVM status based on capacity and special status
+     */
+    public function getCalculatedStatusAttribute(): string
+    {
+        // If there's a special status (maintenance, inactive, error, unknown), use it
+        if ($this->special_status && in_array($this->special_status, ['maintenance', 'inactive', 'error', 'unknown'])) {
+            return $this->special_status;
+        }
+        
+        // Determine status based on capacity
+        if ($this->capacity >= 100) {
+            return 'full';
+        } elseif ($this->capacity >= 0) {
+            return 'active';
+        } else {
+            return 'unknown';
+        }
+    }
+
+    /**
+     * Get status information with color, icon, and description
+     */
+    public function getStatusInfoAttribute(): array
+    {
+        $status = $this->calculated_status;
+        
+        $statusMap = [
+            'active' => [
+                'color' => 'success',
+                'icon' => 'fas fa-check-circle',
+                'label' => 'Active',
+                'description' => 'RVM is operational and ready'
+            ],
+            'full' => [
+                'color' => 'danger',
+                'icon' => 'fas fa-exclamation-triangle',
+                'label' => 'Full',
+                'description' => 'RVM storage is full'
+            ],
+            'maintenance' => [
+                'color' => 'warning',
+                'icon' => 'fas fa-tools',
+                'label' => 'Maintenance',
+                'description' => 'RVM is under maintenance'
+            ],
+            'inactive' => [
+                'color' => 'secondary',
+                'icon' => 'fas fa-pause-circle',
+                'label' => 'Inactive',
+                'description' => 'RVM is offline or disabled'
+            ],
+            'error' => [
+                'color' => 'danger',
+                'icon' => 'fas fa-times-circle',
+                'label' => 'Error',
+                'description' => 'RVM has encountered an error'
+            ],
+            'unknown' => [
+                'color' => 'info',
+                'icon' => 'fas fa-question-circle',
+                'label' => 'Unknown',
+                'description' => 'Status cannot be determined'
+            ]
+        ];
+        
+        return $statusMap[$status] ?? $statusMap['unknown'];
+    }
 
     /**
      * RVM ini memiliki banyak histori deposit.

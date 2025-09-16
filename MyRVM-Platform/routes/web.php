@@ -8,6 +8,7 @@ use App\Http\Controllers\RvmUIController;
 use App\Http\Controllers\AdminRvmController;
 use App\Http\Controllers\GeminiDashboardController;
 use App\Http\Controllers\CvPlaygroundController;
+use App\Http\Controllers\Admin\EdgeVisionController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -73,6 +74,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 // Remote RVM UI Route (Public access with token validation)
 Route::get('/admin/rvm/{rvm}/remote/{token}', [AdminRvmController::class, 'remoteRvmUI'])->name('admin.rvm.remote');
 
+
 // Gemini Vision Dashboard Routes
 Route::prefix('gemini/dashboard')->group(function () {
     Route::get('/', [GeminiDashboardController::class, 'index'])->name('gemini.dashboard');
@@ -90,10 +92,10 @@ Route::get('/admin/login', function () {
 })->name('admin.login');
 
 // Admin RVM Dashboard Route (Protected with authentication)
-Route::get('/admin/rvm-dashboard', function () {
-    // Always return the dashboard view - let frontend handle authentication
-    return view('admin.rvm.dashboard');
-})->name('admin.rvm.dashboard');
+Route::get('/admin/rvm-dashboard', [AdminRvmController::class, 'dashboard'])->name('admin.rvm.dashboard');
+
+// Dashboard Data Route (Public access for dashboard display)
+Route::get('/admin/rvm-dashboard/data', [AdminRvmController::class, 'getRvmMonitoring'])->name('admin.rvm.dashboard.data');
 
 // Test route to check if middleware is the issue
 Route::get('/test-remote', function() {
@@ -106,5 +108,20 @@ Route::prefix('cv-playground')->name('cv-playground.')->group(function () {
     Route::post('/run-test', [CvPlaygroundController::class, 'runTest'])->name('run-test');
     Route::get('/result/{filepath}', [CvPlaygroundController::class, 'serveResult'])->name('serve-result');
 });
+
+// Edge Vision Dashboard Routes (Protected with authentication)
+Route::middleware(['auth', 'verified'])->prefix('admin/edge-vision')->name('admin.edge-vision.')->group(function () {
+    Route::get('/', [EdgeVisionController::class, 'index'])->name('index');
+    Route::get('/statistics', [EdgeVisionController::class, 'getStatistics'])->name('statistics');
+    Route::get('/rvm-status', [EdgeVisionController::class, 'getRvmStatus'])->name('rvm-status');
+    Route::post('/trigger-processing', [EdgeVisionController::class, 'triggerProcessing'])->name('trigger-processing');
+    Route::get('/processing-history', [EdgeVisionController::class, 'getProcessingHistory'])->name('processing-history');
+    Route::post('/upload-results', [EdgeVisionController::class, 'uploadResults'])->name('upload-results');
+});
+
+// Test route untuk Edge Vision
+Route::get('/admin/edge-vision-test', function () {
+    return 'Edge Vision Test Route Works!';
+})->name('admin.edge-vision.test');
 
 require __DIR__ . '/auth.php';

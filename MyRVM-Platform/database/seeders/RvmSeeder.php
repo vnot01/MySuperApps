@@ -185,7 +185,10 @@ class RvmSeeder extends Seeder
         ];
 
         foreach ($rvms as $rvm) {
-            ReverseVendingMachine::create($rvm);
+            ReverseVendingMachine::updateOrCreate(
+                ['name' => $rvm['name']],
+                $rvm
+            );
         }
     }
 }
