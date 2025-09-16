@@ -9,6 +9,7 @@ use App\Http\Controllers\AdminRvmController;
 use App\Http\Controllers\GeminiDashboardController;
 use App\Http\Controllers\CvPlaygroundController;
 use App\Http\Controllers\Admin\EdgeVisionController;
+use App\Http\Controllers\Admin\ProcessingEngineController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -123,5 +124,22 @@ Route::middleware(['auth', 'verified'])->prefix('admin/edge-vision')->name('admi
 Route::get('/admin/edge-vision-test', function () {
     return 'Edge Vision Test Route Works!';
 })->name('admin.edge-vision.test');
+
+// Processing Engine Management Routes
+Route::middleware(['auth', 'verified'])->prefix('admin/processing-engines')->name('admin.processing-engines.')->group(function () {
+    Route::get('/', [ProcessingEngineController::class, 'index'])->name('index');
+    Route::get('/all', [ProcessingEngineController::class, 'getEngines'])->name('all');
+    Route::get('/nvidia-cuda', [ProcessingEngineController::class, 'getNvidiaCudaEngines'])->name('nvidia-cuda');
+    Route::get('/jetson-edge', [ProcessingEngineController::class, 'getJetsonEdgeEngines'])->name('jetson-edge');
+    Route::get('/rvm-engines', [ProcessingEngineController::class, 'getRvmEngines'])->name('rvm-engines');
+    Route::post('/', [ProcessingEngineController::class, 'store'])->name('store');
+    Route::put('/{engine}', [ProcessingEngineController::class, 'update'])->name('update');
+    Route::delete('/{engine}', [ProcessingEngineController::class, 'destroy'])->name('destroy');
+    Route::post('/{engine}/toggle-activation', [ProcessingEngineController::class, 'toggleActivation'])->name('toggle-activation');
+    Route::post('/{engine}/ping', [ProcessingEngineController::class, 'ping'])->name('ping');
+    Route::post('/ping-all', [ProcessingEngineController::class, 'pingAll'])->name('ping-all');
+    Route::post('/assign-rvm', [ProcessingEngineController::class, 'assignToRvm'])->name('assign-rvm');
+    Route::post('/remove-rvm', [ProcessingEngineController::class, 'removeFromRvm'])->name('remove-rvm');
+});
 
 require __DIR__ . '/auth.php';

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Traits\Cacheable;
 
 class ReverseVendingMachine extends Model
@@ -123,6 +124,38 @@ class ReverseVendingMachine extends Model
     public function sessions(): HasMany
     {
         return $this->hasMany(RvmSession::class, 'rvm_id');
+    }
+
+    /**
+     * RVM ini memiliki banyak processing engines.
+     */
+    public function processingEngines(): BelongsToMany
+    {
+        return $this->belongsToMany(ProcessingEngine::class, 'rvm_processing_engines')
+                    ->withPivot(['priority', 'is_active'])
+                    ->withTimestamps();
+    }
+
+    /**
+     * Get primary processing engine for this RVM
+     */
+    public function primaryProcessingEngine()
+    {
+        return $this->processingEngines()
+                    ->wherePivot('priority', 'primary')
+                    ->wherePivot('is_active', true)
+                    ->first();
+    }
+
+    /**
+     * Get Jetson processing engine for this RVM
+     */
+    public function jetsonProcessingEngine()
+    {
+        return $this->processingEngines()
+                    ->where('type', 'jetson_edge')
+                    ->wherePivot('is_active', true)
+                    ->first();
     }
 
     /**
