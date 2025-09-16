@@ -2045,6 +2045,56 @@
                             </ul>
                         </li>
 
+                        <!-- Playground Computer Vision -->
+                        <li class="menu-item">
+                            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                                <i class="menu-icon fas fa-brain"></i>
+                                <span data-i18n="Playground Computer Vision">Playground Computer Vision</span>
+                            </a>
+                            <ul class="menu-sub">
+                                <li class="menu-item">
+                                    <a href="javascript:void(0);" class="menu-link menu-toggle">
+                                        <i class="menu-icon fas fa-robot"></i>
+                                        <span data-i18n="AI Vision">AI Vision</span>
+                                    </a>
+                                    <ul class="menu-sub">
+                                        <li class="menu-item">
+                                            <a href="http://localhost:8001/gemini/dashboard" class="menu-link" target="_blank">
+                                                <i class="menu-icon fas fa-eye"></i>
+                                                <span data-i18n="Gemini Vision Playground">Gemini Vision Playground</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="menu-item">
+                                    <a href="javascript:void(0);" class="menu-link menu-toggle">
+                                        <i class="menu-icon fas fa-microchip"></i>
+                                        <span data-i18n="Edge Vision">Edge Vision</span>
+                                    </a>
+                                    <ul class="menu-sub">
+                                        <li class="menu-item">
+                                            <a href="javascript:void(0);" class="menu-link" onclick="openEdgeVisionModal()">
+                                                <i class="menu-icon fas fa-video"></i>
+                                                <span data-i18n="Live Camera (Jetson)">Live Camera (Jetson)</span>
+                                            </a>
+                                        </li>
+                                        <li class="menu-item">
+                                            <a href="javascript:void(0);" class="menu-link" onclick="openImageUploadModal()">
+                                                <i class="menu-icon fas fa-upload"></i>
+                                                <span data-i18n="Upload & Process">Upload & Process</span>
+                                            </a>
+                                        </li>
+                                        <li class="menu-item">
+                                            <a href="javascript:void(0);" class="menu-link" onclick="openEngineConfigModal()">
+                                                <i class="menu-icon fas fa-cogs"></i>
+                                                <span data-i18n="Engine Configuration">Engine Configuration</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+
                         <!-- Settings -->
                         <li class="menu-item">
                             <a href="javascript:void(0);" class="menu-link menu-toggle">
@@ -2583,5 +2633,443 @@
 
     <!-- Page JS (Skrip dashboard bawaan dari template telah dihapus karena kita menggunakan logika kustom) -->
     <!-- <script src="../../assets/js/dashboards-analytics.js"></script> -->
+
+    <!-- Edge Vision Modals -->
+    <!-- Live Camera Modal -->
+    <div class="modal fade" id="edgeVisionModal" tabindex="-1" aria-labelledby="edgeVisionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="edgeVisionModalLabel">
+                        <i class="fas fa-video me-2"></i>Live Camera - Jetson Orin
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">Live Camera Feed</h6>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-success" id="startCamera">
+                                            <i class="fas fa-play"></i> Start
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger" id="stopCamera">
+                                            <i class="fas fa-stop"></i> Stop
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="camera-container" style="position: relative; background: #000; border-radius: 8px; overflow: hidden;">
+                                        <video id="liveCamera" width="100%" height="400" style="display: none;">
+                                            Your browser does not support the video tag.
+                                        </video>
+                                        <div id="cameraPlaceholder" class="d-flex align-items-center justify-content-center" style="height: 400px; color: #666;">
+                                            <div class="text-center">
+                                                <i class="fas fa-video fa-3x mb-3"></i>
+                                                <p>Camera feed will appear here</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Jetson Selection</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Select Jetson Device</label>
+                                        <select class="form-select" id="jetsonSelect">
+                                            <option value="">Choose Jetson...</option>
+                                            <option value="jetson-1">Jetson Orin 1 (192.168.1.100)</option>
+                                            <option value="jetson-2">Jetson Orin 2 (192.168.1.101)</option>
+                                            <option value="jetson-3">Jetson Orin 3 (192.168.1.102)</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Processing Mode</label>
+                                        <select class="form-select" id="processingMode">
+                                            <option value="yolo">YOLO11 Only</option>
+                                            <option value="sam2">SAM2 Only</option>
+                                            <option value="both">YOLO11 + SAM2</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="enableRecording">
+                                            <label class="form-check-label" for="enableRecording">
+                                                Enable Recording
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card mt-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Detection Results</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="detectionResults">
+                                        <p class="text-muted text-center">No detections yet</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveResults">
+                        <i class="fas fa-save"></i> Save Results
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Upload Modal -->
+    <div class="modal fade" id="imageUploadModal" tabindex="-1" aria-labelledby="imageUploadModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageUploadModalLabel">
+                        <i class="fas fa-upload me-2"></i>Upload & Process Image
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Upload Image</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="imageUpload" class="form-label">Select Image</label>
+                                        <input type="file" class="form-control" id="imageUpload" accept="image/*">
+                                    </div>
+                                    <div class="image-preview" id="imagePreview" style="display: none;">
+                                        <img id="previewImg" class="img-fluid rounded" style="max-height: 300px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Processing Options</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Processing Engine</label>
+                                        <select class="form-select" id="processingEngine">
+                                            <option value="cuda-vm102">NVIDIA CUDA VM102 (Docker GPU Passthrough)</option>
+                                            <option value="jetson-edge">Jetson Edge Computing</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">AI Models</label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="enableYOLO" checked>
+                                            <label class="form-check-label" for="enableYOLO">
+                                                YOLO11 Object Detection
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="enableSAM2" checked>
+                                            <label class="form-check-label" for="enableSAM2">
+                                                SAM2 Segmentation
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3" id="jetsonConfig" style="display: none;">
+                                        <label class="form-label">Jetson Device</label>
+                                        <select class="form-select" id="jetsonDevice">
+                                            <option value="jetson-1">Jetson Orin 1</option>
+                                            <option value="jetson-2">Jetson Orin 2</option>
+                                            <option value="jetson-3">Jetson Orin 3</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="processImage">
+                        <i class="fas fa-cogs"></i> Process Image
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Engine Configuration Modal -->
+    <div class="modal fade" id="engineConfigModal" tabindex="-1" aria-labelledby="engineConfigModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="engineConfigModalLabel">
+                        <i class="fas fa-cogs me-2"></i>Engine Configuration
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">NVIDIA CUDA VM102</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Server Address</label>
+                                        <input type="text" class="form-control" id="cudaServer" value="192.168.1.50:8000">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">GPU Memory Limit</label>
+                                        <select class="form-select" id="gpuMemory">
+                                            <option value="4">4GB</option>
+                                            <option value="8" selected>8GB</option>
+                                            <option value="16">16GB</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="enableDockerGPU" checked>
+                                            <label class="form-check-label" for="enableDockerGPU">
+                                                Docker GPU Passthrough
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Model Path</label>
+                                        <input type="text" class="form-control" id="cudaModelPath" value="/models/yolo11n.pt">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Jetson Edge Computing</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Default Jetson</label>
+                                        <select class="form-select" id="defaultJetson">
+                                            <option value="jetson-1">Jetson Orin 1 (192.168.1.100)</option>
+                                            <option value="jetson-2">Jetson Orin 2 (192.168.1.101)</option>
+                                            <option value="jetson-3">Jetson Orin 3 (192.168.1.102)</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Processing Timeout (seconds)</label>
+                                        <input type="number" class="form-control" id="processingTimeout" value="30">
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="enableAutoFailover">
+                                            <label class="form-check-label" for="enableAutoFailover">
+                                                Auto Failover
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Model Storage Path</label>
+                                        <input type="text" class="form-control" id="jetsonModelPath" value="/home/jetson/models/">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" id="saveEngineConfig">
+                        <i class="fas fa-save"></i> Save Configuration
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edge Vision JavaScript -->
+    <script>
+        // Edge Vision Functions
+        function openEdgeVisionModal() {
+            const modal = new bootstrap.Modal(document.getElementById('edgeVisionModal'));
+            modal.show();
+        }
+
+        function openImageUploadModal() {
+            const modal = new bootstrap.Modal(document.getElementById('imageUploadModal'));
+            modal.show();
+        }
+
+        function openEngineConfigModal() {
+            const modal = new bootstrap.Modal(document.getElementById('engineConfigModal'));
+            modal.show();
+        }
+
+        // Live Camera Functions
+        document.addEventListener('DOMContentLoaded', function() {
+            const startCameraBtn = document.getElementById('startCamera');
+            const stopCameraBtn = document.getElementById('stopCamera');
+            const liveCamera = document.getElementById('liveCamera');
+            const cameraPlaceholder = document.getElementById('cameraPlaceholder');
+            const jetsonSelect = document.getElementById('jetsonSelect');
+
+            startCameraBtn.addEventListener('click', function() {
+                const selectedJetson = jetsonSelect.value;
+                if (!selectedJetson) {
+                    alert('Please select a Jetson device first');
+                    return;
+                }
+
+                // Simulate camera start
+                cameraPlaceholder.style.display = 'none';
+                liveCamera.style.display = 'block';
+                liveCamera.src = `http://${selectedJetson.split('-')[1] === '1' ? '192.168.1.100' : selectedJetson.split('-')[1] === '2' ? '192.168.1.101' : '192.168.1.102'}:8080/video_feed`;
+                
+                startCameraBtn.disabled = true;
+                stopCameraBtn.disabled = false;
+                
+                // Simulate detection results
+                simulateDetectionResults();
+            });
+
+            stopCameraBtn.addEventListener('click', function() {
+                liveCamera.style.display = 'none';
+                cameraPlaceholder.style.display = 'flex';
+                liveCamera.src = '';
+                
+                startCameraBtn.disabled = false;
+                stopCameraBtn.disabled = true;
+            });
+
+            // Image Upload Functions
+            const imageUpload = document.getElementById('imageUpload');
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            const processingEngine = document.getElementById('processingEngine');
+            const jetsonConfig = document.getElementById('jetsonConfig');
+
+            imageUpload.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImg.src = e.target.result;
+                        imagePreview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            processingEngine.addEventListener('change', function() {
+                if (this.value === 'jetson-edge') {
+                    jetsonConfig.style.display = 'block';
+                } else {
+                    jetsonConfig.style.display = 'none';
+                }
+            });
+
+            document.getElementById('processImage').addEventListener('click', function() {
+                const file = imageUpload.files[0];
+                if (!file) {
+                    alert('Please select an image first');
+                    return;
+                }
+
+                const engine = processingEngine.value;
+                const enableYOLO = document.getElementById('enableYOLO').checked;
+                const enableSAM2 = document.getElementById('enableSAM2').checked;
+
+                if (!enableYOLO && !enableSAM2) {
+                    alert('Please select at least one AI model');
+                    return;
+                }
+
+                // Simulate processing
+                processImageWithAI(file, engine, enableYOLO, enableSAM2);
+            });
+
+            // Engine Configuration Functions
+            document.getElementById('saveEngineConfig').addEventListener('click', function() {
+                const cudaConfig = {
+                    server: document.getElementById('cudaServer').value,
+                    gpuMemory: document.getElementById('gpuMemory').value,
+                    dockerGPU: document.getElementById('enableDockerGPU').checked,
+                    modelPath: document.getElementById('cudaModelPath').value
+                };
+
+                const jetsonConfig = {
+                    defaultJetson: document.getElementById('defaultJetson').value,
+                    timeout: document.getElementById('processingTimeout').value,
+                    autoFailover: document.getElementById('enableAutoFailover').checked,
+                    modelPath: document.getElementById('jetsonModelPath').value
+                };
+
+                // Save configuration (simulate)
+                localStorage.setItem('cudaConfig', JSON.stringify(cudaConfig));
+                localStorage.setItem('jetsonConfig', JSON.stringify(jetsonConfig));
+
+                alert('Configuration saved successfully!');
+                bootstrap.Modal.getInstance(document.getElementById('engineConfigModal')).hide();
+            });
+        });
+
+        function simulateDetectionResults() {
+            const resultsContainer = document.getElementById('detectionResults');
+            const results = [
+                { class: 'bottle', confidence: 0.95, bbox: [100, 150, 200, 300] },
+                { class: 'can', confidence: 0.87, bbox: [300, 200, 150, 250] },
+                { class: 'paper', confidence: 0.78, bbox: [500, 100, 180, 200] }
+            ];
+
+            let html = '<div class="detection-list">';
+            results.forEach((result, index) => {
+                html += `
+                    <div class="detection-item mb-2 p-2 border rounded">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold">${result.class}</span>
+                            <span class="badge bg-success">${(result.confidence * 100).toFixed(1)}%</span>
+                        </div>
+                        <small class="text-muted">BBox: [${result.bbox.join(', ')}]</small>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            resultsContainer.innerHTML = html;
+        }
+
+        function processImageWithAI(file, engine, enableYOLO, enableSAM2) {
+            // Simulate processing
+            const btn = document.getElementById('processImage');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                
+                // Show results
+                alert(`Image processed successfully using ${engine}!\nYOLO11: ${enableYOLO ? 'Enabled' : 'Disabled'}\nSAM2: ${enableSAM2 ? 'Enabled' : 'Disabled'}`);
+                
+                // Close modal
+                bootstrap.Modal.getInstance(document.getElementById('imageUploadModal')).hide();
+            }, 3000);
+        }
+    </script>
+
 </body>
 </html>
