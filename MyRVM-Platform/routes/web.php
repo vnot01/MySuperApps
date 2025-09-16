@@ -125,6 +125,15 @@ Route::get('/admin/edge-vision-test', function () {
     return 'Edge Vision Test Route Works!';
 })->name('admin.edge-vision.test');
 
+// Test route untuk Processing Engines
+Route::get('/admin/processing-engines-test', function () {
+    $engines = App\Models\ProcessingEngine::all();
+    return response()->json([
+        'success' => true,
+        'data' => $engines
+    ]);
+})->name('admin.processing-engines.test');
+
 // Processing Engine Management Routes
 Route::middleware(['auth', 'verified'])->prefix('admin/processing-engines')->name('admin.processing-engines.')->group(function () {
     Route::get('/', [ProcessingEngineController::class, 'index'])->name('index');

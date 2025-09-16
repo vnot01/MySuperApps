@@ -26,7 +26,7 @@ class ProcessingEngineController extends Controller
      */
     public function getEngines(): JsonResponse
     {
-        $engines = ProcessingEngine::with('rvms')->get();
+        $engines = ProcessingEngine::all();
         
         return response()->json([
             'success' => true,
@@ -39,7 +39,7 @@ class ProcessingEngineController extends Controller
      */
     public function getNvidiaCudaEngines(): JsonResponse
     {
-        $engines = ProcessingEngine::nvidiaCuda()->with('rvms')->get();
+        $engines = ProcessingEngine::nvidiaCuda()->get();
         
         return response()->json([
             'success' => true,
@@ -52,7 +52,7 @@ class ProcessingEngineController extends Controller
      */
     public function getJetsonEdgeEngines(): JsonResponse
     {
-        $engines = ProcessingEngine::jetsonEdge()->with('rvms')->get();
+        $engines = ProcessingEngine::jetsonEdge()->get();
         
         return response()->json([
             'success' => true,

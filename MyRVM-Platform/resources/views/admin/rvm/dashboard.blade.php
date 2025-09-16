@@ -1824,13 +1824,24 @@
         // Load Processing Engines for dropdowns
         async function loadProcessingEngines() {
             try {
-                const response = await fetch('/admin/processing-engines/all');
+                console.log('Loading processing engines from /admin/processing-engines-test...');
+                const response = await fetch('/admin/processing-engines-test');
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
+                console.log('Response data:', data);
                 
                 if (data.success) {
                     const engines = data.data;
                     const cudaEngines = engines.filter(engine => engine.type === 'nvidia_cuda');
                     const jetsonEngines = engines.filter(engine => engine.type === 'jetson_edge');
+                    
+                    console.log('CUDA engines found:', cudaEngines.length);
+                    console.log('Jetson engines found:', jetsonEngines.length);
                     
                     // Update Processing Engine dropdown in Upload & Process modal
                     updateProcessingEngineDropdown(cudaEngines, jetsonEngines);
@@ -1841,7 +1852,9 @@
                     // Update Engine Configuration modal with CUDA data
                     updateEngineConfigModal(cudaEngines);
                     
-                    console.log('Processing engines loaded:', engines.length);
+                    console.log('Processing engines loaded successfully:', engines.length);
+                } else {
+                    console.error('API returned success: false');
                 }
             } catch (error) {
                 console.error('Error loading processing engines:', error);
