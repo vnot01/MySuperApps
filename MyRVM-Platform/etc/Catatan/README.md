@@ -17,6 +17,11 @@ Folder ini berisi semua catatan, dokumentasi, dan troubleshooting yang terkait d
 ### **Troubleshooting**
 - **`MENU-TROUBLESHOOTING.md`** - Troubleshooting menu Computer Vision
 
+### **Implementation & System**
+- **`BACKUP-SUMMARY.md`** - Summary backup dan GitHub setup
+- **`EDGE-VISION-IMPLEMENTATION.md`** - Dokumentasi implementasi Edge Vision Dashboard
+- **`README-POS-SYSTEM.md`** - Quick start guide untuk POS System
+
 ---
 
 ## 📋 **CATATAN PENGEMBANGAN**
@@ -78,6 +83,11 @@ Folder ini berisi semua catatan, dokumentasi, dan troubleshooting yang terkait d
 ### **Deployment**
 - MyCV Platform → `MyCV-Platform-Deployment-Plan.md`
 - Network setup → `Network-Configuration-Twingate.md`
+
+### **System & Implementation**
+- Edge Vision Dashboard → `EDGE-VISION-IMPLEMENTATION.md`
+- POS System → `README-POS-SYSTEM.md`
+- Backup & GitHub → `BACKUP-SUMMARY.md`
 
 ---
 
