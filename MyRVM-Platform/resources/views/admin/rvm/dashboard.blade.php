@@ -100,6 +100,76 @@
             z-index: 1000 !important;
         }
 
+        /* Menu Toggle Styles */
+        .menu-toggle {
+            position: relative;
+        }
+
+        .menu-toggle::after {
+            content: '\f107';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: transform 0.3s ease;
+        }
+
+        .menu-toggle[aria-expanded="true"]::after {
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .menu-sub {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-top: 5px;
+            padding: 8px 0;
+            min-width: 200px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .menu-sub.show {
+            display: block;
+        }
+
+        .menu-sub .menu-item {
+            margin: 0;
+        }
+
+        .menu-sub .menu-link {
+            padding: 8px 20px;
+            color: #6c757d;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .menu-sub .menu-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .menu-sub .menu-sub {
+            margin-left: 20px;
+            margin-top: 5px;
+            border-left: 2px solid rgba(102, 126, 234, 0.2);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .modern-navbar .navbar-brand {
             background: var(--primary-gradient);
             -webkit-background-clip: text;
@@ -2902,6 +2972,59 @@
 
     <!-- Edge Vision JavaScript -->
     <script>
+        // Menu Toggle Functions
+        function initMenuToggle() {
+            const menuToggles = document.querySelectorAll('.menu-toggle');
+            
+            menuToggles.forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const menuItem = this.closest('.menu-item');
+                    const subMenu = menuItem.querySelector('.menu-sub');
+                    
+                    if (subMenu) {
+                        const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                        
+                        // Close all other submenus at the same level
+                        const parentMenu = menuItem.parentElement;
+                        const siblings = parentMenu.querySelectorAll('.menu-item');
+                        siblings.forEach(sibling => {
+                            if (sibling !== menuItem) {
+                                const siblingToggle = sibling.querySelector('.menu-toggle');
+                                const siblingSubMenu = sibling.querySelector('.menu-sub');
+                                if (siblingToggle && siblingSubMenu) {
+                                    siblingToggle.setAttribute('aria-expanded', 'false');
+                                    siblingSubMenu.classList.remove('show');
+                                }
+                            }
+                        });
+                        
+                        // Toggle current submenu
+                        if (isExpanded) {
+                            this.setAttribute('aria-expanded', 'false');
+                            subMenu.classList.remove('show');
+                        } else {
+                            this.setAttribute('aria-expanded', 'true');
+                            subMenu.classList.add('show');
+                        }
+                    }
+                });
+            });
+            
+            // Close submenus when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.menu-item')) {
+                    const openSubMenus = document.querySelectorAll('.menu-sub.show');
+                    const openToggles = document.querySelectorAll('.menu-toggle[aria-expanded="true"]');
+                    
+                    openSubMenus.forEach(subMenu => subMenu.classList.remove('show'));
+                    openToggles.forEach(toggle => toggle.setAttribute('aria-expanded', 'false'));
+                }
+            });
+        }
+
         // Edge Vision Functions
         function openEdgeVisionModal() {
             const modal = new bootstrap.Modal(document.getElementById('edgeVisionModal'));
@@ -2920,6 +3043,9 @@
 
         // Live Camera Functions
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize menu toggle functionality
+            initMenuToggle();
+            
             const startCameraBtn = document.getElementById('startCamera');
             const stopCameraBtn = document.getElementById('stopCamera');
             const liveCamera = document.getElementById('liveCamera');
