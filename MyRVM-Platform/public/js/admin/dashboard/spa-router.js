@@ -411,17 +411,13 @@ class SPARouter {
         // Initialize dashboard data if this is dashboard-main component
         if (component.id === 'dashboard-main') {
             console.log('Initializing dashboard data for SPA component...');
-            // Call dashboard initialization functions if they exist
+            // Only call loadMonitoringData to avoid double initialization
             if (typeof loadMonitoringData === 'function') {
                 setTimeout(() => {
                     loadMonitoringData();
                 }, 100);
             }
-            if (typeof initializeDashboard === 'function') {
-                setTimeout(() => {
-                    initializeDashboard();
-                }, 200);
-            }
+            // Don't call initializeDashboard to prevent conflicts
         }
 
         // Add animation

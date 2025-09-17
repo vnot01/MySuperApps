@@ -688,7 +688,13 @@
         // --- Dashboard Logic ---
 
         async function initializeDashboard() {
+            // Prevent multiple initializations
+            if (preventMultipleInitialization()) {
+                return;
+            }
+
             try {
+                console.log('Initializing dashboard...');
                 showLoadingAnimation();
                 
                 // Load saved RVM status changes first
@@ -710,7 +716,19 @@
             }
         }
 
+        // Prevent multiple data loading
+        let dataLoading = false;
+        let updateTimeout = null;
+        
         async function loadMonitoringData() {
+            // Prevent multiple simultaneous data loading
+            if (dataLoading) {
+                console.log('Data loading already in progress, skipping...');
+                return;
+            }
+            
+            dataLoading = true;
+            
             try {
                 showLoadingAnimation();
                 
@@ -746,10 +764,16 @@
                 monitoringData = monitoringDataToUse;
                 
                 console.log('Updating dashboard components...');
-                updateStatistics(monitoringDataToUse.statistics);
-                updateRvmCards(monitoringDataToUse.rvms);
-                updateStatusChart();
-                updateLastUpdated();
+                // Debounce updates to prevent blinking
+                if (updateTimeout) {
+                    clearTimeout(updateTimeout);
+                }
+                updateTimeout = setTimeout(() => {
+                    updateStatistics(monitoringDataToUse.statistics);
+                    updateRvmCards(monitoringDataToUse.rvms);
+                    updateStatusChart();
+                    updateLastUpdated();
+                }, 50);
                 
                 console.log('Dashboard data loaded successfully');
                 
@@ -759,6 +783,7 @@
                 showNotification('Error loading dashboard data: ' + error.message, 'error');
             } finally {
                 hideLoadingAnimation();
+                dataLoading = false;
             }
         }
 
@@ -1276,6 +1301,17 @@
                 initializeStickyNavbar();
             }, 100);
         });
+
+        // Prevent multiple initializations
+        let dashboardInitialized = false;
+        function preventMultipleInitialization() {
+            if (dashboardInitialized) {
+                console.log('Dashboard already initialized, skipping...');
+                return true;
+            }
+            dashboardInitialized = true;
+            return false;
+        }
         window.addEventListener('beforeunload', stopAutoRefresh);
 
         // Sticky Navbar with Scroll Effect
