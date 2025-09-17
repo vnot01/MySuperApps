@@ -415,6 +415,12 @@ class SPARouter {
             if (typeof loadMonitoringData === 'function') {
                 setTimeout(() => {
                     loadMonitoringData();
+                    // Hide traditional dashboard content after data is loaded
+                    if (typeof hideTraditionalDashboardContent === 'function') {
+                        setTimeout(() => {
+                            hideTraditionalDashboardContent();
+                        }, 200);
+                    }
                 }, 100);
             }
             // Don't call initializeDashboard to prevent conflicts

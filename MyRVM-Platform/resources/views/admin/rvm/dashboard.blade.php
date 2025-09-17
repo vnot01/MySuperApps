@@ -769,10 +769,32 @@
                     clearTimeout(updateTimeout);
                 }
                 updateTimeout = setTimeout(() => {
-                    updateStatistics(monitoringDataToUse.statistics);
-                    updateRvmCards(monitoringDataToUse.rvms);
-                    updateStatusChart();
-                    updateLastUpdated();
+                    // Check if we're in SPA mode and update SPA component
+                    const spaContainer = document.getElementById('spa-content-container');
+                    const mainContent = document.getElementById('main-content');
+                    
+                    if (spaContainer && spaContainer.style.display !== 'none') {
+                        console.log('Updating SPA component with data...');
+                        // Update SPA component elements
+                        updateStatistics(monitoringDataToUse.statistics);
+                        updateRvmCards(monitoringDataToUse.rvms);
+                        updateStatusChart();
+                        updateLastUpdated();
+                    } else if (mainContent && mainContent.style.display !== 'none') {
+                        console.log('Updating traditional dashboard with data...');
+                        // Update traditional dashboard elements
+                        updateStatistics(monitoringDataToUse.statistics);
+                        updateRvmCards(monitoringDataToUse.rvms);
+                        updateStatusChart();
+                        updateLastUpdated();
+                    } else {
+                        console.log('Updating both components with data...');
+                        // Update both components
+                        updateStatistics(monitoringDataToUse.statistics);
+                        updateRvmCards(monitoringDataToUse.rvms);
+                        updateStatusChart();
+                        updateLastUpdated();
+                    }
                 }, 50);
                 
                 console.log('Dashboard data loaded successfully');
@@ -1288,9 +1310,8 @@
             setTimeout(async () => {
                 // Check if SPA Router is available
                 if (window.spaRouter) {
-                    console.log('SPA Router detected - Hiding traditional dashboard content');
-                    // Hide traditional dashboard content when SPA Router is active
-                    hideTraditionalDashboardContent();
+                    console.log('SPA Router detected - Skipping traditional dashboard initialization');
+                    // Don't hide traditional dashboard content yet, let SPA Router handle it
                     // SPA Router will handle the dashboard initialization
                     initializeStickyNavbar();
                     return;
