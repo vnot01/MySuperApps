@@ -419,7 +419,7 @@
             <div class="page-header modern-header">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <h1 class="page-title fw-bold mb-2">RVM Dashboard</h1>
+                        <h1 class="page-title fw-bold mb-2">RVM Dashboard 1234</h1>
                         <p class="page-subtitle text-muted mb-0">Monitor and manage your Reverse Vending Machines</p>
                     </div>
                     <div class="page-actions">
@@ -1225,11 +1225,18 @@
             setTimeout(async () => {
                 // Check if SPA Router is available
                 if (window.spaRouter) {
-                    console.log('SPA Router detected - Skipping traditional dashboard initialization');
-                    // Hide traditional dashboard content immediately
-                    hideTraditionalDashboardContent();
+                    console.log('SPA Router detected - Waiting for SPA initialization');
+                    // Don't hide traditional dashboard immediately, wait for SPA to load
                     // SPA Router will handle the dashboard initialization
                     initializeStickyNavbar();
+                    
+                    // Set a timeout to fallback to traditional dashboard if SPA fails
+                    setTimeout(() => {
+                        if (!window.spaRouter.currentView) {
+                            console.log('SPA Router failed to load, falling back to traditional dashboard');
+                            initializeDashboard();
+                        }
+                    }, 3000);
                     return;
                 }
                 

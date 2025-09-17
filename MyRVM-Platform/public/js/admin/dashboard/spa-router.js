@@ -36,12 +36,14 @@ class SPARouter {
         const currentPath = window.location.pathname;
         console.log('SPA Router initializing with path:', currentPath);
         
-        // Handle initial route
-        if (currentPath === '/' || currentPath === '/dashboard' || currentPath === '/admin/rvm-dashboard') {
-            this.handleRouteChange('/dashboard');
-        } else {
-            this.handleRouteChange(currentPath);
-        }
+        // Handle initial route with delay to ensure DOM is ready
+        setTimeout(() => {
+            if (currentPath === '/' || currentPath === '/dashboard' || currentPath === '/admin/rvm-dashboard') {
+                this.handleRouteChange('/dashboard');
+            } else {
+                this.handleRouteChange(currentPath);
+            }
+        }, 500);
     }
 
     /**
@@ -196,10 +198,18 @@ class SPARouter {
             if (!routeConfig) {
                 // If no route config found, try to load dashboard-main as default
                 if (route === '/dashboard' || route === '/') {
-                    await this.loadComponent('dashboard-main', data);
-                    this.currentRoute = route;
-                    this.hideLoading();
-                    return;
+                    try {
+                        await this.loadComponent('dashboard-main', data);
+                        this.currentRoute = route;
+                        this.hideLoading();
+                        return;
+                    } catch (componentError) {
+                        console.error('Failed to load dashboard-main component:', componentError);
+                        // Fallback to traditional dashboard
+                        this.showTraditionalDashboardContent();
+                        this.hideLoading();
+                        return;
+                    }
                 }
                 this.show404();
                 return;
@@ -212,7 +222,15 @@ class SPARouter {
             this.updateBreadcrumbs(route, routeConfig);
             
             // Load and render component
-            await this.loadComponent(routeConfig.component, data);
+            try {
+                await this.loadComponent(routeConfig.component, data);
+            } catch (componentError) {
+                console.error('Failed to load component:', componentError);
+                // Fallback to traditional dashboard
+                this.showTraditionalDashboardContent();
+                this.hideLoading();
+                return;
+            }
             
             // Update page title
             document.title = `${routeConfig.title} - MyRVM Platform`;
@@ -228,7 +246,9 @@ class SPARouter {
             
         } catch (error) {
             console.error('Error handling route change:', error);
-            this.showError('Failed to load page');
+            // Fallback to traditional dashboard on any error
+            this.showTraditionalDashboardContent();
+            this.hideLoading();
         }
     }
 
@@ -238,6 +258,8 @@ class SPARouter {
      * @param {object} data - Data to pass to component
      */
     async loadComponent(componentName, data = {}) {
+        console.log(`Loading component: ${componentName}`);
+        
         const container = document.getElementById('main-content');
         if (!container) {
             throw new Error('Main content container not found');
@@ -255,10 +277,12 @@ class SPARouter {
         let component = document.getElementById(componentName);
         
         if (!component) {
+            console.log(`Creating new component: ${componentName}`);
             // Create new component
             component = await this.createComponent(componentName, data);
             container.appendChild(component);
         } else {
+            console.log(`Updating existing component: ${componentName}`);
             // Update existing component
             await this.updateComponent(component, data);
         }
@@ -269,6 +293,8 @@ class SPARouter {
 
         // Initialize component
         this.initializeComponent(component, data);
+        
+        console.log(`Component ${componentName} loaded successfully`);
     }
 
     /**
@@ -297,12 +323,13 @@ class SPARouter {
         try {
             const response = await fetch(`/js/admin/dashboard/components/${componentName}.html`);
             if (!response.ok) {
-                throw new Error(`Failed to load component: ${componentName}`);
+                throw new Error(`Failed to load component: ${componentName} (${response.status})`);
             }
             return await response.text();
         } catch (error) {
             console.error('Error loading component template:', error);
-            return this.getDefaultTemplate(componentName);
+            // Return a more detailed error template
+            return this.getErrorTemplate(componentName, error.message);
         }
     }
 
@@ -321,6 +348,46 @@ class SPARouter {
                             </div>
                             <div class="card-body">
                                 <p class="text-muted">Component "${componentName}" is loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Get error template for a component
+     * @param {string} componentName - Name of the component
+     * @param {string} errorMessage - Error message
+     */
+    getErrorTemplate(componentName, errorMessage) {
+        return `
+            <div class="container-xxl">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card border-danger">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Component Error
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-danger mb-3">
+                                    <strong>Failed to load component:</strong> ${componentName}
+                                </p>
+                                <p class="text-muted mb-3">
+                                    <strong>Error:</strong> ${errorMessage}
+                                </p>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-primary btn-sm" onclick="location.reload()">
+                                        <i class="fas fa-refresh me-1"></i>Reload Page
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm" onclick="window.spaRouter.showTraditionalDashboardContent()">
+                                        <i class="fas fa-desktop me-1"></i>Use Traditional Dashboard
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
