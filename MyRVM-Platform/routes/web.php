@@ -15,7 +15,7 @@ use App\Http\Controllers\Admin\ProcessingEngineController;
 //     return view('welcome');
 // });
 
-// --- TAMBAHKAN RUTE INI ---
+// --- ROOT ROUTE ---
 Route::get('/', function () {
     // Cek jika user sudah login
     if (Auth::check()) {
@@ -29,8 +29,7 @@ Route::get('/', function () {
     }
     // Jika belum login, arahkan ke halaman login
     return redirect()->route('login');
-})->name('home'); // <-- Memberi nama 'home' pada rute root
-// -------------------------
+})->name('home');
 
 // Rute dasbor user biasa (dari Breeze)
 Route::get('/dashboard', function () {
@@ -53,25 +52,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard/{path?}', function () {
         return view('admin.dashboard');
     })->where('path', '.*')->name('spa.dashboard');
-    
-    // Catch-all SPA Route (harus di akhir)
-    Route::get('/{path}', function () {
-        // Cek jika path adalah SPA route
-        $spaRoutes = [
-            'edge-vision',
-            'dashboard',
-            'admin/rvm-dashboard'
-        ];
-        
-        foreach ($spaRoutes as $spaRoute) {
-            if (str_starts_with(request()->path(), $spaRoute)) {
-                return view('admin.dashboard');
-            }
-        }
-        
-        // Jika bukan SPA route, return 404
-        abort(404);
-    })->where('path', '.*')->name('spa.catch-all');
 });
 
 // Rute profil (dari Breeze)
@@ -128,6 +108,20 @@ Route::prefix('gemini/dashboard')->group(function () {
 Route::get('/admin/login', function () {
     return view('auth.login');
 })->name('admin.login');
+
+// Explicit login route to prevent redirect loop
+Route::get('/login', function () {
+    // Cek jika user sudah login, redirect ke dashboard
+    if (Auth::check()) {
+        $user = Auth::user();
+        if (in_array($user->role?->slug, ['super-admin', 'admin', 'tenant'])) {
+            return redirect()->route('admin.rvm.dashboard');
+        }
+        return redirect()->route('dashboard');
+    }
+    // Jika belum login, tampilkan halaman login
+    return view('auth.login');
+})->name('login.explicit');
 
 // Admin RVM Dashboard Route (Protected with authentication)
 Route::get('/admin/rvm-dashboard', [AdminRvmController::class, 'dashboard'])->name('admin.rvm.dashboard');
@@ -187,5 +181,25 @@ Route::middleware(['auth', 'verified'])->prefix('admin/processing-engines')->nam
     Route::post('/assign-rvm', [ProcessingEngineController::class, 'assignToRvm'])->name('assign-rvm');
     Route::post('/remove-rvm', [ProcessingEngineController::class, 'removeFromRvm'])->name('remove-rvm');
 });
+
+// Catch-all SPA Route (harus di akhir, setelah semua route lain)
+Route::middleware(['auth', 'verified'])->get('/{path}', function () {
+    // Cek jika path adalah SPA route
+    $spaRoutes = [
+        'edge-vision',
+        'dashboard',
+        'admin/rvm-dashboard'
+    ];
+    
+    $currentPath = request()->path();
+    foreach ($spaRoutes as $spaRoute) {
+        if (str_starts_with($currentPath, $spaRoute)) {
+            return view('admin.dashboard');
+        }
+    }
+    
+    // Jika bukan SPA route, return 404
+    abort(404);
+})->where('path', '.*')->name('spa.catch-all');
 
 require __DIR__ . '/auth.php';
