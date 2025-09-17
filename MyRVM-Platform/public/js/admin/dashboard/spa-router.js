@@ -33,7 +33,15 @@ class SPARouter {
         });
         
         // Initial route
-        this.handleRouteChange(window.location.pathname);
+        const currentPath = window.location.pathname;
+        console.log('SPA Router initializing with path:', currentPath);
+        
+        // Handle initial route
+        if (currentPath === '/' || currentPath === '/dashboard' || currentPath === '/admin/rvm-dashboard') {
+            this.handleRouteChange('/dashboard');
+        } else {
+            this.handleRouteChange(currentPath);
+        }
     }
 
     /**
@@ -186,6 +194,13 @@ class SPARouter {
             // Get route config
             const routeConfig = this.routes.get(route);
             if (!routeConfig) {
+                // If no route config found, try to load dashboard-main as default
+                if (route === '/dashboard' || route === '/') {
+                    await this.loadComponent('dashboard-main', data);
+                    this.currentRoute = route;
+                    this.hideLoading();
+                    return;
+                }
                 this.show404();
                 return;
             }

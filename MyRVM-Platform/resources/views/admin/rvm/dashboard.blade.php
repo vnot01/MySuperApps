@@ -1223,6 +1223,15 @@
 
         window.addEventListener('load', () => {
             setTimeout(async () => {
+                // Check if SPA Router is available
+                if (window.spaRouter) {
+                    console.log('SPA Router detected - Skipping traditional dashboard initialization');
+                    // SPA Router will handle the dashboard initialization
+                    initializeStickyNavbar();
+                    return;
+                }
+                
+                console.log('Traditional dashboard initialization');
                 initializeDashboard();
                 initializeStickyNavbar();
             }, 100);

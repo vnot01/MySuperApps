@@ -22,7 +22,7 @@ Route::get('/', function () {
         $user = Auth::user();
         // Cek jika user memiliki peran yang bisa mengakses dasbor admin
         if (in_array($user->role?->slug, ['super-admin', 'admin', 'tenant'])) {
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('admin.rvm.dashboard');
         }
         // Jika user biasa, arahkan ke dasbor user biasa
         return redirect()->route('dashboard');
@@ -36,6 +36,11 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     return view('admin.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+// SPA Dashboard Route (untuk SPA navigation)
+Route::get('/dashboard/{path?}', function () {
+    return view('admin.dashboard');
+})->where('path', '.*')->middleware(['auth', 'verified'])->name('dashboard.spa');
 
 // Rute profil (dari Breeze)
 Route::middleware('auth')->group(function () {
