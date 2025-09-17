@@ -386,6 +386,43 @@
             transition: all 0.3s ease-in-out;
         }
 
+        /* Menu Panel Spacing Fixes */
+        .navbar-nav {
+            gap: 0.5rem !important;
+        }
+        
+        .navbar-nav .nav-link {
+            padding: 0.75rem 1rem !important;
+            margin: 0 0.25rem !important;
+        }
+        
+        /* Container spacing improvements */
+        .container-xxl {
+            max-width: 1400px !important;
+        }
+        
+        /* Card spacing improvements */
+        .card {
+            margin-bottom: 1.5rem;
+        }
+        
+        .row.g-4 > * {
+            padding: 0.75rem !important;
+        }
+        
+        /* Form spacing improvements */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .mb-4 {
+            margin-bottom: 1.5rem !important;
+        }
+        
+        .mb-3 {
+            margin-bottom: 1rem !important;
+        }
+
         /* Responsive Adjustments */
         @media (max-width: 768px) {
             .spa-view {
@@ -403,6 +440,28 @@
             
             .page-title {
                 font-size: 2rem;
+            }
+            
+            .navbar-nav {
+                gap: 0.25rem !important;
+            }
+            
+            .navbar-nav .nav-link {
+                padding: 0.5rem 0.75rem !important;
+                margin: 0 0.125rem !important;
+                font-size: 0.875rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .navbar-nav .nav-link {
+                padding: 0.5rem !important;
+                margin: 0 !important;
+                font-size: 0.8rem;
+            }
+            
+            .navbar-nav .nav-link i {
+                display: none;
             }
         }
     </style>

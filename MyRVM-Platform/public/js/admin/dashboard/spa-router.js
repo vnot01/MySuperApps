@@ -36,11 +36,19 @@ class SPARouter {
         const currentPath = window.location.pathname;
         console.log('SPA Router initializing with path:', currentPath);
         
-        // Handle initial route
+        // Handle initial route with better path matching
         if (currentPath === '/' || currentPath === '/dashboard' || currentPath === '/admin/rvm-dashboard') {
             this.handleRouteChange('/dashboard');
-        } else {
+        } else if (currentPath.startsWith('/edge-vision/')) {
+            // Handle edge vision routes
             this.handleRouteChange(currentPath);
+        } else if (currentPath.startsWith('/dashboard/')) {
+            // Handle dashboard sub-routes
+            this.handleRouteChange(currentPath);
+        } else {
+            // Default to dashboard for unknown routes
+            console.log('Unknown route, defaulting to dashboard:', currentPath);
+            this.handleRouteChange('/dashboard');
         }
     }
 
