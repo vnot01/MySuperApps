@@ -408,6 +408,22 @@ class SPARouter {
             detail: data
         }));
 
+        // Initialize dashboard data if this is dashboard-main component
+        if (component.id === 'dashboard-main') {
+            console.log('Initializing dashboard data for SPA component...');
+            // Call dashboard initialization functions if they exist
+            if (typeof loadMonitoringData === 'function') {
+                setTimeout(() => {
+                    loadMonitoringData();
+                }, 100);
+            }
+            if (typeof initializeDashboard === 'function') {
+                setTimeout(() => {
+                    initializeDashboard();
+                }, 200);
+            }
+        }
+
         // Add animation
         component.style.opacity = '0';
         component.style.transform = 'translateY(20px)';

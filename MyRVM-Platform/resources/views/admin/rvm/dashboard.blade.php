@@ -714,20 +714,28 @@
             try {
                 showLoadingAnimation();
                 
-                console.log('Loading monitoring data from server...');
+                console.log('Loading monitoring data...');
                 
-                // Use server data instead of mock data
-                const serverMonitoringData = {
-                    rvms: serverData.rvms,
-                    statistics: serverData.statistics
-                };
+                // Check if server data is available, otherwise use mock data
+                let monitoringDataToUse;
                 
-                console.log('Server data loaded:', serverMonitoringData);
+                if (serverData && serverData.rvms && serverData.statistics) {
+                    console.log('Using server data...');
+                    monitoringDataToUse = {
+                        rvms: serverData.rvms,
+                        statistics: serverData.statistics
+                    };
+                } else {
+                    console.log('Server data not available, using mock data...');
+                    monitoringDataToUse = loadMockData();
+                }
                 
-                // Apply saved status changes to server data
-                if (serverMonitoringData.rvms && Object.keys(rvmStatusChanges).length > 0) {
+                console.log('Data loaded:', monitoringDataToUse);
+                
+                // Apply saved status changes to data
+                if (monitoringDataToUse.rvms && Object.keys(rvmStatusChanges).length > 0) {
                     console.log('Applying saved status changes:', rvmStatusChanges);
-                    serverMonitoringData.rvms.forEach(rvm => {
+                    monitoringDataToUse.rvms.forEach(rvm => {
                         if (rvmStatusChanges[rvm.id]) {
                             rvm.calculated_status = rvmStatusChanges[rvm.id].status;
                             rvm.last_seen = rvmStatusChanges[rvm.id].last_seen;
@@ -735,15 +743,15 @@
                     });
                 }
                 
-                monitoringData = serverMonitoringData;
+                monitoringData = monitoringDataToUse;
                 
                 console.log('Updating dashboard components...');
-                updateStatistics(serverMonitoringData.statistics);
-                updateRvmCards(serverMonitoringData.rvms);
+                updateStatistics(monitoringDataToUse.statistics);
+                updateRvmCards(monitoringDataToUse.rvms);
                 updateStatusChart();
                 updateLastUpdated();
                 
-                console.log('Dashboard data loaded successfully from server');
+                console.log('Dashboard data loaded successfully');
                 
             } catch (error) {
                 console.error('Error loading monitoring data:', error);
