@@ -371,19 +371,20 @@
             font-size: 0.9rem;
         }
 
-        /* SPA Content Container */
-        #spa-content-container {
-            transition: all 0.3s ease-in-out;
+        /* SPA Mode - Hide Traditional Dashboard */
+        .spa-mode .traditional-dashboard {
+            display: none !important;
         }
 
-        #spa-content-container.show {
-            opacity: 1;
-            visibility: visible;
+        .spa-mode .row.mb-4:not(.spa-view),
+        .spa-mode .row.g-4:not(.spa-view),
+        .spa-mode .card:not(.spa-view) {
+            display: none !important;
         }
 
-        /* Content Switching */
-        .content-switching {
-            transition: all 0.3s ease-in-out;
+        /* Traditional Dashboard Mode - Hide SPA Components */
+        .traditional-mode .spa-view {
+            display: none !important;
         }
 
         /* Responsive Adjustments */
@@ -757,11 +758,6 @@
                     <!-- Content -->
                     <div id="main-content" class="container-xxl flex-grow-1 container-p-y page-transition">
                         @yield('content')
-                        </div>
-                    
-                    <!-- SPA Content Container (hidden by default) -->
-                    <div id="spa-content-container" class="container-xxl flex-grow-1 container-p-y page-transition" style="display: none;">
-                        <!-- SPA components will be loaded here -->
                     </div>
                     <!-- / Content -->
 

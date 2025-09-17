@@ -688,13 +688,7 @@
         // --- Dashboard Logic ---
 
         async function initializeDashboard() {
-            // Prevent multiple initializations
-            if (preventMultipleInitialization()) {
-                return;
-            }
-
             try {
-                console.log('Initializing dashboard...');
                 showLoadingAnimation();
                 
                 // Load saved RVM status changes first
@@ -716,44 +710,24 @@
             }
         }
 
-        // Prevent multiple data loading
-        let dataLoading = false;
-        let updateTimeout = null;
-        
         async function loadMonitoringData() {
-            // Prevent multiple simultaneous data loading
-            if (dataLoading) {
-                console.log('Data loading already in progress, skipping...');
-                return;
-            }
-            
-            dataLoading = true;
-            
             try {
                 showLoadingAnimation();
                 
-                console.log('Loading monitoring data...');
+                console.log('Loading monitoring data from server...');
                 
-                // Check if server data is available, otherwise use mock data
-                let monitoringDataToUse;
+                // Use server data instead of mock data
+                const serverMonitoringData = {
+                    rvms: serverData.rvms,
+                    statistics: serverData.statistics
+                };
                 
-                if (serverData && serverData.rvms && serverData.statistics) {
-                    console.log('Using server data...');
-                    monitoringDataToUse = {
-                        rvms: serverData.rvms,
-                        statistics: serverData.statistics
-                    };
-                } else {
-                    console.log('Server data not available, using mock data...');
-                    monitoringDataToUse = loadMockData();
-                }
+                console.log('Server data loaded:', serverMonitoringData);
                 
-                console.log('Data loaded:', monitoringDataToUse);
-                
-                // Apply saved status changes to data
-                if (monitoringDataToUse.rvms && Object.keys(rvmStatusChanges).length > 0) {
+                // Apply saved status changes to server data
+                if (serverMonitoringData.rvms && Object.keys(rvmStatusChanges).length > 0) {
                     console.log('Applying saved status changes:', rvmStatusChanges);
-                    monitoringDataToUse.rvms.forEach(rvm => {
+                    serverMonitoringData.rvms.forEach(rvm => {
                         if (rvmStatusChanges[rvm.id]) {
                             rvm.calculated_status = rvmStatusChanges[rvm.id].status;
                             rvm.last_seen = rvmStatusChanges[rvm.id].last_seen;
@@ -761,43 +735,15 @@
                     });
                 }
                 
-                monitoringData = monitoringDataToUse;
+                monitoringData = serverMonitoringData;
                 
                 console.log('Updating dashboard components...');
-                // Debounce updates to prevent blinking
-                if (updateTimeout) {
-                    clearTimeout(updateTimeout);
-                }
-                updateTimeout = setTimeout(() => {
-                    // Check if we're in SPA mode and update SPA component
-                    const spaContainer = document.getElementById('spa-content-container');
-                    const mainContent = document.getElementById('main-content');
-                    
-                    if (spaContainer && spaContainer.style.display !== 'none') {
-                        console.log('Updating SPA component with data...');
-                        // Update SPA component elements
-                        updateStatistics(monitoringDataToUse.statistics);
-                        updateRvmCards(monitoringDataToUse.rvms);
-                        updateStatusChart();
-                        updateLastUpdated();
-                    } else if (mainContent && mainContent.style.display !== 'none') {
-                        console.log('Updating traditional dashboard with data...');
-                        // Update traditional dashboard elements
-                        updateStatistics(monitoringDataToUse.statistics);
-                        updateRvmCards(monitoringDataToUse.rvms);
-                        updateStatusChart();
-                        updateLastUpdated();
-                    } else {
-                        console.log('Updating both components with data...');
-                        // Update both components
-                        updateStatistics(monitoringDataToUse.statistics);
-                        updateRvmCards(monitoringDataToUse.rvms);
-                        updateStatusChart();
-                        updateLastUpdated();
-                    }
-                }, 50);
+                updateStatistics(serverMonitoringData.statistics);
+                updateRvmCards(serverMonitoringData.rvms);
+                updateStatusChart();
+                updateLastUpdated();
                 
-                console.log('Dashboard data loaded successfully');
+                console.log('Dashboard data loaded successfully from server');
                 
             } catch (error) {
                 console.error('Error loading monitoring data:', error);
@@ -805,7 +751,6 @@
                 showNotification('Error loading dashboard data: ' + error.message, 'error');
             } finally {
                 hideLoadingAnimation();
-                dataLoading = false;
             }
         }
 
@@ -1276,42 +1221,13 @@
 
         // --- Page Lifecycle ---
 
-        // Function to hide traditional dashboard content when SPA Router is active
-        function hideTraditionalDashboardContent() {
-            // Hide the main content section that contains traditional dashboard
-            const mainContent = document.getElementById('main-content');
-            if (mainContent) {
-                mainContent.style.opacity = '0';
-                mainContent.style.visibility = 'hidden';
-                mainContent.style.transition = 'all 0.3s ease-in-out';
-                setTimeout(() => {
-                    mainContent.style.display = 'none';
-                }, 300);
-                console.log('Traditional dashboard content hidden');
-            }
-            
-            // Show SPA content container
-            const spaContainer = document.getElementById('spa-content-container');
-            if (spaContainer) {
-                spaContainer.style.display = 'block';
-                spaContainer.style.opacity = '0';
-                spaContainer.style.visibility = 'hidden';
-                spaContainer.style.transition = 'all 0.3s ease-in-out';
-                setTimeout(() => {
-                    spaContainer.style.opacity = '1';
-                    spaContainer.style.visibility = 'visible';
-                    spaContainer.classList.add('show');
-                }, 100);
-                console.log('SPA content container shown');
-            }
-        }
-
         window.addEventListener('load', () => {
             setTimeout(async () => {
                 // Check if SPA Router is available
                 if (window.spaRouter) {
                     console.log('SPA Router detected - Skipping traditional dashboard initialization');
-                    // Don't hide traditional dashboard content yet, let SPA Router handle it
+                    // Hide traditional dashboard content immediately
+                    hideTraditionalDashboardContent();
                     // SPA Router will handle the dashboard initialization
                     initializeStickyNavbar();
                     return;
@@ -1323,15 +1239,36 @@
             }, 100);
         });
 
-        // Prevent multiple initializations
-        let dashboardInitialized = false;
-        function preventMultipleInitialization() {
-            if (dashboardInitialized) {
-                console.log('Dashboard already initialized, skipping...');
-                return true;
-            }
-            dashboardInitialized = true;
-            return false;
+        // Function to hide traditional dashboard content when SPA Router is active
+        function hideTraditionalDashboardContent() {
+            // Add SPA mode class to body
+            document.body.classList.add('spa-mode');
+            document.body.classList.remove('traditional-mode');
+            
+            // Hide traditional dashboard elements
+            const traditionalElements = [
+                'rvm-cards-container',
+                'statistics-cards',
+                'status-chart-container', 
+                'quick-actions-panel'
+            ];
+            
+            traditionalElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.style.display = 'none';
+                }
+            });
+            
+            // Hide traditional dashboard sections
+            const traditionalSections = document.querySelectorAll('.row.mb-4, .row.g-4, .card:not(.spa-view)');
+            traditionalSections.forEach(section => {
+                if (section.closest('#main-content')) {
+                    section.style.display = 'none';
+                }
+            });
+            
+            console.log('Traditional dashboard content hidden for SPA mode');
         }
         window.addEventListener('beforeunload', stopAutoRefresh);
 
@@ -1417,7 +1354,7 @@
             // Navigate to SPA route instead of opening modal
             if (window.spaRouter) {
                 window.spaRouter.navigate('/edge-vision/live-camera');
-                    } else {
+            } else {
                 // Fallback to modal if SPA router not available
                 const modal = new bootstrap.Modal(document.getElementById('edgeVisionModal'));
                 modal.show();
@@ -1549,24 +1486,24 @@
                 <div class="modal-header border-0 bg-transparent">
                     <h5 class="modal-title fw-bold">Remote Access</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
+        </div>
                 <div class="modal-body p-4">
                     <div class="mb-4">
                         <p class="text-muted">Enter access PIN to connect to RVM:</p>
                         <p class="fw-bold text-primary" id="modal-rvm-name">-</p>
-                    </div>
+    </div>
                     <div class="mb-3">
                         <label for="access-pin" class="form-label fw-medium">Access PIN</label>
                         <input type="password" id="access-pin" class="form-control" placeholder="Enter PIN">
-                            </div>
-                        </div>
+                    </div>
+                    </div>
                 <div class="modal-footer border-0 bg-transparent">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" id="connect-rvm" class="btn btn-primary">Connect</button>
+                            </div>
+                        </div>
                                         </div>
                                     </div>
-                                            </div>
-                                            </div>
 
     <!-- Status Update Modal -->
     <div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">

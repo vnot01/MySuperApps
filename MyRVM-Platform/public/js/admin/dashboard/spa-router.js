@@ -39,16 +39,8 @@ class SPARouter {
         // Handle initial route
         if (currentPath === '/' || currentPath === '/dashboard' || currentPath === '/admin/rvm-dashboard') {
             this.handleRouteChange('/dashboard');
-        } else if (currentPath.startsWith('/edge-vision/')) {
-            // Handle edge vision routes
-            this.handleRouteChange(currentPath);
-        } else if (currentPath.startsWith('/dashboard/')) {
-            // Handle dashboard sub-routes
-            this.handleRouteChange(currentPath);
         } else {
-            // Default to dashboard for unknown routes
-            console.log('Unknown route, defaulting to dashboard:', currentPath);
-            this.handleRouteChange('/dashboard');
+            this.handleRouteChange(currentPath);
         }
     }
 
@@ -168,42 +160,6 @@ class SPARouter {
     }
 
     /**
-     * Find parameterized route that matches the given path
-     * @param {string} path - The path to match
-     * @returns {object|null} - Route config or null if not found
-     */
-    findParameterizedRoute(path) {
-        for (const [routePattern, config] of this.routes) {
-            if (routePattern.includes(':')) {
-                // Convert route pattern to regex
-                const regexPattern = routePattern
-                    .replace(/:\w+/g, '([^/]+)') // Replace :param with regex group
-                    .replace(/\//g, '\\/'); // Escape forward slashes
-                
-                const regex = new RegExp(`^${regexPattern}$`);
-                if (regex.test(path)) {
-                    // Extract parameters
-                    const matches = path.match(regex);
-                    const params = {};
-                    const paramNames = routePattern.match(/:\w+/g) || [];
-                    
-                    paramNames.forEach((paramName, index) => {
-                        const key = paramName.substring(1); // Remove ':'
-                        params[key] = matches[index + 1];
-                    });
-                    
-                    // Return config with parameters
-                    return {
-                        ...config,
-                        params: params
-                    };
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
      * Navigate to a specific route
      * @param {string} route - The route to navigate to
      * @param {object} data - Optional data to pass to the view
@@ -236,13 +192,7 @@ class SPARouter {
             this.showLoading();
             
             // Get route config
-            let routeConfig = this.routes.get(route);
-            
-            // If no exact match, try to find parameterized route
-            if (!routeConfig) {
-                routeConfig = this.findParameterizedRoute(route);
-            }
-            
+            const routeConfig = this.routes.get(route);
             if (!routeConfig) {
                 // If no route config found, try to load dashboard-main as default
                 if (route === '/dashboard' || route === '/') {
@@ -288,14 +238,13 @@ class SPARouter {
      * @param {object} data - Data to pass to component
      */
     async loadComponent(componentName, data = {}) {
-        // Use SPA content container if available, otherwise fallback to main-content
-        let container = document.getElementById('spa-content-container');
+        const container = document.getElementById('main-content');
         if (!container) {
-            container = document.getElementById('main-content');
+            throw new Error('Main content container not found');
         }
-        if (!container) {
-            throw new Error('Content container not found');
-        }
+
+        // Hide traditional dashboard content when loading SPA component
+        this.hideTraditionalDashboardContent();
 
         // Hide current view
         if (this.currentView) {
@@ -407,24 +356,6 @@ class SPARouter {
         component.dispatchEvent(new CustomEvent('component-init', {
             detail: data
         }));
-
-        // Initialize dashboard data if this is dashboard-main component
-        if (component.id === 'dashboard-main') {
-            console.log('Initializing dashboard data for SPA component...');
-            // Only call loadMonitoringData to avoid double initialization
-            if (typeof loadMonitoringData === 'function') {
-                setTimeout(() => {
-                    loadMonitoringData();
-                    // Hide traditional dashboard content after data is loaded
-                    if (typeof hideTraditionalDashboardContent === 'function') {
-                        setTimeout(() => {
-                            hideTraditionalDashboardContent();
-                        }, 200);
-                    }
-                }, 100);
-            }
-            // Don't call initializeDashboard to prevent conflicts
-        }
 
         // Add animation
         component.style.opacity = '0';
@@ -605,11 +536,7 @@ class SPARouter {
      * Show 404 page
      */
     show404() {
-        // Use SPA content container if available, otherwise fallback to main-content
-        let container = document.getElementById('spa-content-container');
-        if (!container) {
-            container = document.getElementById('main-content');
-        }
+        const container = document.getElementById('main-content');
         if (container) {
             container.innerHTML = `
                 <div class="container-xxl">
@@ -674,6 +601,74 @@ class SPARouter {
         document.dispatchEvent(new CustomEvent('route-changed', {
             detail: { route, routeConfig }
         }));
+    }
+
+    /**
+     * Hide traditional dashboard content when SPA is active
+     */
+    hideTraditionalDashboardContent() {
+        // Add SPA mode class to body
+        document.body.classList.add('spa-mode');
+        document.body.classList.remove('traditional-mode');
+        
+        // Hide traditional dashboard elements
+        const traditionalElements = [
+            'rvm-cards-container',
+            'statistics-cards',
+            'status-chart-container',
+            'quick-actions-panel'
+        ];
+        
+        traditionalElements.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.style.display = 'none';
+            }
+        });
+        
+        // Hide traditional dashboard sections
+        const traditionalSections = document.querySelectorAll('.row.mb-4, .row.g-4, .card:not(.spa-view)');
+        traditionalSections.forEach(section => {
+            if (section.closest('#main-content')) {
+                section.style.display = 'none';
+            }
+        });
+        
+        console.log('Traditional dashboard content hidden for SPA mode');
+    }
+
+    /**
+     * Show traditional dashboard content when SPA is not active
+     */
+    showTraditionalDashboardContent() {
+        // Add traditional mode class to body
+        document.body.classList.add('traditional-mode');
+        document.body.classList.remove('spa-mode');
+        
+        // Show traditional dashboard elements
+        const traditionalElements = [
+            'rvm-cards-container',
+            'statistics-cards', 
+            'status-chart-container',
+            'quick-actions-panel'
+        ];
+        
+        traditionalElements.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.style.display = 'block';
+            }
+        });
+        
+        // Show traditional dashboard sections
+        const traditionalSections = document.querySelectorAll('.row.mb-4, .row.g-4, .card:not(.spa-view)');
+        traditionalSections.forEach(section => {
+            if (section.closest('#main-content')) {
+                section.style.display = 'block';
+            }
+        });
+        
+        console.log('Traditional dashboard content shown');
     }
 
     /**
