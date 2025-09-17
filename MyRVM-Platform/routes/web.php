@@ -42,6 +42,38 @@ Route::get('/dashboard/{path?}', function () {
     return view('admin.dashboard');
 })->where('path', '.*')->middleware(['auth', 'verified'])->name('dashboard.spa');
 
+// SPA Routes Handler - Menangani semua SPA routes untuk refresh
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Edge Vision SPA Routes
+    Route::get('/edge-vision/{path?}', function () {
+        return view('admin.dashboard');
+    })->where('path', '.*')->name('spa.edge-vision');
+    
+    // Dashboard SPA Routes (backup)
+    Route::get('/dashboard/{path?}', function () {
+        return view('admin.dashboard');
+    })->where('path', '.*')->name('spa.dashboard');
+    
+    // Catch-all SPA Route (harus di akhir)
+    Route::get('/{path}', function () {
+        // Cek jika path adalah SPA route
+        $spaRoutes = [
+            'edge-vision',
+            'dashboard',
+            'admin/rvm-dashboard'
+        ];
+        
+        foreach ($spaRoutes as $spaRoute) {
+            if (str_starts_with(request()->path(), $spaRoute)) {
+                return view('admin.dashboard');
+            }
+        }
+        
+        // Jika bukan SPA route, return 404
+        abort(404);
+    })->where('path', '.*')->name('spa.catch-all');
+});
+
 // Rute profil (dari Breeze)
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

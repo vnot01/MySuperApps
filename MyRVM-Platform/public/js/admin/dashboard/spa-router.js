@@ -36,7 +36,7 @@ class SPARouter {
         const currentPath = window.location.pathname;
         console.log('SPA Router initializing with path:', currentPath);
         
-        // Handle initial route with better path matching
+        // Handle initial route
         if (currentPath === '/' || currentPath === '/dashboard' || currentPath === '/admin/rvm-dashboard') {
             this.handleRouteChange('/dashboard');
         } else if (currentPath.startsWith('/edge-vision/')) {
@@ -168,6 +168,42 @@ class SPARouter {
     }
 
     /**
+     * Find parameterized route that matches the given path
+     * @param {string} path - The path to match
+     * @returns {object|null} - Route config or null if not found
+     */
+    findParameterizedRoute(path) {
+        for (const [routePattern, config] of this.routes) {
+            if (routePattern.includes(':')) {
+                // Convert route pattern to regex
+                const regexPattern = routePattern
+                    .replace(/:\w+/g, '([^/]+)') // Replace :param with regex group
+                    .replace(/\//g, '\\/'); // Escape forward slashes
+                
+                const regex = new RegExp(`^${regexPattern}$`);
+                if (regex.test(path)) {
+                    // Extract parameters
+                    const matches = path.match(regex);
+                    const params = {};
+                    const paramNames = routePattern.match(/:\w+/g) || [];
+                    
+                    paramNames.forEach((paramName, index) => {
+                        const key = paramName.substring(1); // Remove ':'
+                        params[key] = matches[index + 1];
+                    });
+                    
+                    // Return config with parameters
+                    return {
+                        ...config,
+                        params: params
+                    };
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Navigate to a specific route
      * @param {string} route - The route to navigate to
      * @param {object} data - Optional data to pass to the view
@@ -200,7 +236,13 @@ class SPARouter {
             this.showLoading();
             
             // Get route config
-            const routeConfig = this.routes.get(route);
+            let routeConfig = this.routes.get(route);
+            
+            // If no exact match, try to find parameterized route
+            if (!routeConfig) {
+                routeConfig = this.findParameterizedRoute(route);
+            }
+            
             if (!routeConfig) {
                 // If no route config found, try to load dashboard-main as default
                 if (route === '/dashboard' || route === '/') {

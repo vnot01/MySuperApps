@@ -1352,7 +1352,7 @@
             // Navigate to SPA route instead of opening modal
             if (window.spaRouter) {
                 window.spaRouter.navigate('/edge-vision/live-camera');
-            } else {
+                    } else {
                 // Fallback to modal if SPA router not available
                 const modal = new bootstrap.Modal(document.getElementById('edgeVisionModal'));
                 modal.show();
@@ -1484,24 +1484,24 @@
                 <div class="modal-header border-0 bg-transparent">
                     <h5 class="modal-title fw-bold">Remote Access</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
+                    </div>
                 <div class="modal-body p-4">
                     <div class="mb-4">
                         <p class="text-muted">Enter access PIN to connect to RVM:</p>
                         <p class="fw-bold text-primary" id="modal-rvm-name">-</p>
-    </div>
+                    </div>
                     <div class="mb-3">
                         <label for="access-pin" class="form-label fw-medium">Access PIN</label>
                         <input type="password" id="access-pin" class="form-control" placeholder="Enter PIN">
-                    </div>
-                    </div>
+                            </div>
+                        </div>
                 <div class="modal-footer border-0 bg-transparent">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" id="connect-rvm" class="btn btn-primary">Connect</button>
-                            </div>
-                        </div>
                                         </div>
                                     </div>
+                                            </div>
+                                            </div>
 
     <!-- Status Update Modal -->
     <div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
