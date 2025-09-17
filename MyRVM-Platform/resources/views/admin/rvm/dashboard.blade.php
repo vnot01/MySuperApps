@@ -1221,11 +1221,43 @@
 
         // --- Page Lifecycle ---
 
+        // Function to hide traditional dashboard content when SPA Router is active
+        function hideTraditionalDashboardContent() {
+            // Hide the main content section that contains traditional dashboard
+            const mainContent = document.getElementById('main-content');
+            if (mainContent) {
+                mainContent.style.opacity = '0';
+                mainContent.style.visibility = 'hidden';
+                mainContent.style.transition = 'all 0.3s ease-in-out';
+                setTimeout(() => {
+                    mainContent.style.display = 'none';
+                }, 300);
+                console.log('Traditional dashboard content hidden');
+            }
+            
+            // Show SPA content container
+            const spaContainer = document.getElementById('spa-content-container');
+            if (spaContainer) {
+                spaContainer.style.display = 'block';
+                spaContainer.style.opacity = '0';
+                spaContainer.style.visibility = 'hidden';
+                spaContainer.style.transition = 'all 0.3s ease-in-out';
+                setTimeout(() => {
+                    spaContainer.style.opacity = '1';
+                    spaContainer.style.visibility = 'visible';
+                    spaContainer.classList.add('show');
+                }, 100);
+                console.log('SPA content container shown');
+            }
+        }
+
         window.addEventListener('load', () => {
             setTimeout(async () => {
                 // Check if SPA Router is available
                 if (window.spaRouter) {
-                    console.log('SPA Router detected - Skipping traditional dashboard initialization');
+                    console.log('SPA Router detected - Hiding traditional dashboard content');
+                    // Hide traditional dashboard content when SPA Router is active
+                    hideTraditionalDashboardContent();
                     // SPA Router will handle the dashboard initialization
                     initializeStickyNavbar();
                     return;

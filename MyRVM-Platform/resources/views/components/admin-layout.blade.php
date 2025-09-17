@@ -371,6 +371,21 @@
             font-size: 0.9rem;
         }
 
+        /* SPA Content Container */
+        #spa-content-container {
+            transition: all 0.3s ease-in-out;
+        }
+
+        #spa-content-container.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Content Switching */
+        .content-switching {
+            transition: all 0.3s ease-in-out;
+        }
+
         /* Responsive Adjustments */
         @media (max-width: 768px) {
             .spa-view {
@@ -742,6 +757,11 @@
                     <!-- Content -->
                     <div id="main-content" class="container-xxl flex-grow-1 container-p-y page-transition">
                         @yield('content')
+                    </div>
+                    
+                    <!-- SPA Content Container (hidden by default) -->
+                    <div id="spa-content-container" class="container-xxl flex-grow-1 container-p-y page-transition" style="display: none;">
+                        <!-- SPA components will be loaded here -->
                     </div>
                     <!-- / Content -->
 

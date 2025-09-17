@@ -238,9 +238,13 @@ class SPARouter {
      * @param {object} data - Data to pass to component
      */
     async loadComponent(componentName, data = {}) {
-        const container = document.getElementById('main-content');
+        // Use SPA content container if available, otherwise fallback to main-content
+        let container = document.getElementById('spa-content-container');
         if (!container) {
-            throw new Error('Main content container not found');
+            container = document.getElementById('main-content');
+        }
+        if (!container) {
+            throw new Error('Content container not found');
         }
 
         // Hide current view
@@ -533,7 +537,11 @@ class SPARouter {
      * Show 404 page
      */
     show404() {
-        const container = document.getElementById('main-content');
+        // Use SPA content container if available, otherwise fallback to main-content
+        let container = document.getElementById('spa-content-container');
+        if (!container) {
+            container = document.getElementById('main-content');
+        }
         if (container) {
             container.innerHTML = `
                 <div class="container-xxl">
