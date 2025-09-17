@@ -1,0 +1,379 @@
+<!-- Dashboard Main Component -->
+<div class="container-xxl">
+    <!-- Modern Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header modern-header">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h1 class="page-title fw-bold mb-2">RVM Dashboard</h1>
+                        <p class="page-subtitle text-muted mb-0">Monitor and manage your Reverse Vending Machines</p>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn btn-outline-primary btn-modern" onclick="exportMonitoringData()">
+                            <i class="fas fa-download me-2"></i>Export Data
+                        </button>
+                        <button class="btn btn-primary btn-modern" onclick="refreshDashboard()">
+                            <i class="fas fa-sync-alt me-2"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm animate-slide-in-up">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon bg-primary">
+                                <i class="fas fa-recycle text-white"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="stat-value" id="total-rvms">0</div>
+                            <div class="stat-label">Total RVMs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm animate-slide-in-up" style="animation-delay: 0.1s;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon bg-success">
+                                <i class="fas fa-check-circle text-white"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="stat-value" id="active-rvms">0</div>
+                            <div class="stat-label">Active RVMs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm animate-slide-in-up" style="animation-delay: 0.2s;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon bg-warning">
+                                <i class="fas fa-tools text-white"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="stat-value" id="maintenance-rvms">0</div>
+                            <div class="stat-label">Maintenance</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm animate-slide-in-up" style="animation-delay: 0.3s;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="stat-icon bg-danger">
+                                <i class="fas fa-exclamation-triangle text-white"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="stat-value" id="error-rvms">0</div>
+                            <div class="stat-label">Errors</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and RVM List -->
+    <div class="row">
+        <!-- Status Chart -->
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm animate-slide-in-right">
+                <div class="card-header border-0 bg-transparent p-4">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-chart-pie me-2"></i>RVM Status Overview
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <canvas id="statusChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm animate-slide-in-left">
+                <div class="card-header border-0 bg-transparent p-4">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-modern" onclick="activateAllRVMs()">
+                            <i class="fas fa-power-off me-2"></i>Activate All RVMs
+                        </button>
+                        <button class="btn btn-outline-warning btn-modern" onclick="maintenanceMode()">
+                            <i class="fas fa-tools me-2"></i>Maintenance Mode
+                        </button>
+                        <button class="btn btn-outline-info btn-modern" onclick="viewReports()">
+                            <i class="fas fa-chart-bar me-2"></i>View Reports
+                        </button>
+                        <button class="btn btn-outline-success btn-modern" onclick="systemHealth()">
+                            <i class="fas fa-heartbeat me-2"></i>System Health
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RVM Monitoring Cards -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm animate-scale-in">
+                <div class="card-header border-0 bg-transparent p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 fw-bold">
+                            <i class="fas fa-desktop me-2"></i>RVM Monitoring
+                        </h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="previousPage()">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="nextPage()">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                            <span class="text-muted small" id="pagination-info">Page 1 of 1</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row" id="rvm-cards-container">
+                        <!-- RVM cards will be dynamically generated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Dashboard Main Component Script
+document.addEventListener('component-init', function(e) {
+    if (e.target.id === 'dashboard-main') {
+        initializeDashboardMain(e.detail);
+    }
+});
+
+function initializeDashboardMain(data) {
+    // Initialize dashboard components
+    initializeStatusChart();
+    loadStatistics();
+    loadRVMCards();
+    
+    // Setup auto-refresh
+    setupAutoRefresh();
+    
+    console.log('Dashboard main component initialized');
+}
+
+function initializeStatusChart() {
+    const canvas = document.getElementById('statusChart');
+    if (!canvas) {
+        console.error('Status chart canvas not found!');
+        return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Mock chart data
+    const chartData = {
+        labels: ['Active', 'Maintenance', 'Full', 'Error', 'Inactive'],
+        datasets: [{
+            data: [15, 3, 2, 1, 0],
+            backgroundColor: [
+                '#28a745',
+                '#ffc107',
+                '#fd7e14',
+                '#dc3545',
+                '#6c757d'
+            ],
+            borderWidth: 0
+        }]
+    };
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+}
+
+function loadStatistics() {
+    // Mock statistics data
+    const stats = {
+        total: 21,
+        active: 15,
+        maintenance: 3,
+        error: 1,
+        full: 2
+    };
+    
+    // Animate numbers
+    animateNumber('total-rvms', stats.total);
+    animateNumber('active-rvms', stats.active);
+    animateNumber('maintenance-rvms', stats.maintenance);
+    animateNumber('error-rvms', stats.error);
+}
+
+function animateNumber(elementId, targetValue) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    let currentValue = 0;
+    const increment = targetValue / 50;
+    const timer = setInterval(() => {
+        currentValue += increment;
+        if (currentValue >= targetValue) {
+            currentValue = targetValue;
+            clearInterval(timer);
+        }
+        element.textContent = Math.floor(currentValue);
+    }, 20);
+}
+
+function loadRVMCards() {
+    const container = document.getElementById('rvm-cards-container');
+    if (!container) return;
+    
+    // Mock RVM data
+    const rvms = [
+        { id: 1, name: 'RVM-001', location: 'Main Lobby', status: 'active', lastSeen: '2 min ago' },
+        { id: 2, name: 'RVM-002', location: 'Building A', status: 'active', lastSeen: '1 min ago' },
+        { id: 3, name: 'RVM-003', location: 'Building B', status: 'maintenance', lastSeen: '5 min ago' },
+        { id: 4, name: 'RVM-004', location: 'Cafeteria', status: 'full', lastSeen: '3 min ago' },
+        { id: 5, name: 'RVM-005', location: 'Library', status: 'active', lastSeen: '1 min ago' },
+        { id: 6, name: 'RVM-006', location: 'Gym', status: 'error', lastSeen: '10 min ago' }
+    ];
+    
+    container.innerHTML = rvms.map(rvm => `
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card rvm-card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="status-dot ${rvm.status} me-3"></div>
+                        <div class="flex-grow-1">
+                            <h6 class="card-title mb-1 fw-bold">${rvm.name}</h6>
+                            <small class="text-muted">${rvm.location}</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Last seen: ${rvm.lastSeen}</small>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm" onclick="openRemoteAccess(${rvm.id}, '${rvm.name}')">
+                            <i class="fas fa-desktop me-1"></i>Remote Access
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="openStatusModal(${rvm.id}, '${rvm.name}')">
+                            <i class="fas fa-edit me-1"></i>Update Status
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function setupAutoRefresh() {
+    // Auto-refresh every 30 seconds
+    setInterval(() => {
+        console.log('Auto-refreshing dashboard...');
+        loadStatistics();
+        loadRVMCards();
+    }, 30000);
+}
+
+// Quick action functions
+function activateAllRVMs() {
+    if (confirm('Are you sure you want to activate all RVMs?')) {
+        showNotification('Activating all RVMs...', 'info');
+        setTimeout(() => {
+            showNotification('All RVMs activated successfully!', 'success');
+        }, 2000);
+    }
+}
+
+function maintenanceMode() {
+    if (confirm('Enable maintenance mode for all RVMs?')) {
+        showNotification('Enabling maintenance mode...', 'info');
+        setTimeout(() => {
+            showNotification('Maintenance mode enabled', 'success');
+        }, 2000);
+    }
+}
+
+function viewReports() {
+    showNotification('Opening reports...', 'info');
+}
+
+function systemHealth() {
+    showNotification('Checking system health...', 'info');
+    setTimeout(() => {
+        showNotification('System health: All systems operational', 'success');
+    }, 1500);
+}
+
+function exportMonitoringData() {
+    showNotification('Exporting monitoring data...', 'info');
+    setTimeout(() => {
+        showNotification('Data exported successfully!', 'success');
+    }, 2000);
+}
+
+function refreshDashboard() {
+    showNotification('Refreshing dashboard...', 'info');
+    loadStatistics();
+    loadRVMCards();
+    setTimeout(() => {
+        showNotification('Dashboard refreshed!', 'success');
+    }, 1000);
+}
+
+function previousPage() {
+    showNotification('Previous page', 'info');
+}
+
+function nextPage() {
+    showNotification('Next page', 'info');
+}
+
+function showNotification(message, type = 'info') {
+    console.log(`[${type.toUpperCase()}] ${message}`);
+    // This would integrate with your notification system
+}
+</script>

@@ -6,7 +6,7 @@
     <title>@yield('title', 'MyRVM Platform')</title>
     <meta name="description" content="@yield('description', 'RVM Monitoring Dashboard')">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="../../assets/img/favicon/favicon.ico">
 
@@ -433,7 +433,7 @@
                     </div>
 
                     <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
-                        <!-- Search -->
+                            <!-- Search -->
                         <div class="navbar-nav align-items-center">
                             <div class="nav-item navbar-search-wrapper mb-0">
                                 <a class="nav-item nav-link search-toggler px-0" href="javascript:void(0);">

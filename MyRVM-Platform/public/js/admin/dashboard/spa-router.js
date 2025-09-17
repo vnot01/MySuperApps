@@ -48,6 +48,13 @@ class SPARouter {
             permissions: ['admin', 'operator', 'viewer']
         });
 
+        this.routes.set('/', {
+            title: 'RVM Dashboard',
+            component: 'dashboard-main',
+            breadcrumb: 'Dashboard',
+            permissions: ['admin', 'operator', 'viewer']
+        });
+
         this.routes.set('/dashboard/remote-access/:id', {
             title: 'Remote Access',
             component: 'remote-access',
