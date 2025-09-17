@@ -545,6 +545,7 @@
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) {
                 overlay.style.display = 'flex';
+                // Trigger reflow to ensure the transition is applied
                 overlay.offsetHeight; 
                 overlay.style.opacity = '1';
                 overlay.style.visibility = 'visible';
@@ -556,11 +557,13 @@
             if (overlay) {
                 overlay.style.opacity = '0';
                 overlay.style.visibility = 'hidden';
+                // The display:none can be handled by the transitionend event, or a simple timeout.
+                // Timeout is simpler and sufficient here.
                 setTimeout(() => {
-                    if (overlay.style.opacity === '0') {
+                    if (overlay.style.opacity === '0') { // Check if it's still meant to be hidden
                         overlay.style.display = 'none';
                     }
-                }, 300);
+                }, 300); // Should match CSS transition duration
             }
         }
         
@@ -661,11 +664,13 @@
             try {
                 const d = new Date(date);
                 
+                // Check if date is valid
                 if (isNaN(d.getTime())) {
                     console.warn('Invalid date provided to formatDateTime:', date);
                     return 'Invalid Date';
                 }
                 
+                // Convert to configured timezone
                 const options = {
                     timeZone: config.timezone || 'Asia/Jakarta',
                     year: 'numeric',
@@ -678,6 +683,8 @@
                 };
                 
                 const formatted = d.toLocaleString('en-US', options);
+                
+                // Add timezone display
                 return `${formatted} ${config.displayTimezone || 'WIB'}`;
                 
             } catch (error) {
@@ -690,6 +697,7 @@
             try {
                 const d = new Date(date);
                 
+                // Check if date is valid
                 if (isNaN(d.getTime())) {
                     console.warn('Invalid date provided to formatTime:', date);
                     return 'Invalid Date';
@@ -718,10 +726,12 @@
         // --- RVM Status Logic Functions ---
 
         function determineRvmStatus(capacity, specialStatus = null) {
+            // If there's a special status (maintenance, inactive, error, unknown), use it
             if (specialStatus && ['maintenance', 'inactive', 'error', 'unknown'].includes(specialStatus)) {
                 return specialStatus;
             }
             
+            // Determine status based on capacity
             if (capacity >= 100) {
                 return 'full';
             } else if (capacity >= 0) {
@@ -734,17 +744,21 @@
         // --- Data Update Functions ---
 
         function saveRvmStatusChange(rvmId, newStatus) {
+            // Save RVM status change to persist across refreshes
             rvmStatusChanges[rvmId] = {
                 status: newStatus,
                 last_seen: getCurrentTime(),
                 timestamp: Date.now()
             };
             
+            // Store in localStorage for persistence across page reloads
             localStorage.setItem('rvmStatusChanges', JSON.stringify(rvmStatusChanges));
+            
             console.log(`Saved status change for RVM-${rvmId}: ${newStatus} at ${getCurrentTime()}`);
         }
 
         function loadRvmStatusChanges() {
+            // Load saved status changes from localStorage
             const saved = localStorage.getItem('rvmStatusChanges');
             if (saved) {
                 try {
@@ -815,7 +829,7 @@
         function createRvmCard(rvm) {
             const col = document.createElement('div');
             col.className = 'col-md-6 col-lg-4';
-            col.style.opacity = 0;
+            col.style.opacity = 0; // for animation
             
             const statusInfo = {
                 active: { text: 'text-success', icon: 'fas fa-check-circle' },
@@ -872,6 +886,7 @@
         }
         
         function updatePaginationControls(currentPage, totalPages) {
+            // Update page buttons
             for (let i = 1; i <= totalPages; i++) {
                 const pageElement = document.getElementById(`page-${i}`);
                 if (pageElement) {
@@ -883,6 +898,7 @@
                 }
             }
             
+            // Update prev/next buttons
             const prevElement = document.getElementById('prev-page');
             const nextElement = document.getElementById('next-page');
             
@@ -913,6 +929,7 @@
             
             currentPage = page;
             
+            // Re-render cards with new page
             if (monitoringData?.rvms) {
                 updateRvmCards(monitoringData.rvms);
             }
@@ -933,6 +950,7 @@
         function initializeStatusChart() {
             console.log('Initializing status chart...');
             
+            // Check if Chart.js is loaded
             if (typeof Chart === 'undefined') {
                 console.error('Chart.js is not loaded!');
                 return;
@@ -1038,6 +1056,7 @@
                 return;
             }
             
+            // Confirm bulk operation
             const confirmMessage = `Are you sure you want to set all ${totalRvms} RVMs to maintenance mode? This will affect all RVM operations.`;
             if (!confirm(confirmMessage)) {
                 return;
@@ -1045,9 +1064,11 @@
             
             showNotification(`🔄 Setting all ${totalRvms} RVMs to maintenance mode...`, 'info');
             
+            // Simulate API call
             setTimeout(() => {
                 let updatedCount = 0;
                 
+                // Update all RVMs in memory
                 if (monitoringData && monitoringData.rvms) {
                     monitoringData.rvms.forEach(rvm => {
                         if (rvm.calculated_status !== 'maintenance') {
@@ -1060,11 +1081,14 @@
                     });
                 }
                 
+                // Immediately update the dashboard
                 updateRvmCards(monitoringData.rvms);
                 updateStatusChart();
                 
+                // Show detailed success notification
                 showNotification(`✅ Bulk update completed: ${updatedCount} RVMs set to maintenance mode`, 'success');
                 
+                // Additional notification for dashboard update
                 setTimeout(() => {
                     showNotification(`🔄 Dashboard updated: All RVMs are now in maintenance mode`, 'info');
                 }, 1000);
@@ -1079,6 +1103,7 @@
                 return;
             }
             
+            // Confirm bulk operation
             const confirmMessage = `Are you sure you want to activate all ${totalRvms} RVMs? This will restore all RVM operations.`;
             if (!confirm(confirmMessage)) {
                 return;
@@ -1086,9 +1111,11 @@
             
             showNotification(`🔄 Activating all ${totalRvms} RVMs...`, 'info');
             
+            // Simulate API call
             setTimeout(() => {
                 let updatedCount = 0;
                 
+                // Update all RVMs in memory
                 if (monitoringData && monitoringData.rvms) {
                     monitoringData.rvms.forEach(rvm => {
                         if (rvm.calculated_status !== 'active') {
@@ -1101,11 +1128,14 @@
                     });
                 }
                 
+                // Immediately update the dashboard
                 updateRvmCards(monitoringData.rvms);
                 updateStatusChart();
                 
+                // Show detailed success notification
                 showNotification(`✅ Bulk update completed: ${updatedCount} RVMs activated`, 'success');
                 
+                // Additional notification for dashboard update
                 setTimeout(() => {
                     showNotification(`🔄 Dashboard updated: All RVMs are now active`, 'info');
                 }, 1000);
@@ -1115,39 +1145,21 @@
 
         function exportMonitoringData() {
             showNotification('Preparing data export...', 'info');
+            // Simulate export process
             setTimeout(() => {
                 showNotification('Data exported successfully! Download will start shortly.', 'success');
+                // In real implementation, this would trigger a file download
             }, 2000);
         }
 
         // --- Page Lifecycle ---
 
         window.addEventListener('load', () => {
+            // Add small delay to ensure Chart.js is fully loaded
             setTimeout(async () => {
                 initializeDashboard();
-                initializeStickyNavbar();
             }, 100);
         });
         window.addEventListener('beforeunload', stopAutoRefresh);
-
-        // Sticky Navbar with Scroll Effect
-        function initializeStickyNavbar() {
-            const navbar = document.getElementById('layout-navbar');
-            if (!navbar) return;
-
-            let lastScrollTop = 0;
-            
-            window.addEventListener('scroll', () => {
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                
-                if (scrollTop > 10) {
-                    navbar.classList.add('scrolled');
-                } else {
-                    navbar.classList.remove('scrolled');
-                }
-                
-                lastScrollTop = scrollTop;
-            });
-        }
     </script>
 @endsection

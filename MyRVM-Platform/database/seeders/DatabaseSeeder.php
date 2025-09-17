@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             RvmSeeder::class,
             UserSeeder::class,
             DemoCredentialsSeeder::class,
+            HistoricalDataSeeder::class, // Data historis untuk trend calculation
             // Panggil seeder lain di sini jika ada
         ]);
 

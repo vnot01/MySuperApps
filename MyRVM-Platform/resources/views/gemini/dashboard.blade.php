@@ -70,7 +70,7 @@
                 <div class="flex items-center">
                     <i class="fas fa-robot text-white text-3xl mr-4"></i>
                     <div>
-                        <h1 class="text-3xl font-bold text-white">Gemini Vision Dashboard</h1>
+                        <h1 class="text-3xl font-bold text-white">Gemini Vision Dashboard 1</h1>
                         <p class="text-blue-100 mt-1">AI-Powered Waste Analysis Testing Platform</p>
                     </div>
                 </div>

@@ -22,7 +22,7 @@ Route::get('/', function () {
         $user = Auth::user();
         // Cek jika user memiliki peran yang bisa mengakses dasbor admin
         if (in_array($user->role?->slug, ['super-admin', 'admin', 'tenant'])) {
-            return redirect()->route('admin.rvm.dashboard');
+            return redirect()->route('admin.dashboard');
         }
         // Jika user biasa, arahkan ke dasbor user biasa
         return redirect()->route('dashboard');
@@ -34,13 +34,8 @@ Route::get('/', function () {
 
 // Rute dasbor user biasa (dari Breeze)
 Route::get('/dashboard', function () {
-    return view('admin.dashboard');
+    return view('admin.dashboard.index');
 })->middleware(['auth', 'verified'])->name('dashboard');
-
-// SPA Dashboard Route (untuk SPA navigation)
-Route::get('/dashboard/{path?}', function () {
-    return view('admin.dashboard');
-})->where('path', '.*')->middleware(['auth', 'verified'])->name('dashboard.spa');
 
 // Rute profil (dari Breeze)
 Route::middleware('auth')->group(function () {
@@ -97,8 +92,27 @@ Route::get('/admin/login', function () {
     return view('auth.login');
 })->name('admin.login');
 
-// Admin RVM Dashboard Route (Protected with authentication)
-Route::get('/admin/rvm-dashboard', [AdminRvmController::class, 'dashboard'])->name('admin.rvm.dashboard');
+// Admin RVM Dashboard Route (Protected with authentication) - REDIRECT TO NEW DASHBOARD
+Route::get('/admin/rvm-dashboard', function () {
+    return redirect()->route('admin.dashboard.index');
+})->name('admin.rvm.dashboard');
+
+// New Dashboard Routes (Template Inheritance)
+Route::prefix('admin/dashboard')->name('admin.dashboard.')->group(function () {
+    Route::get('/', [AdminDashboardController::class, 'index'])->name('index');
+    Route::get('/live-camera', function () {
+        return view('admin.dashboard.live-camera');
+    })->name('live-camera');
+    Route::get('/image-upload', function () {
+        return view('admin.dashboard.image-upload');
+    })->name('image-upload');
+    Route::get('/engine-config', function () {
+        return view('admin.dashboard.engine-config');
+    })->name('engine-config');
+    Route::get('/remote-control', function () {
+        return view('admin.dashboard.remote-control');
+    })->name('remote-control');
+});
 
 // Dashboard Data Route (Public access for dashboard display)
 Route::get('/admin/rvm-dashboard/data', [AdminRvmController::class, 'getRvmMonitoring'])->name('admin.rvm.dashboard.data');
