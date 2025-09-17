@@ -259,6 +259,137 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* SPA Views */
+        .spa-view {
+            min-height: 400px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease-out;
+        }
+
+        .spa-view.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Breadcrumb Styles */
+        .breadcrumb {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .breadcrumb-item a {
+            color: #667eea;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .breadcrumb-item a:hover {
+            color: #5a67d8;
+        }
+
+        .breadcrumb-item.active {
+            color: #6c757d;
+        }
+
+        /* Page Transitions */
+        .page-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Connection Status Indicators */
+        .connection-indicator {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .connection-indicator i {
+            transition: all 0.3s ease;
+        }
+
+        /* Status Timeline */
+        .status-timeline {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .status-history-item {
+            border-left: 3px solid #e9ecef;
+            padding-left: 1rem;
+            position: relative;
+        }
+
+        .status-history-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 0.5rem;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #6c757d;
+        }
+
+        .status-history-item:first-child::before {
+            background: #667eea;
+        }
+
+        /* Detection Results */
+        .detection-result {
+            border-left: 4px solid #28a745;
+            transition: all 0.2s ease;
+        }
+
+        .detection-result:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Camera Container */
+        .camera-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .camera-overlay {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        .processing-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Impact Assessment */
+        .impact-metrics {
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .spa-view {
+                padding: 1rem;
+            }
+            
+            .breadcrumb {
+                font-size: 0.875rem;
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .page-header {
+                padding: 1.5rem;
+            }
+            
+            .page-title {
+                font-size: 2rem;
+            }
+        }
     </style>
     
     @yield('custom-css')
@@ -597,6 +728,17 @@
             <div class="layout-page">
                 <!-- Content wrapper -->
                 <div class="content-wrapper modern-content">
+                    <!-- Breadcrumb Navigation -->
+                    <div class="container-xxl">
+                        <div class="row">
+                            <div class="col-12">
+                                <div id="breadcrumb-container" class="py-3">
+                                    <!-- Breadcrumbs will be dynamically generated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Content -->
                     <div id="main-content" class="container-xxl flex-grow-1 container-p-y page-transition">
                         @yield('content')

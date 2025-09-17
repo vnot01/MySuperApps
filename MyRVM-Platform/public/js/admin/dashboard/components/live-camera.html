@@ -1,0 +1,468 @@
+<!-- Live Camera Component -->
+<div class="container-xxl">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header modern-header">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h1 class="page-title fw-bold mb-2">
+                            <i class="fas fa-video me-3"></i>Live Camera - Jetson Orin
+                        </h1>
+                        <p class="page-subtitle text-muted mb-0">Real-time computer vision processing</p>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn btn-outline-secondary btn-modern" onclick="spaRouter.goBack()">
+                            <i class="fas fa-arrow-left me-2"></i>Back
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Camera Interface -->
+    <div class="row">
+        <!-- Camera Feed -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm animate-slide-in-right">
+                <div class="card-header border-0 bg-transparent p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 fw-bold">
+                            <i class="fas fa-camera me-2"></i>Live Camera Feed
+                        </h5>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-success btn-sm" id="start-camera-btn">
+                                <i class="fas fa-play me-1"></i>Start
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm" id="stop-camera-btn" disabled>
+                                <i class="fas fa-stop me-1"></i>Stop
+                            </button>
+                            <button type="button" class="btn btn-info btn-sm" id="capture-btn" disabled>
+                                <i class="fas fa-camera me-1"></i>Capture
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="camera-container position-relative bg-dark rounded" style="height: 500px;">
+                        <!-- Camera Feed -->
+                        <video id="live-camera-feed" class="w-100 h-100" style="object-fit: cover; display: none;">
+                            Your browser does not support the video tag.
+                        </video>
+                        
+                        <!-- Camera Placeholder -->
+                        <div id="camera-placeholder" class="d-flex align-items-center justify-content-center h-100 text-light">
+                            <div class="text-center">
+                                <i class="fas fa-video fa-4x mb-3 opacity-50"></i>
+                                <h5>Camera Feed</h5>
+                                <p class="mb-0">Click "Start" to begin live streaming</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Overlay Controls -->
+                        <div class="camera-overlay position-absolute top-0 end-0 p-3">
+                            <div class="d-flex flex-column gap-2">
+                                <button class="btn btn-sm btn-outline-light" id="fullscreen-btn" title="Fullscreen">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" id="settings-btn" title="Settings">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Processing Overlay -->
+                        <div class="processing-overlay position-absolute bottom-0 start-0 end-0 p-3" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="spinner-border spinner-border-sm text-light me-2" role="status">
+                                        <span class="visually-hidden">Processing...</span>
+                                    </div>
+                                    <span class="text-light">Processing...</span>
+                                </div>
+                                <div class="text-light">
+                                    <small id="processing-fps">0 FPS</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="col-lg-4">
+            <!-- Jetson Selection -->
+            <div class="card border-0 shadow-sm animate-slide-in-right" style="animation-delay: 0.2s;">
+                <div class="card-header border-0 bg-transparent p-4">
+                    <h6 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-microchip me-2"></i>Jetson Configuration
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label">Select Jetson Device</label>
+                        <select class="form-select" id="jetson-select">
+                            <option value="">Choose Jetson...</option>
+                            <option value="jetson-1">Jetson Orin 1 (192.168.1.100)</option>
+                            <option value="jetson-2">Jetson Orin 2 (192.168.1.101)</option>
+                            <option value="jetson-3">Jetson Orin 3 (192.168.1.102)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Processing Mode</label>
+                        <select class="form-select" id="processing-mode">
+                            <option value="yolo">YOLO11 Only</option>
+                            <option value="sam2">SAM2 Only</option>
+                            <option value="both" selected>YOLO11 + SAM2</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Resolution</label>
+                        <select class="form-select" id="camera-resolution">
+                            <option value="640x480">640x480 (VGA)</option>
+                            <option value="1280x720" selected>1280x720 (HD)</option>
+                            <option value="1920x1080">1920x1080 (Full HD)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Frame Rate</label>
+                        <select class="form-select" id="frame-rate">
+                            <option value="15">15 FPS</option>
+                            <option value="30" selected>30 FPS</option>
+                            <option value="60">60 FPS</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detection Results -->
+            <div class="card border-0 shadow-sm animate-slide-in-right mt-4" style="animation-delay: 0.4s;">
+                <div class="card-header border-0 bg-transparent p-4">
+                    <h6 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-eye me-2"></i>Detection Results
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <div id="detection-results">
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-search fa-2x mb-2"></i>
+                            <p class="mb-0">No detections yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recording Controls -->
+            <div class="card border-0 shadow-sm animate-slide-in-right mt-4" style="animation-delay: 0.6s;">
+                <div class="card-header border-0 bg-transparent p-4">
+                    <h6 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-record-vinyl me-2"></i>Recording
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="enable-recording">
+                            <label class="form-check-label" for="enable-recording">
+                                Enable Recording
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Recording Quality</label>
+                        <select class="form-select" id="recording-quality">
+                            <option value="low">Low (720p)</option>
+                            <option value="medium" selected>Medium (1080p)</option>
+                            <option value="high">High (4K)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button class="btn btn-outline-danger" id="start-recording-btn" disabled>
+                            <i class="fas fa-record-vinyl me-2"></i>Start Recording
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Live Camera Component Script
+let cameraStream = null;
+let isRecording = false;
+let detectionInterval = null;
+let frameCount = 0;
+let lastFrameTime = Date.now();
+
+document.addEventListener('component-init', function(e) {
+    if (e.target.id === 'live-camera') {
+        initializeLiveCamera(e.detail);
+    }
+});
+
+function initializeLiveCamera(data) {
+    // Setup event listeners
+    setupEventListeners();
+    
+    // Load available Jetson devices
+    loadJetsonDevices();
+    
+    // Initialize detection results
+    initializeDetectionResults();
+}
+
+function setupEventListeners() {
+    // Camera controls
+    document.getElementById('start-camera-btn').addEventListener('click', startCamera);
+    document.getElementById('stop-camera-btn').addEventListener('click', stopCamera);
+    document.getElementById('capture-btn').addEventListener('click', captureFrame);
+    
+    // Recording controls
+    document.getElementById('start-recording-btn').addEventListener('click', toggleRecording);
+    document.getElementById('enable-recording').addEventListener('change', handleRecordingToggle);
+    
+    // Settings
+    document.getElementById('jetson-select').addEventListener('change', handleJetsonChange);
+    document.getElementById('processing-mode').addEventListener('change', handleProcessingModeChange);
+    
+    // Overlay controls
+    document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
+    document.getElementById('settings-btn').addEventListener('click', openSettings);
+}
+
+function startCamera() {
+    const jetsonDevice = document.getElementById('jetson-select').value;
+    if (!jetsonDevice) {
+        showNotification('Please select a Jetson device first', 'warning');
+        return;
+    }
+    
+    showNotification('Starting camera feed...', 'info');
+    
+    // Simulate camera start
+    setTimeout(() => {
+        const video = document.getElementById('live-camera-feed');
+        const placeholder = document.getElementById('camera-placeholder');
+        
+        // Hide placeholder and show video
+        placeholder.style.display = 'none';
+        video.style.display = 'block';
+        
+        // Update button states
+        document.getElementById('start-camera-btn').disabled = true;
+        document.getElementById('stop-camera-btn').disabled = false;
+        document.getElementById('capture-btn').disabled = false;
+        document.getElementById('start-recording-btn').disabled = false;
+        
+        // Start detection processing
+        startDetectionProcessing();
+        
+        showNotification('Camera feed started successfully!', 'success');
+    }, 2000);
+}
+
+function stopCamera() {
+    showNotification('Stopping camera feed...', 'info');
+    
+    // Stop detection processing
+    stopDetectionProcessing();
+    
+    // Reset UI
+    const video = document.getElementById('live-camera-feed');
+    const placeholder = document.getElementById('camera-placeholder');
+    
+    video.style.display = 'none';
+    placeholder.style.display = 'flex';
+    
+    // Update button states
+    document.getElementById('start-camera-btn').disabled = false;
+    document.getElementById('stop-camera-btn').disabled = true;
+    document.getElementById('capture-btn').disabled = true;
+    document.getElementById('start-recording-btn').disabled = true;
+    
+    // Stop recording if active
+    if (isRecording) {
+        stopRecording();
+    }
+    
+    showNotification('Camera feed stopped', 'success');
+}
+
+function captureFrame() {
+    showNotification('Capturing frame...', 'info');
+    
+    // Simulate frame capture
+    setTimeout(() => {
+        showNotification('Frame captured and saved!', 'success');
+    }, 1000);
+}
+
+function startDetectionProcessing() {
+    const processingOverlay = document.querySelector('.processing-overlay');
+    processingOverlay.style.display = 'block';
+    
+    // Start FPS counter
+    frameCount = 0;
+    lastFrameTime = Date.now();
+    
+    // Simulate detection processing
+    detectionInterval = setInterval(() => {
+        frameCount++;
+        const currentTime = Date.now();
+        const fps = Math.round((frameCount * 1000) / (currentTime - lastFrameTime));
+        
+        document.getElementById('processing-fps').textContent = `${fps} FPS`;
+        
+        // Simulate detection results
+        if (Math.random() > 0.7) {
+            addDetectionResult();
+        }
+    }, 100);
+}
+
+function stopDetectionProcessing() {
+    if (detectionInterval) {
+        clearInterval(detectionInterval);
+        detectionInterval = null;
+    }
+    
+    const processingOverlay = document.querySelector('.processing-overlay');
+    processingOverlay.style.display = 'none';
+}
+
+function addDetectionResult() {
+    const resultsContainer = document.getElementById('detection-results');
+    
+    // Remove "no detections" message if present
+    const noDetections = resultsContainer.querySelector('.text-center');
+    if (noDetections) {
+        noDetections.remove();
+    }
+    
+    // Create detection result
+    const detection = {
+        id: Date.now(),
+        type: ['bottle', 'can', 'plastic', 'glass'][Math.floor(Math.random() * 4)],
+        confidence: Math.round(Math.random() * 30 + 70),
+        timestamp: new Date().toLocaleTimeString()
+    };
+    
+    const detectionElement = document.createElement('div');
+    detectionElement.className = 'detection-result mb-3 p-3 bg-light rounded';
+    detectionElement.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <div class="fw-bold text-capitalize">${detection.type}</div>
+                <small class="text-muted">${detection.timestamp}</small>
+            </div>
+            <div class="text-end">
+                <div class="badge bg-success">${detection.confidence}%</div>
+            </div>
+        </div>
+    `;
+    
+    // Add to top of results
+    resultsContainer.insertBefore(detectionElement, resultsContainer.firstChild);
+    
+    // Limit to 10 results
+    const results = resultsContainer.querySelectorAll('.detection-result');
+    if (results.length > 10) {
+        results[results.length - 1].remove();
+    }
+}
+
+function initializeDetectionResults() {
+    // Clear any existing results
+    document.getElementById('detection-results').innerHTML = `
+        <div class="text-center text-muted py-4">
+            <i class="fas fa-search fa-2x mb-2"></i>
+            <p class="mb-0">No detections yet</p>
+        </div>
+    `;
+}
+
+function toggleRecording() {
+    if (isRecording) {
+        stopRecording();
+    } else {
+        startRecording();
+    }
+}
+
+function startRecording() {
+    isRecording = true;
+    document.getElementById('start-recording-btn').innerHTML = '<i class="fas fa-stop me-2"></i>Stop Recording';
+    document.getElementById('start-recording-btn').className = 'btn btn-danger';
+    
+    showNotification('Recording started', 'info');
+}
+
+function stopRecording() {
+    isRecording = false;
+    document.getElementById('start-recording-btn').innerHTML = '<i class="fas fa-record-vinyl me-2"></i>Start Recording';
+    document.getElementById('start-recording-btn').className = 'btn btn-outline-danger';
+    
+    showNotification('Recording stopped and saved', 'success');
+}
+
+function handleRecordingToggle(e) {
+    const recordingBtn = document.getElementById('start-recording-btn');
+    recordingBtn.disabled = !e.target.checked;
+}
+
+function handleJetsonChange(e) {
+    const jetsonDevice = e.target.value;
+    if (jetsonDevice) {
+        showNotification(`Switched to ${jetsonDevice}`, 'info');
+    }
+}
+
+function handleProcessingModeChange(e) {
+    const mode = e.target.value;
+    showNotification(`Processing mode changed to ${mode}`, 'info');
+}
+
+function toggleFullscreen() {
+    const cameraContainer = document.querySelector('.camera-container');
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    } else {
+        cameraContainer.requestFullscreen();
+    }
+}
+
+function openSettings() {
+    showNotification('Settings panel coming soon', 'info');
+}
+
+function loadJetsonDevices() {
+    // Mock Jetson devices loading
+    setTimeout(() => {
+        // Devices are already in the select options
+        showNotification('Jetson devices loaded', 'success');
+    }, 500);
+}
+
+function showNotification(message, type = 'info') {
+    if (window.spaRouter && window.spaRouter.showNotification) {
+        window.spaRouter.showNotification(message, type);
+    } else {
+        console.log(`[${type.toUpperCase()}] ${message}`);
+    }
+}
+
+// Cleanup when component is destroyed
+document.addEventListener('component-destroy', function(e) {
+    if (e.target.id === 'live-camera') {
+        stopCamera();
+    }
+});
+</script>

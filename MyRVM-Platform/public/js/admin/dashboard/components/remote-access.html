@@ -1,0 +1,277 @@
+<!-- Remote Access Component -->
+<div class="container-xxl">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header modern-header">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h1 class="page-title fw-bold mb-2">
+                            <i class="fas fa-desktop me-3"></i>Remote Access
+                        </h1>
+                        <p class="page-subtitle text-muted mb-0">Connect to RVM for remote management</p>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn btn-outline-secondary btn-modern" onclick="spaRouter.goBack()">
+                            <i class="fas fa-arrow-left me-2"></i>Back
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Remote Access Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm animate-slide-in-right">
+                <div class="card-header border-0 bg-transparent p-4">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-key me-2"></i>Access Authentication
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="status-dot active me-3"></div>
+                            <div>
+                                <h6 class="mb-1 fw-bold" id="rvm-name-display">RVM-001</h6>
+                                <small class="text-muted" id="rvm-location-display">Main Lobby - Building A</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="remote-access-form">
+                        <div class="mb-4">
+                            <label for="access-pin" class="form-label fw-medium">
+                                <i class="fas fa-lock me-2"></i>Access PIN
+                            </label>
+                            <input type="password" id="access-pin" class="form-control form-control-lg" 
+                                   placeholder="Enter 6-digit PIN" maxlength="6" required>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Enter the 6-digit PIN provided by your administrator
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="access-duration" class="form-label fw-medium">
+                                <i class="fas fa-clock me-2"></i>Session Duration
+                            </label>
+                            <select id="access-duration" class="form-select">
+                                <option value="15">15 minutes</option>
+                                <option value="30" selected>30 minutes</option>
+                                <option value="60">1 hour</option>
+                                <option value="120">2 hours</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="enable-recording">
+                                <label class="form-check-label" for="enable-recording">
+                                    <i class="fas fa-video me-2"></i>Enable session recording
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn btn-secondary btn-modern" onclick="spaRouter.goBack()">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-modern">
+                                <i class="fas fa-plug me-2"></i>Connect to RVM
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Connection Status -->
+            <div class="card border-0 shadow-sm animate-slide-in-right" style="animation-delay: 0.2s;">
+                <div class="card-header border-0 bg-transparent p-4">
+                    <h6 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-signal me-2"></i>Connection Status
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="connection-indicator" id="connection-indicator">
+                            <i class="fas fa-circle text-muted fa-3x"></i>
+                            <p class="mt-2 text-muted">Not Connected</p>
+                        </div>
+                    </div>
+
+                    <div class="connection-details">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">RVM Status:</span>
+                            <span class="badge bg-success" id="rvm-status-badge">Active</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Last Seen:</span>
+                            <span id="last-seen-time">2 minutes ago</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Network:</span>
+                            <span class="text-success">
+                                <i class="fas fa-wifi me-1"></i>Connected
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm animate-slide-in-right mt-4" style="animation-delay: 0.4s;">
+                <div class="card-header border-0 bg-transparent p-4">
+                    <h6 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm" onclick="pingRVM()">
+                            <i class="fas fa-heartbeat me-2"></i>Ping RVM
+                        </button>
+                        <button class="btn btn-outline-info btn-sm" onclick="viewRVMDetails()">
+                            <i class="fas fa-info-circle me-2"></i>View Details
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm" onclick="restartRVM()">
+                            <i class="fas fa-redo me-2"></i>Restart RVM
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Remote Access Component Script
+document.addEventListener('component-init', function(e) {
+    if (e.target.id === 'remote-access') {
+        initializeRemoteAccess(e.detail);
+    }
+});
+
+function initializeRemoteAccess(data) {
+    // Update RVM information
+    if (data.rvmId) {
+        document.getElementById('rvm-name-display').textContent = `RVM-${data.rvmId}`;
+        document.getElementById('rvm-location-display').textContent = data.location || 'Unknown Location';
+    }
+
+    // Setup form submission
+    document.getElementById('remote-access-form').addEventListener('submit', handleRemoteAccess);
+    
+    // Setup PIN input formatting
+    document.getElementById('access-pin').addEventListener('input', formatPIN);
+    
+    // Load RVM status
+    loadRVMStatus(data.rvmId);
+}
+
+function handleRemoteAccess(e) {
+    e.preventDefault();
+    
+    const pin = document.getElementById('access-pin').value;
+    const duration = document.getElementById('access-duration').value;
+    const recording = document.getElementById('enable-recording').checked;
+    
+    if (!pin || pin.length !== 6) {
+        showNotification('Please enter a valid 6-digit PIN', 'warning');
+        return;
+    }
+    
+    // Show connecting state
+    updateConnectionStatus('connecting');
+    
+    // Simulate connection process
+    setTimeout(() => {
+        if (pin === '123456') { // Mock validation
+            updateConnectionStatus('connected');
+            showNotification('Successfully connected to RVM!', 'success');
+            
+            // Redirect to remote control interface
+            setTimeout(() => {
+                spaRouter.navigate('/dashboard/remote-control/' + getCurrentRVMId());
+            }, 2000);
+        } else {
+            updateConnectionStatus('error');
+            showNotification('Invalid PIN. Please try again.', 'error');
+        }
+    }, 2000);
+}
+
+function formatPIN(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 6) {
+        value = value.substring(0, 6);
+    }
+    e.target.value = value;
+}
+
+function updateConnectionStatus(status) {
+    const indicator = document.getElementById('connection-indicator');
+    const icon = indicator.querySelector('i');
+    const text = indicator.querySelector('p');
+    
+    switch (status) {
+        case 'connecting':
+            icon.className = 'fas fa-circle text-warning fa-3x';
+            icon.style.animation = 'pulse-yellow 1s infinite';
+            text.textContent = 'Connecting...';
+            break;
+        case 'connected':
+            icon.className = 'fas fa-circle text-success fa-3x';
+            icon.style.animation = 'pulse-green 1s infinite';
+            text.textContent = 'Connected';
+            break;
+        case 'error':
+            icon.className = 'fas fa-circle text-danger fa-3x';
+            icon.style.animation = 'pulse-red 1s infinite';
+            text.textContent = 'Connection Failed';
+            break;
+        default:
+            icon.className = 'fas fa-circle text-muted fa-3x';
+            icon.style.animation = 'none';
+            text.textContent = 'Not Connected';
+    }
+}
+
+function loadRVMStatus(rvmId) {
+    // Mock RVM status loading
+    setTimeout(() => {
+        document.getElementById('last-seen-time').textContent = '2 minutes ago';
+        document.getElementById('rvm-status-badge').textContent = 'Active';
+        document.getElementById('rvm-status-badge').className = 'badge bg-success';
+    }, 500);
+}
+
+function getCurrentRVMId() {
+    return window.location.pathname.split('/').pop();
+}
+
+// Quick action functions
+function pingRVM() {
+    showNotification('Pinging RVM...', 'info');
+    setTimeout(() => {
+        showNotification('RVM responded in 45ms', 'success');
+    }, 1000);
+}
+
+function viewRVMDetails() {
+    spaRouter.navigate('/rvm-management/edit/' + getCurrentRVMId());
+}
+
+function restartRVM() {
+    if (confirm('Are you sure you want to restart this RVM?')) {
+        showNotification('Restarting RVM...', 'info');
+        setTimeout(() => {
+            showNotification('RVM restarted successfully', 'success');
+        }, 3000);
+    }
+}
+</script>
