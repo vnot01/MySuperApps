@@ -6,7 +6,7 @@
             <li class="menu-item active">
                 <a href="{{ url('/admin/dashboard') }}" class="menu-link">
                     <i class="menu-icon fas fa-tachometer-alt"></i>
-                    <span data-i18n="Dashboard">Dashboard</span>
+                    <span data-i18n="Dashboard">Dashboard 123</span>
                 </a>
             </li>
 
@@ -14,21 +14,21 @@
             <li class="menu-item">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
                     <i class="menu-icon fas fa-recycle"></i>
-                    <span data-i18n="RVM Management">RVM Management</span>
+                    <span data-i18n="RVM Management">RVM Management 123</span>
                 </a>
                 <ul class="menu-sub">
                     <li class="menu-item">
-                        <a href="{{ url('/admin/rvm-management/all') }}" class="menu-link">
+                        <a href="{{ route('admin.rvm.index') }}" class="menu-link">
                             <span data-i18n="All RVMs">All RVMs</span>
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="{{ url('/admin/rvm-management/add') }}" class="menu-link">
+                        <a href="#" class="menu-link" data-bs-toggle="modal" data-bs-target="#addRvmModal">
                             <span data-i18n="Add New RVM">Add New RVM</span>
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="{{ url('/admin/rvm-management/maintenance') }}" class="menu-link">
+                        <a href="{{ route('admin.rvm.maintenance') }}" class="menu-link">
                             <span data-i18n="Maintenance">Maintenance</span>
                         </a>
                     </li>

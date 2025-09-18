@@ -23,7 +23,7 @@
             <div class="page-header modern-header">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <h1 class="page-title fw-bold mb-2">RVM Dashboard 321</h1>
+                        <h1 class="page-title fw-bold mb-2">RVM Dashboard</h1>
                         <p class="page-subtitle text-muted mb-0">Monitor and manage your Reverse Vending Machines </br>
                         dashboard/index.blade.php
                         </p>

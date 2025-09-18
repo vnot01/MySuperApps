@@ -58,10 +58,10 @@
     <div class="layout-wrapper layout-navbar-full layout-horizontal layout-without-menu">
         <div class="layout-container">
             <!-- Navbar -->
-            @include('components.navbar')
+            <!-- @include('components.navbar') -->
             
             <!-- Menu -->
-            @include('components.menu')
+            <!-- @include('components.menu') -->
             
             <!-- Layout container -->
             <div class="layout-page">
