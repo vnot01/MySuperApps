@@ -9,8 +9,11 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
+                    <h1 class="mb-1 fw-bold text-primary">
+                        <i class="fas fa-recycle me-2"></i>
+                        MyRVM Platform
+                    </h1>
                     <h2 class="mb-1 fw-bold">
-                        <i class="fas fa-recycle me-2 text-primary"></i>
                         All RVMs
                     </h2>
                     <p class="text-muted mb-0">Manage all Reverse Vending Machines and their timezone settings</p>
