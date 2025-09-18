@@ -94,6 +94,7 @@ class RvmController extends Controller
                 'timezone' => $request->timezone,
                 'timezone_offset' => $this->getTimezoneOffset($request->timezone),
                 'status' => $request->status,
+                'api_key' => $this->generateApiKey(),
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
@@ -389,24 +390,52 @@ class RvmController extends Controller
      */
     private function performPing($ip, $port = 8000)
     {
-        // This is a simulation - replace with actual ping implementation
-        // You can use cURL, fsockopen, or other methods to ping the RVM
-        
         $startTime = microtime(true);
         
-        // Simulate network delay
-        usleep(rand(10000, 100000)); // 10-100ms
+        // Handle dummy data (0.0.0.0)
+        if ($ip === '0.0.0.0' || $ip === 'localhost' || $ip === '127.0.0.1') {
+            $responseTime = round((microtime(true) - $startTime) * 1000, 2);
+            return [
+                'success' => true,
+                'message' => 'Dummy data - No actual connection test',
+                'response_time' => $responseTime,
+                'is_dummy' => true
+            ];
+        }
         
-        $responseTime = round((microtime(true) - $startTime) * 1000, 2);
-        
-        // Simulate 90% success rate
-        $success = rand(1, 10) <= 9;
-        
-        return [
-            'success' => $success,
-            'message' => $success ? 'Connection successful' : 'Connection failed',
-            'response_time' => $success ? $responseTime : null
-        ];
+        // Real ping implementation for actual IP addresses
+        try {
+            // Try to connect to the RVM
+            $connection = @fsockopen($ip, $port, $errno, $errstr, 5);
+            
+            if ($connection) {
+                $responseTime = round((microtime(true) - $startTime) * 1000, 2);
+                fclose($connection);
+                
+                return [
+                    'success' => true,
+                    'message' => 'Connection successful',
+                    'response_time' => $responseTime,
+                    'is_dummy' => false
+                ];
+            } else {
+                $responseTime = round((microtime(true) - $startTime) * 1000, 2);
+                return [
+                    'success' => false,
+                    'message' => "Connection failed: $errstr ($errno)",
+                    'response_time' => $responseTime,
+                    'is_dummy' => false
+                ];
+            }
+        } catch (\Exception $e) {
+            $responseTime = round((microtime(true) - $startTime) * 1000, 2);
+            return [
+                'success' => false,
+                'message' => 'Connection error: ' . $e->getMessage(),
+                'response_time' => $responseTime,
+                'is_dummy' => false
+            ];
+        }
     }
 
     /**
@@ -454,5 +483,13 @@ class RvmController extends Controller
         } catch (\Exception $e) {
             return '+00:00';
         }
+    }
+
+    /**
+     * Generate API key for RVM
+     */
+    private function generateApiKey()
+    {
+        return 'rvm_' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 16));
     }
 }
