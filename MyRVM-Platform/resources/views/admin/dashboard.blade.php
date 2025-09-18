@@ -140,6 +140,14 @@
                 <div class="card-header">
                     <h5 class="card-title mb-0">Machine Status</h5>
                     <small class="text-muted">Real-time machine monitoring</small>
+                    @if(isset($timezoneData) && $timezoneData['statistics']['total_devices'] > 0)
+                        <div class="mt-2">
+                            <span class="badge bg-info">
+                                <i class="icon-base ti tabler-clock me-1"></i>
+                                {{ $timezoneData['statistics']['active_devices'] }} devices synced
+                            </span>
+                        </div>
+                    @endif
                 </div>
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -195,6 +203,40 @@
                             <small class="text-danger">1.2%</small>
                         </div>
                     </div>
+
+                    @if(isset($timezoneData) && $timezoneData['statistics']['total_devices'] > 0)
+                        <!-- Timezone Sync Status -->
+                        <hr class="my-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar avatar-sm me-3">
+                                    <span class="avatar-initial rounded bg-label-info">
+                                        <i class="icon-base ti tabler-clock"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Timezone Sync</h6>
+                                    <small class="text-muted">Device timezone status</small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <h6 class="mb-0">{{ $timezoneData['statistics']['active_devices'] }}/{{ $timezoneData['statistics']['total_devices'] }}</h6>
+                                <small class="text-info">{{ $timezoneData['statistics']['syncs_today'] }} syncs today</small>
+                            </div>
+                        </div>
+
+                        @if($timezoneData['recent_syncs']->count() > 0)
+                            <div class="mt-3">
+                                <small class="text-muted d-block mb-2">Recent syncs:</small>
+                                @foreach($timezoneData['recent_syncs']->take(3) as $sync)
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <small class="text-muted">{{ $sync->device_id }}</small>
+                                        <small class="text-muted">{{ \Carbon\Carbon::parse($sync->sync_timestamp)->diffForHumans() }}</small>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    @endif
                 </div>
             </div>
         </div>
@@ -294,6 +336,14 @@
                             <i class="icon-base ti tabler-settings me-2"></i>
                             System Settings
                         </button>
+
+                        @if(isset($timezoneData) && $timezoneData['statistics']['total_devices'] > 0)
+                            <a href="{{ route('admin.timezone.index') }}" class="btn btn-outline-info d-flex align-items-center">
+                                <i class="icon-base ti tabler-clock me-2"></i>
+                                Timezone Management
+                                <span class="badge bg-info ms-auto">{{ $timezoneData['statistics']['active_devices'] }}</span>
+                            </a>
+                        @endif
                     </div>
 
                     <hr class="my-4">

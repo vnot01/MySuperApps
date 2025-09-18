@@ -57,12 +57,15 @@ class DashboardController extends Controller
             )
         ];
 
+        // Get timezone sync data for RVM monitoring
+        $timezoneData = $this->getTimezoneSyncData();
+        
         $timezoneConfig = [
             'timezone' => config('app.timezone', 'Asia/Jakarta'),
             'display_timezone' => 'WIB'
         ];
 
-        return view('admin.dashboard.index', compact('rvms', 'statistics', 'trends', 'timezoneConfig'));
+        return view('admin.dashboard.index', compact('rvms', 'statistics', 'trends', 'timezoneConfig', 'timezoneData'));
     }
 
     private function calculateRvmStatus($capacity, $status)
@@ -181,5 +184,53 @@ class DashboardController extends Controller
         return ReverseVendingMachine::whereIn('status', ['error', 'maintenance', 'inactive'])
             ->where('updated_at', '<=', now()->subDays(30))
             ->count();
+    }
+
+    private function getTimezoneSyncData()
+    {
+        try {
+            // Get device timezone data
+            $deviceTimezones = DB::table('device_timezones')
+                ->orderBy('last_sync', 'desc')
+                ->get();
+
+            // Get recent sync statistics
+            $syncStats = [
+                'total_devices' => $deviceTimezones->count(),
+                'active_devices' => $deviceTimezones->where('sync_status', 'active')->count(),
+                'syncs_today' => DB::table('timezone_sync_logs')
+                    ->whereDate('sync_timestamp', today())
+                    ->count(),
+                'unique_timezones' => DB::table('timezone_sync_logs')
+                    ->distinct('timezone')
+                    ->count('timezone')
+            ];
+
+            // Get recent sync activity
+            $recentSyncs = DB::table('timezone_sync_logs')
+                ->where('sync_timestamp', '>=', now()->subHours(24))
+                ->orderBy('sync_timestamp', 'desc')
+                ->limit(5)
+                ->get();
+
+            return [
+                'devices' => $deviceTimezones,
+                'statistics' => $syncStats,
+                'recent_syncs' => $recentSyncs
+            ];
+
+        } catch (\Exception $e) {
+            // Return empty data if timezone tables don't exist yet
+            return [
+                'devices' => collect(),
+                'statistics' => [
+                    'total_devices' => 0,
+                    'active_devices' => 0,
+                    'syncs_today' => 0,
+                    'unique_timezones' => 0
+                ],
+                'recent_syncs' => collect()
+            ];
+        }
     }
 }
