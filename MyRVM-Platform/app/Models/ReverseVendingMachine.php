@@ -159,6 +159,14 @@ class ReverseVendingMachine extends Model
     }
 
     /**
+     * Get detection results for this RVM
+     */
+    public function detectionResults(): HasMany
+    {
+        return $this->hasMany(DetectionResult::class, 'rvm_id');
+    }
+
+    /**
      * Get cached RVM statistics
      */
     public function getCachedStats(): array

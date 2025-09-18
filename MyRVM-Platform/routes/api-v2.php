@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\V2\TenantController;
 use App\Http\Controllers\Api\V2\RVMController;
 use App\Http\Controllers\Api\V2\UserManagementController;
 use App\Http\Controllers\Api\V2\AnalyticsController;
+use App\Http\Controllers\Api\V2\ProcessingEngineController;
+use App\Http\Controllers\Api\V2\DetectionResultController;
 use App\Http\Controllers\AdminRvmController;
 use App\Http\Controllers\GeminiVisionController;
 
@@ -150,6 +152,36 @@ Route::prefix('v2')->middleware('auth:sanctum')->group(function () {
         Route::get('/rvms', [AnalyticsController::class, 'getRVMAnalytics']);
         Route::post('/reports', [AnalyticsController::class, 'generateReport']);
     });
+
+    // Processing Engines Management
+    Route::prefix('processing-engines')->group(function () {
+        Route::get('/', [ProcessingEngineController::class, 'index']);
+        Route::post('/', [ProcessingEngineController::class, 'store']);
+        Route::get('/{processingEngine}', [ProcessingEngineController::class, 'show']);
+        Route::put('/{processingEngine}', [ProcessingEngineController::class, 'update']);
+        Route::delete('/{processingEngine}', [ProcessingEngineController::class, 'destroy']);
+        Route::post('/{processingEngine}/ping', [ProcessingEngineController::class, 'ping']);
+        Route::post('/{processingEngine}/assign', [ProcessingEngineController::class, 'assign']);
+    });
+
+    // Detection Results Management
+    Route::prefix('detection-results')->group(function () {
+        Route::get('/', [DetectionResultController::class, 'index']);
+        Route::post('/', [DetectionResultController::class, 'store']);
+        Route::get('/{detectionResult}', [DetectionResultController::class, 'show']);
+        Route::get('/rvm/{rvmId}/status', [DetectionResultController::class, 'getRvmStatus']);
+        Route::post('/trigger-processing', [DetectionResultController::class, 'triggerProcessing']);
+        Route::get('/processing-history', [DetectionResultController::class, 'getProcessingHistory']);
+    });
+
+    // RVM Status (simplified endpoint)
+    Route::get('/rvm-status/{rvmId}', [DetectionResultController::class, 'getRvmStatus']);
+
+    // Trigger Processing (simplified endpoint)
+    Route::post('/trigger-processing', [DetectionResultController::class, 'triggerProcessing']);
+
+    // File Upload
+    Route::post('/upload', [DetectionResultController::class, 'uploadImageFile']);
 
     // Admin RVM Control API Routes
     Route::prefix('admin/rvm')->group(function () {
