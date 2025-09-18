@@ -131,7 +131,7 @@ class ReverseVendingMachine extends Model
      */
     public function processingEngines(): BelongsToMany
     {
-        return $this->belongsToMany(ProcessingEngine::class, 'rvm_processing_engines')
+        return $this->belongsToMany(ProcessingEngine::class, 'rvm_processing_engines', 'rvm_id', 'processing_engine_id')
                     ->withPivot(['priority', 'is_active'])
                     ->withTimestamps();
     }

@@ -168,10 +168,10 @@ Route::prefix('v2')->middleware('auth:sanctum')->group(function () {
     Route::prefix('detection-results')->group(function () {
         Route::get('/', [DetectionResultController::class, 'index']);
         Route::post('/', [DetectionResultController::class, 'store']);
-        Route::get('/{detectionResult}', [DetectionResultController::class, 'show']);
+        Route::get('/processing-history', [DetectionResultController::class, 'getProcessingHistory']);
         Route::get('/rvm/{rvmId}/status', [DetectionResultController::class, 'getRvmStatus']);
         Route::post('/trigger-processing', [DetectionResultController::class, 'triggerProcessing']);
-        Route::get('/processing-history', [DetectionResultController::class, 'getProcessingHistory']);
+        Route::get('/{detectionResult}', [DetectionResultController::class, 'show']);
     });
 
     // RVM Status (simplified endpoint)
