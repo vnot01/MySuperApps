@@ -192,6 +192,15 @@ Route::prefix('v2')->middleware('auth:sanctum')->group(function () {
         Route::post('/{rvmId}/status', [AdminRvmController::class, 'updateRvmStatus']);
         Route::put('/{rvmId}/settings', [AdminRvmController::class, 'updateRvmSettings']);
     });
+
+    // Timezone Synchronization API
+    Route::prefix('timezone')->group(function () {
+        Route::post('/sync', [App\Http\Controllers\Api\V2\TimezoneController::class, 'sync']);
+        Route::get('/status/{deviceId}', [App\Http\Controllers\Api\V2\TimezoneController::class, 'getStatus']);
+        Route::post('/sync/manual', [App\Http\Controllers\Api\V2\TimezoneController::class, 'manualSync']);
+        Route::get('/statistics', [App\Http\Controllers\Api\V2\TimezoneController::class, 'getStatistics']);
+        Route::get('/devices', [App\Http\Controllers\Api\V2\TimezoneController::class, 'getAllDevices']);
+    });
 });
 
 // Note: Public routes for testing have been removed

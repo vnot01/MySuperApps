@@ -52,6 +52,16 @@ Route::middleware(['auth', 'verified']) // Anda bisa tambahkan 'role:...' di sin
         // Contoh rute dasbor admin
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])
             ->name('dashboard');
+        
+        // Timezone Management
+        Route::prefix('timezone')->name('timezone.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\TimezoneController::class, 'index'])->name('index');
+            Route::get('/dashboard-data', [App\Http\Controllers\Admin\TimezoneController::class, 'getDashboardData'])->name('dashboard-data');
+            Route::get('/device/{deviceId}', [App\Http\Controllers\Admin\TimezoneController::class, 'getDeviceDetails'])->name('device-details');
+            Route::post('/manual-sync', [App\Http\Controllers\Admin\TimezoneController::class, 'triggerManualSync'])->name('manual-sync');
+            Route::get('/statistics', [App\Http\Controllers\Admin\TimezoneController::class, 'getStatistics'])->name('statistics');
+        });
+        
         // ... (rute admin lainnya: users, tenants, dll.)
     });
 
