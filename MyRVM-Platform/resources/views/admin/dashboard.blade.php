@@ -13,7 +13,7 @@
                 <div class="card-body">
                     <div class="d-flex align-items-start justify-content-between">
                         <div class="content-left">
-                            <span class="text-heading">Total RVM Machines</span>
+                            <span class="text-heading">Total RVM Machines 1234</span>
                             <div class="d-flex align-items-center my-1">
                                 <h4 class="mb-0 me-2">245</h4>
                                 <p class="text-success mb-0">(+12%)</p>

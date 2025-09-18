@@ -23,7 +23,7 @@
             <div class="page-header modern-header">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <h1 class="page-title fw-bold mb-2">RVM Dashboard</h1>
+                        <h1 class="page-title fw-bold mb-2">RVM Dashboard 321</h1>
                         <p class="page-subtitle text-muted mb-0">Monitor and manage your Reverse Vending Machines </br>
                         dashboard/index.blade.php
                         </p>
@@ -174,6 +174,14 @@
                         <div>
                             <h5 class="mb-1 fw-bold">RVM Monitoring</h5>
                             <p class="card-subtitle text-muted mb-0">Real-time status of all Reverse Vending Machines</p>
+                            @if(isset($timezoneData) && $timezoneData['statistics']['total_devices'] > 0)
+                                <div class="mt-2">
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ $timezoneData['statistics']['active_devices'] }} devices synced
+                                    </span>
+                                </div>
+                            @endif
                         </div>
                         <div class="d-flex align-items-center">
                             <small class="text-muted me-3">Last updated: <span id="last-updated">--:--:--</span></small>
@@ -195,6 +203,50 @@
                     <div class="row" id="rvm-cards-container">
                         <!-- RVM cards will be loaded dynamically -->
                     </div>
+
+                    @if(isset($timezoneData) && $timezoneData['statistics']['total_devices'] > 0)
+                        <!-- Timezone Sync Status -->
+                        <hr class="my-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <div class="avatar avatar-sm">
+                                            <span class="avatar-initial rounded bg-label-info">
+                                                <i class="fas fa-clock"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Timezone Sync Status</h6>
+                                        <small class="text-muted">Device timezone synchronization</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-end">
+                                    <h6 class="mb-0">{{ $timezoneData['statistics']['active_devices'] }}/{{ $timezoneData['statistics']['total_devices'] }} devices</h6>
+                                    <small class="text-info">{{ $timezoneData['statistics']['syncs_today'] }} syncs today</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if($timezoneData['recent_syncs']->count() > 0)
+                            <div class="mt-3">
+                                <small class="text-muted d-block mb-2">Recent timezone syncs:</small>
+                                <div class="row">
+                                    @foreach($timezoneData['recent_syncs']->take(3) as $sync)
+                                        <div class="col-md-4">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <small class="text-muted">{{ $sync->device_id }}</small>
+                                                <small class="text-muted">{{ \Carbon\Carbon::parse($sync->sync_timestamp)->diffForHumans() }}</small>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    @endif
                 </div>
             </div>
         </div>
@@ -213,7 +265,8 @@
         window.dashboardData = {
             rvms: @json($rvms ?? []),
             statistics: @json($statistics ?? []),
-            timezoneConfig: @json($timezoneConfig ?? [])
+            timezoneConfig: @json($timezoneConfig ?? []),
+            timezoneData: @json($timezoneData ?? [])
         };
         
         window.dashboardConfig = {
