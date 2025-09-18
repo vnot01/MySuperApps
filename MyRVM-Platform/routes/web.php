@@ -10,6 +10,7 @@ use App\Http\Controllers\GeminiDashboardController;
 use App\Http\Controllers\CvPlaygroundController;
 use App\Http\Controllers\Admin\EdgeVisionController;
 use App\Http\Controllers\Admin\ProcessingEngineController;
+use App\Http\Controllers\Admin\RvmController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -122,6 +123,19 @@ Route::prefix('admin/dashboard')->name('admin.dashboard.')->group(function () {
     Route::get('/remote-control', function () {
         return view('admin.dashboard.remote-control');
     })->name('remote-control');
+});
+
+// RVM Management Routes
+Route::prefix('admin/rvm')->name('admin.rvm.')->group(function () {
+    Route::get('/', [RvmController::class, 'index'])->name('index');
+    Route::get('/maintenance', [RvmController::class, 'maintenance'])->name('maintenance');
+    Route::post('/', [RvmController::class, 'store'])->name('store');
+    Route::get('/{id}', [RvmController::class, 'show'])->name('show');
+    Route::put('/{id}', [RvmController::class, 'update'])->name('update');
+    Route::delete('/{id}', [RvmController::class, 'destroy'])->name('destroy');
+    Route::post('/ping/{id}', [RvmController::class, 'ping'])->name('ping');
+    Route::post('/sync-timezone/{id}', [RvmController::class, 'syncTimezone'])->name('sync-timezone');
+    Route::post('/set-global-timezone', [RvmController::class, 'setGlobalTimezone'])->name('set-global-timezone');
 });
 
 // Dashboard Data Route (Public access for dashboard display)

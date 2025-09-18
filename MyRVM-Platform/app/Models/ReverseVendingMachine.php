@@ -15,6 +15,8 @@ class ReverseVendingMachine extends Model
     protected $fillable = [
         'name',
         'location_description',
+        'location',
+        'address',
         'status',
         'capacity',
         'special_status',
@@ -25,6 +27,13 @@ class ReverseVendingMachine extends Model
         'remote_access_enabled',
         'kiosk_mode_enabled',
         'pos_settings',
+        'ip_address',
+        'port',
+        'timezone',
+        'timezone_offset',
+        'last_timezone_sync',
+        'last_ping',
+        'connection_status',
     ];
 
     protected $casts = [
@@ -33,7 +42,10 @@ class ReverseVendingMachine extends Model
         'kiosk_mode_enabled' => 'boolean',
         'last_status_change' => 'datetime',
         'last_capacity_update' => 'datetime',
+        'last_timezone_sync' => 'datetime',
+        'last_ping' => 'datetime',
         'capacity' => 'integer',
+        'port' => 'integer',
     ];
 
     /**
@@ -227,6 +239,14 @@ class ReverseVendingMachine extends Model
                 ->orderBy('name')
                 ->get();
         }, [], 600); // 10 minutes cache
+    }
+
+    /**
+     * Get timezone sync logs for this RVM
+     */
+    public function timezoneSyncLogs(): HasMany
+    {
+        return $this->hasMany(TimezoneSyncLog::class, 'device_id')->where('device_type', 'rvm');
     }
 
     /**

@@ -174,14 +174,19 @@
                         <div>
                             <h5 class="mb-1 fw-bold">RVM Monitoring</h5>
                             <p class="card-subtitle text-muted mb-0">Real-time status of all Reverse Vending Machines</p>
-                            @if(isset($timezoneData) && $timezoneData['statistics']['total_devices'] > 0)
-                                <div class="mt-2">
+                            <div class="mt-2">
+                                @if(isset($timezoneData) && $timezoneData['statistics']['total_devices'] > 0)
                                     <span class="badge bg-info">
                                         <i class="fas fa-clock me-1"></i>
                                         {{ $timezoneData['statistics']['active_devices'] }} devices synced
                                     </span>
-                                </div>
-                            @endif
+                                @else
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-clock me-1"></i>
+                                        Timezone sync ready
+                                    </span>
+                                @endif
+                            </div>
                         </div>
                         <div class="d-flex align-items-center">
                             <small class="text-muted me-3">Last updated: <span id="last-updated">--:--:--</span></small>
@@ -204,48 +209,60 @@
                         <!-- RVM cards will be loaded dynamically -->
                     </div>
 
-                    @if(isset($timezoneData) && $timezoneData['statistics']['total_devices'] > 0)
-                        <!-- Timezone Sync Status -->
-                        <hr class="my-4">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center">
-                                    <div class="me-3">
-                                        <div class="avatar avatar-sm">
-                                            <span class="avatar-initial rounded bg-label-info">
-                                                <i class="fas fa-clock"></i>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">Timezone Sync Status</h6>
-                                        <small class="text-muted">Device timezone synchronization</small>
+                    <!-- Timezone Sync Status -->
+                    <hr class="my-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <div class="avatar avatar-sm">
+                                        <span class="avatar-initial rounded bg-label-info">
+                                            <i class="fas fa-clock"></i>
+                                        </span>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="text-end">
-                                    <h6 class="mb-0">{{ $timezoneData['statistics']['active_devices'] }}/{{ $timezoneData['statistics']['total_devices'] }} devices</h6>
-                                    <small class="text-info">{{ $timezoneData['statistics']['syncs_today'] }} syncs today</small>
+                                <div>
+                                    <h6 class="mb-0">Timezone Sync Status</h6>
+                                    <small class="text-muted">Device timezone synchronization</small>
                                 </div>
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="text-end">
+                                @if(isset($timezoneData) && $timezoneData['statistics']['total_devices'] > 0)
+                                    <h6 class="mb-0">{{ $timezoneData['statistics']['active_devices'] }}/{{ $timezoneData['statistics']['total_devices'] }} devices</h6>
+                                    <small class="text-info">{{ $timezoneData['statistics']['syncs_today'] }} syncs today</small>
+                                @else
+                                    <h6 class="mb-0">0/0 devices</h6>
+                                    <small class="text-muted">No syncs yet</small>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
 
-                        @if($timezoneData['recent_syncs']->count() > 0)
-                            <div class="mt-3">
-                                <small class="text-muted d-block mb-2">Recent timezone syncs:</small>
-                                <div class="row">
-                                    @foreach($timezoneData['recent_syncs']->take(3) as $sync)
-                                        <div class="col-md-4">
-                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <small class="text-muted">{{ $sync->device_id }}</small>
-                                                <small class="text-muted">{{ \Carbon\Carbon::parse($sync->sync_timestamp)->diffForHumans() }}</small>
-                                            </div>
+                    @if(isset($timezoneData) && $timezoneData['recent_syncs']->count() > 0)
+                        <div class="mt-3">
+                            <small class="text-muted d-block mb-2">Recent timezone syncs:</small>
+                            <div class="row">
+                                @foreach($timezoneData['recent_syncs']->take(3) as $sync)
+                                    <div class="col-md-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <small class="text-muted">{{ $sync->device_id }}</small>
+                                            <small class="text-muted">{{ \Carbon\Carbon::parse($sync->sync_timestamp)->diffForHumans() }}</small>
                                         </div>
-                                    @endforeach
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        <div class="mt-3">
+                            <small class="text-muted d-block mb-2">Recent timezone syncs:</small>
+                            <div class="row">
+                                <div class="col-12">
+                                    <small class="text-muted">No recent syncs. Start by sending timezone data from Jetson Orin.</small>
                                 </div>
                             </div>
-                        @endif
+                        </div>
                     @endif
                 </div>
             </div>
