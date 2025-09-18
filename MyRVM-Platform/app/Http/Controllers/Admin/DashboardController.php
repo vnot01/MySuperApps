@@ -12,19 +12,27 @@ class DashboardController extends Controller
     public function index()
     {
         // Mengambil data RVM dari database (sesuai dengan seeder)
-        $rvms = ReverseVendingMachine::select('id', 'name', 'location_description', 'capacity', 'status', 'updated_at')
+        $rvms = ReverseVendingMachine::select('id', 'name', 'location', 'location_description', 'capacity', 'status', 'updated_at', 'ip_address', 'port', 'timezone', 'last_timezone_sync', 'connection_status')
             ->get()
             ->map(function ($rvm) {
                 // Hitung status berdasarkan kapasitas dan status khusus
                 $calculatedStatus = $this->calculateRvmStatus($rvm->capacity, $rvm->status);
                 
+                // Use location if available, otherwise fallback to location_description
+                $location = $rvm->location ?? $rvm->location_description ?? 'Not Set';
+                
                 return [
                     'id' => $rvm->id,
                     'name' => $rvm->name,
-                    'location' => $rvm->location_description, // Menggunakan location_description dari seeder
+                    'location' => $location,
                     'capacity' => $rvm->capacity ?? 0,
                     'calculated_status' => $calculatedStatus,
                     'last_seen' => $rvm->updated_at ? $rvm->updated_at->format('H:i A') : 'Never',
+                    'ip_address' => $rvm->ip_address ?? 'Not Set',
+                    'port' => $rvm->port ?? 8000,
+                    'timezone' => $rvm->timezone ?? 'Not Set',
+                    'last_timezone_sync' => $rvm->last_timezone_sync,
+                    'connection_status' => $rvm->connection_status ?? 'unknown',
                     'processing_engines' => [] // Sementara kosong, bisa ditambahkan nanti
                 ];
             });

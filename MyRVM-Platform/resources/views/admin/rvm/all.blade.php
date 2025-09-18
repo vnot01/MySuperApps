@@ -66,7 +66,7 @@
                         </div>
                         <div>
                             <h6 class="mb-0">Active RVMs</h6>
-                            <h4 class="mb-0 text-success" id="active-rvms">{{ $rvms->where('status', 'active')->count() }}</h4>
+                            <h4 class="mb-0 text-success" id="active-rvms">{{ $activeCount ?? $rvms->where('status', 'active')->count() }}</h4>
                         </div>
                     </div>
                 </div>
@@ -166,8 +166,8 @@
                                     </td>
                                     <td>
                                         <div>
-                                            <h6 class="mb-0">{{ $rvm->location }}</h6>
-                                            <small class="text-muted">{{ $rvm->address }}</small>
+                                            <h6 class="mb-0">{{ $rvm->location ?? $rvm->location_description ?? 'Not Set' }}</h6>
+                                            <small class="text-muted">{{ $rvm->address ?? 'Not Set' }}</small>
                                         </div>
                                     </td>
                                     <td>
@@ -440,12 +440,38 @@ function testConnection() {
     testBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Testing...';
     testBtn.disabled = true;
 
-    // Simulate connection test
-    setTimeout(() => {
+    // Real connection test via API
+    fetch('/admin/rvm/test-connection', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            ip_address: ipAddress,
+            port: port || 8000
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
         testBtn.innerHTML = originalText;
         testBtn.disabled = false;
-        alert('Connection test completed. Check the result above.');
-    }, 2000);
+        
+        if (data.success) {
+            if (data.is_dummy) {
+                alert('✅ Dummy data detected (0.0.0.0) - No actual connection test performed');
+            } else {
+                alert(`✅ Connection successful!\nResponse time: ${data.response_time}ms\nMessage: ${data.message}`);
+            }
+        } else {
+            alert(`❌ Connection failed!\nError: ${data.message}`);
+        }
+    })
+    .catch(error => {
+        testBtn.innerHTML = originalText;
+        testBtn.disabled = false;
+        alert('❌ Connection test error: ' + error.message);
+    });
 }
 
 // Sync timezone for specific RVM
@@ -517,6 +543,12 @@ document.getElementById('addRvmForm').addEventListener('submit', function(e) {
     const formData = new FormData(this);
     const data = Object.fromEntries(formData);
     
+    // Show loading state
+    const submitBtn = document.querySelector('#addRvmForm button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Adding...';
+    submitBtn.disabled = true;
+    
     fetch('/admin/rvm', {
         method: 'POST',
         headers: {
@@ -527,15 +559,33 @@ document.getElementById('addRvmForm').addEventListener('submit', function(e) {
     })
     .then(response => response.json())
     .then(data => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        
         if (data.success) {
-            alert('RVM added successfully');
+            // Show success message
+            alert('✅ RVM added successfully!\n\nRVM ID: ' + data.data.id + '\nName: ' + data.data.name + '\nIP: ' + data.data.ip_address);
+            
+            // Close modal and reload page
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addRvmModal'));
+            modal.hide();
             location.reload();
         } else {
-            alert('Error: ' + data.message);
+            // Show error message with details
+            let errorMsg = '❌ Error adding RVM:\n' + data.message;
+            if (data.errors) {
+                errorMsg += '\n\nValidation errors:';
+                for (const [field, errors] of Object.entries(data.errors)) {
+                    errorMsg += '\n• ' + field + ': ' + errors.join(', ');
+                }
+            }
+            alert(errorMsg);
         }
     })
     .catch(error => {
-        alert('Error: ' + error.message);
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        alert('❌ Network error: ' + error.message);
     });
 });
 

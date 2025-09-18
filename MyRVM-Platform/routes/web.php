@@ -130,6 +130,7 @@ Route::prefix('admin/rvm')->name('admin.rvm.')->group(function () {
     Route::get('/', [RvmController::class, 'index'])->name('index');
     Route::get('/maintenance', [RvmController::class, 'maintenance'])->name('maintenance');
     Route::post('/', [RvmController::class, 'store'])->name('store');
+    Route::post('/test-connection', [RvmController::class, 'testConnection'])->name('test-connection');
     Route::get('/{id}', [RvmController::class, 'show'])->name('show');
     Route::put('/{id}', [RvmController::class, 'update'])->name('update');
     Route::delete('/{id}', [RvmController::class, 'destroy'])->name('destroy');

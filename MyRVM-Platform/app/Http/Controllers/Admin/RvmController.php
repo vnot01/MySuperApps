@@ -22,7 +22,9 @@ class RvmController extends Controller
             $query->latest()->limit(1);
         }])->get();
 
-        // Calculate statistics
+        // Calculate statistics - consistent with Dashboard
+        $activeCount = $rvms->where('status', 'active')->count();
+        
         $timezoneSyncedCount = $rvms->filter(function($rvm) {
             return $rvm->last_timezone_sync && 
                    Carbon::parse($rvm->last_timezone_sync)->diffInHours(now()) < 24;
@@ -31,11 +33,14 @@ class RvmController extends Controller
         $needsAttentionCount = $rvms->filter(function($rvm) {
             return $rvm->status === 'error' || 
                    $rvm->status === 'maintenance' ||
+                   $rvm->status === 'inactive' ||
+                   $rvm->status === 'full' ||
                    !$rvm->timezone ||
-                   !$rvm->ip_address;
+                   !$rvm->ip_address ||
+                   $rvm->ip_address === '0.0.0.0';
         })->count();
 
-        return view('admin.rvm.all', compact('rvms', 'timezoneSyncedCount', 'needsAttentionCount'));
+        return view('admin.rvm.all', compact('rvms', 'activeCount', 'timezoneSyncedCount', 'needsAttentionCount'));
     }
 
     /**
@@ -483,6 +488,37 @@ class RvmController extends Controller
         } catch (\Exception $e) {
             return '+00:00';
         }
+    }
+
+    /**
+     * Test connection to RVM
+     */
+    public function testConnection(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ip_address' => 'required|ip',
+            'port' => 'nullable|integer|min:1|max:65535'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $ipAddress = $request->ip_address;
+        $port = $request->port ?? 8000;
+
+        $pingResult = $this->performPing($ipAddress, $port);
+
+        return response()->json([
+            'success' => $pingResult['success'],
+            'message' => $pingResult['message'],
+            'response_time' => $pingResult['response_time'],
+            'is_dummy' => $pingResult['is_dummy'] ?? false
+        ]);
     }
 
     /**
