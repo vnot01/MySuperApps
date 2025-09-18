@@ -17,7 +17,7 @@ class ProcessingEngineController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $engines = ProcessingEngine::with(['reverseVendingMachines'])
+            $engines = ProcessingEngine::with(['rvms'])
                 ->when($request->type, function ($query, $type) {
                     return $query->where('type', $type);
                 })
@@ -50,13 +50,14 @@ class ProcessingEngineController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:nvidia_cuda,jetson_edge',
-            'status' => 'required|string|in:active,inactive,maintenance',
-            'capabilities' => 'required|array',
-            'capabilities.*' => 'string',
-            'location' => 'nullable|string|max:255',
-            'ip_address' => 'required|ip',
+            'server_address' => 'required|ip',
             'port' => 'required|integer|min:1|max:65535',
-            'description' => 'nullable|string',
+            'gpu_memory_limit' => 'nullable|integer',
+            'docker_gpu_passthrough' => 'nullable|boolean',
+            'model_path' => 'nullable|string',
+            'processing_timeout' => 'nullable|integer',
+            'auto_failover' => 'nullable|boolean',
+            'is_active' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -71,12 +72,15 @@ class ProcessingEngineController extends Controller
             $engine = ProcessingEngine::create([
                 'name' => $request->name,
                 'type' => $request->type,
-                'status' => $request->status,
-                'capabilities' => json_encode($request->capabilities),
-                'location' => $request->location,
-                'ip_address' => $request->ip_address,
+                'server_address' => $request->server_address,
                 'port' => $request->port,
-                'description' => $request->description,
+                'gpu_memory_limit' => $request->gpu_memory_limit,
+                'docker_gpu_passthrough' => $request->docker_gpu_passthrough ?? false,
+                'model_path' => $request->model_path,
+                'processing_timeout' => $request->processing_timeout ?? 30,
+                'auto_failover' => $request->auto_failover ?? false,
+                'is_active' => $request->is_active ?? true,
+                'is_online' => true,
                 'last_ping_at' => now(),
             ]);
 
@@ -84,7 +88,7 @@ class ProcessingEngineController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $engine->load('reverseVendingMachines'),
+                'data' => $engine->load('rvms'),
                 'message' => 'Processing engine created successfully'
             ], 201);
         } catch (\Exception $e) {
@@ -105,7 +109,7 @@ class ProcessingEngineController extends Controller
         try {
             return response()->json([
                 'success' => true,
-                'data' => $processingEngine->load('reverseVendingMachines'),
+                'data' => $processingEngine->load('rvms'),
                 'message' => 'Processing engine retrieved successfully'
             ]);
         } catch (\Exception $e) {
@@ -126,13 +130,14 @@ class ProcessingEngineController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|string|max:255',
             'type' => 'sometimes|string|in:nvidia_cuda,jetson_edge',
-            'status' => 'sometimes|string|in:active,inactive,maintenance',
-            'capabilities' => 'sometimes|array',
-            'capabilities.*' => 'string',
-            'location' => 'nullable|string|max:255',
-            'ip_address' => 'sometimes|ip',
+            'server_address' => 'sometimes|ip',
             'port' => 'sometimes|integer|min:1|max:65535',
-            'description' => 'nullable|string',
+            'gpu_memory_limit' => 'nullable|integer',
+            'docker_gpu_passthrough' => 'nullable|boolean',
+            'model_path' => 'nullable|string',
+            'processing_timeout' => 'nullable|integer',
+            'auto_failover' => 'nullable|boolean',
+            'is_active' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -145,12 +150,10 @@ class ProcessingEngineController extends Controller
 
         try {
             $updateData = $request->only([
-                'name', 'type', 'status', 'location', 'ip_address', 'port', 'description'
+                'name', 'type', 'server_address', 'port', 'gpu_memory_limit', 
+                'docker_gpu_passthrough', 'model_path', 'processing_timeout', 
+                'auto_failover', 'is_active'
             ]);
-
-            if ($request->has('capabilities')) {
-                $updateData['capabilities'] = json_encode($request->capabilities);
-            }
 
             $processingEngine->update($updateData);
 
@@ -158,7 +161,7 @@ class ProcessingEngineController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $processingEngine->load('reverseVendingMachines'),
+                'data' => $processingEngine->load('rvms'),
                 'message' => 'Processing engine updated successfully'
             ]);
         } catch (\Exception $e) {
@@ -203,7 +206,8 @@ class ProcessingEngineController extends Controller
         try {
             $processingEngine->update([
                 'last_ping_at' => now(),
-                'status' => 'active'
+                'is_online' => true,
+                'is_active' => true
             ]);
 
             Log::info("Processing engine pinged: {$processingEngine->name} (ID: {$processingEngine->id})");
@@ -213,9 +217,10 @@ class ProcessingEngineController extends Controller
                 'data' => [
                     'id' => $processingEngine->id,
                     'name' => $processingEngine->name,
-                    'status' => $processingEngine->status,
+                    'is_active' => $processingEngine->is_active,
+                    'is_online' => $processingEngine->is_online,
                     'last_ping_at' => $processingEngine->last_ping_at,
-                    'ip_address' => $processingEngine->ip_address,
+                    'server_address' => $processingEngine->server_address,
                     'port' => $processingEngine->port
                 ],
                 'message' => 'Processing engine pinged successfully'
