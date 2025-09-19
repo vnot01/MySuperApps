@@ -91,7 +91,7 @@
                                     <div class="stat-trend">
                                         <span class="trend-indicator {{ $trends['total_rvm_trend']['direction'] == 'up' ? 'positive' : ($trends['total_rvm_trend']['direction'] == 'down' ? 'negative' : 'neutral') }}">
                                             @if($trends['total_rvm_trend']['percentage'] == 'N/A')
-                                                <i class="fas fa-minus me-1"></i>N/A
+                                                N/A
                                             @else
                                                 <i class="fas fa-arrow-{{ $trends['total_rvm_trend']['direction'] == 'up' ? 'up' : ($trends['total_rvm_trend']['direction'] == 'down' ? 'down' : 'right') }} me-1"></i>{{ $trends['total_rvm_trend']['percentage'] }}
                                             @endif
@@ -113,7 +113,7 @@
                                     <div class="stat-trend">
                                         <span class="trend-indicator {{ $trends['active_sessions_trend']['direction'] == 'up' ? 'positive' : ($trends['active_sessions_trend']['direction'] == 'down' ? 'negative' : 'neutral') }}">
                                             @if($trends['active_sessions_trend']['percentage'] == 'N/A')
-                                                <i class="fas fa-minus me-1"></i>N/A
+                                                N/A
                                             @else
                                                 <i class="fas fa-arrow-{{ $trends['active_sessions_trend']['direction'] == 'up' ? 'up' : ($trends['active_sessions_trend']['direction'] == 'down' ? 'down' : 'right') }} me-1"></i>{{ $trends['active_sessions_trend']['percentage'] }}
                                             @endif
@@ -135,7 +135,7 @@
                                     <div class="stat-trend">
                                         <span class="trend-indicator {{ $trends['deposits_today_trend']['direction'] == 'up' ? 'positive' : ($trends['deposits_today_trend']['direction'] == 'down' ? 'negative' : 'neutral') }}">
                                             @if($trends['deposits_today_trend']['percentage'] == 'N/A')
-                                                <i class="fas fa-minus me-1"></i>N/A
+                                                N/A
                                             @else
                                                 <i class="fas fa-arrow-{{ $trends['deposits_today_trend']['direction'] == 'up' ? 'up' : ($trends['deposits_today_trend']['direction'] == 'down' ? 'down' : 'right') }} me-1"></i>{{ $trends['deposits_today_trend']['percentage'] }}
                                             @endif
@@ -157,7 +157,7 @@
                                     <div class="stat-trend">
                                         <span class="trend-indicator {{ $trends['total_issues_trend']['direction'] == 'up' ? 'positive' : ($trends['total_issues_trend']['direction'] == 'down' ? 'negative' : 'neutral') }}">
                                             @if($trends['total_issues_trend']['percentage'] == 'N/A')
-                                                <i class="fas fa-minus me-1"></i>N/A
+                                                N/A
                                             @else
                                                 <i class="fas fa-arrow-{{ $trends['total_issues_trend']['direction'] == 'up' ? 'up' : ($trends['total_issues_trend']['direction'] == 'down' ? 'down' : 'right') }} me-1"></i>{{ $trends['total_issues_trend']['percentage'] }}
                                             @endif

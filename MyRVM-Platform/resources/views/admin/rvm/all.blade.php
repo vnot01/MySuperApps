@@ -1,6 +1,14 @@
 @extends('components.admin-layout')
 
 @section('title', 'All RVMs - RVM Management')
+@section('description', 'Manage all Reverse Vending Machines')
+
+@section('page-css')
+    <link rel="stylesheet" href="{{ asset('css/admin/dashboard/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/dashboard/components.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/dashboard/animations.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/dashboard/responsive.css') }}">
+@endsection
 
 @section('breadcrumb')
     <li class="breadcrumb-item">
@@ -19,9 +27,9 @@
 @endsection
 
 @section('content')
-<div class="container-fluid">
+<!-- <div class="container-fluid"> -->
     <!-- Header -->
-    <div class="row mb-4">
+    <!-- <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -43,6 +51,35 @@
                         <i class="fas fa-plus me-1"></i>
                         Add New RVM
                     </button>
+                </div>
+            </div>
+        </div>
+    </div> -->
+    <!-- Modern Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header modern-header">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h1 class="mb-1 fw-bold text-primary">
+                            <i class="fas fa-recycle me-2"></i>
+                            RVM Management
+                        </h1>
+                        <h2 class="mb-1 fw-bold">
+                            All RVMs
+                        </h2>
+                        <p class="text-muted mb-0">Manage all Reverse Vending Machines and their timezone settings</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                        <button class="btn btn-outline-primary" onclick="refreshAllRVMs()">
+                            <i class="fas fa-sync-alt me-1"></i>
+                            Refresh All
+                        </button>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRvmModal">
+                            <i class="fas fa-plus me-1"></i>
+                            Add New RVM
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -272,7 +309,7 @@
             </div>
         </div>
     </div>
-</div>
+<!-- </div> -->
 
 <!-- Add RVM Modal -->
 <div class="modal fade" id="addRvmModal" tabindex="-1">

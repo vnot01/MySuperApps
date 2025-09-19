@@ -55,13 +55,18 @@
 
 <body>
     <!-- Layout wrapper -->
-    <div class="layout-wrapper layout-navbar-full layout-horizontal layout-without-menu">
+    <!-- <div class="layout-wrapper layout-navbar-full layout-horizontal layout-without-menu"> -->
+    <!-- <div class="layout-wrapper layout-navbar-full layout-without-menu"> -->
+    <div class="layout-wrapper layout-navbar-full layout-horizontal layout-menu-fixed">
         <div class="layout-container">
             <!-- Navbar -->
-            <!-- @include('components.navbar') -->
+            @include('components.navbar')
             
-            <!-- Menu -->
-            <!-- @include('components.menu') -->
+            <!-- Sidebar Menu -->
+            @include('components.sidebar')
+            
+            <!-- Horizontal Menu -->
+            @include('components.menu')
             
             <!-- Layout container -->
             <div class="layout-page">
@@ -94,7 +99,7 @@
     <script src="/assets/vendor/libs/hammer/hammer.js"></script>
     <script src="/assets/vendor/libs/i18n/i18n.js"></script>
     <script src="/assets/vendor/libs/typeahead-js/typeahead.js"></script>
-    <!-- <script src="/assets/vendor/js/menu.js"></script> -->
+    <script src="/assets/vendor/js/menu.js"></script>
 
     <!-- Vendors JS -->
     <script src="/assets/vendor/libs/apex-charts/apexcharts.js"></script>
