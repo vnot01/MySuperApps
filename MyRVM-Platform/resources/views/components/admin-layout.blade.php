@@ -57,16 +57,13 @@
     <!-- Layout wrapper -->
     <!-- <div class="layout-wrapper layout-navbar-full layout-horizontal layout-without-menu"> -->
     <!-- <div class="layout-wrapper layout-navbar-full layout-without-menu"> -->
-    <div class="layout-wrapper layout-navbar-full layout-horizontal layout-menu-fixed">
+    <div class="layout-wrapper layout-navbar-full layout-menu-fixed">
         <div class="layout-container">
             <!-- Navbar -->
             @include('components.navbar')
             
             <!-- Sidebar Menu -->
             @include('components.sidebar')
-            
-            <!-- Horizontal Menu -->
-            @include('components.menu')
             
             <!-- Layout container -->
             <div class="layout-page">

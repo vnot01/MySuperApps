@@ -40,7 +40,7 @@
         </a>
 
         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
-            <i class="bx bx-chevron-left bx-sm align-middle"></i>
+            <i class="fas fa-chevron-left fa-sm align-middle"></i>
         </a>
     </div>
 
@@ -50,7 +50,7 @@
         <!-- Dashboard -->
         <li class="menu-item {{ request()->is('admin/dashboard') ? 'active' : '' }}">
             <a href="{{ url('/admin/dashboard') }}" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-home-circle"></i>
+                <i class="menu-icon fas fa-tachometer-alt"></i>
                 <div data-i18n="Dashboard">Dashboard</div>
             </a>
         </li>
@@ -58,7 +58,7 @@
         <!-- RVM Management -->
         <li class="menu-item {{ request()->is('admin/rvm*') ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-recycle"></i>
+                <i class="menu-icon fas fa-recycle"></i>
                 <div data-i18n="RVM Management">RVM Management</div>
             </a>
             <ul class="menu-sub">
@@ -83,7 +83,7 @@
         <!-- Monitoring -->
         <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-show"></i>
+                <i class="menu-icon fas fa-eye"></i>
                 <div data-i18n="Monitoring">Monitoring</div>
             </a>
             <ul class="menu-sub">
@@ -108,37 +108,37 @@
         <!-- Playground Computer Vision -->
         <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-brain"></i>
+                <i class="menu-icon fas fa-brain"></i>
                 <div data-i18n="Playground Computer Vision">Playground Computer Vision</div>
             </a>
             <ul class="menu-sub">
                 <li class="menu-item">
                     <a href="http://localhost:8001/gemini/dashboard" class="menu-link" target="_blank">
-                        <i class="menu-icon tf-icons bx bx-robot"></i>
+                        <i class="menu-icon fas fa-robot"></i>
                         <div data-i18n="My Vision">My Vision</div>
                     </a>
                 </li>
                 <li class="menu-item">
                     <a href="javascript:void(0);" class="menu-link menu-toggle">
-                        <i class="menu-icon tf-icons bx bx-microchip"></i>
+                        <i class="menu-icon fas fa-microchip"></i>
                         <div data-i18n="Edge Vision">Edge Vision</div>
                     </a>
                     <ul class="menu-sub">
                         <li class="menu-item">
                             <a href="{{ url('/admin/dashboard/live-camera') }}" class="menu-link">
-                                <i class="menu-icon tf-icons bx bx-video"></i>
+                                <i class="menu-icon fas fa-video"></i>
                                 <div data-i18n="Live Camera">Live Camera</div>
                             </a>
                         </li>
                         <li class="menu-item">
                             <a href="{{ url('/admin/dashboard/image-upload') }}" class="menu-link">
-                                <i class="menu-icon tf-icons bx bx-upload"></i>
+                                <i class="menu-icon fas fa-upload"></i>
                                 <div data-i18n="Upload & Process">Upload & Process</div>
                             </a>
                         </li>
                         <li class="menu-item">
                             <a href="{{ url('/admin/dashboard/engine-config') }}" class="menu-link">
-                                <i class="menu-icon tf-icons bx bx-cog"></i>
+                                <i class="menu-icon fas fa-cogs"></i>
                                 <div data-i18n="Engine Configuration">Engine Configuration</div>
                             </a>
                         </li>
@@ -150,7 +150,7 @@
         <!-- Settings -->
         <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx-cog"></i>
+                <i class="menu-icon fas fa-cogs"></i>
                 <div data-i18n="Settings">Settings</div>
             </a>
             <ul class="menu-sub">
