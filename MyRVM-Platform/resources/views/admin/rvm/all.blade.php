@@ -392,7 +392,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">Timezone</label>
                                 <select class="form-select" name="timezone">
@@ -403,7 +403,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="mb-3">
                                 <label class="form-label">Status</label>
                                 <select class="form-select" name="status">
@@ -411,6 +411,13 @@
                                     <option value="inactive">Inactive</option>
                                     <option value="maintenance">Maintenance</option>
                                 </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Capacity (%)</label>
+                                <input type="number" class="form-control" name="capacity" value="0" min="0" max="100">
+                                <div class="form-text">Current capacity percentage</div>
                             </div>
                         </div>
                     </div>
@@ -621,6 +628,32 @@ function searchRVMs() {
 document.getElementById('addRvmForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
+    // Validate required fields first
+    const requiredFields = ['name', 'location', 'ip_address', 'timezone', 'status'];
+    const missingFields = [];
+    
+    requiredFields.forEach(field => {
+        const input = this.querySelector(`[name="${field}"]`);
+        if (!input || !input.value.trim()) {
+            missingFields.push(field);
+        }
+    });
+    
+    // Validate capacity if provided
+    const capacityInput = this.querySelector('[name="capacity"]');
+    if (capacityInput && capacityInput.value) {
+        const capacity = parseInt(capacityInput.value);
+        if (isNaN(capacity) || capacity < 0 || capacity > 100) {
+            alert('❌ Capacity must be a number between 0 and 100');
+            return;
+        }
+    }
+    
+    if (missingFields.length > 0) {
+        alert(`❌ Please fill in all required fields:\n• ${missingFields.join('\n• ')}`);
+        return;
+    }
+    
     const formData = new FormData(this);
     const data = Object.fromEntries(formData);
     const editId = this.getAttribute('data-edit-id');
@@ -636,6 +669,8 @@ document.getElementById('addRvmForm').addEventListener('submit', function(e) {
     const url = isEdit ? `/admin/rvm/${editId}` : '/admin/rvm';
     const method = isEdit ? 'PUT' : 'POST';
     
+    console.log('Submitting RVM data:', data); // Debug log
+    
     fetch(url, {
         method: method,
         headers: {
@@ -644,8 +679,12 @@ document.getElementById('addRvmForm').addEventListener('submit', function(e) {
         },
         body: JSON.stringify(data)
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status); // Debug log
+        return response.json();
+    })
     .then(data => {
+        console.log('Response data:', data); // Debug log
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
         
@@ -679,6 +718,7 @@ document.getElementById('addRvmForm').addEventListener('submit', function(e) {
         }
     })
     .catch(error => {
+        console.error('Fetch error:', error); // Debug log
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
         alert('❌ Network error: ' + error.message);
@@ -761,6 +801,7 @@ function editRVM(rvmId) {
                 document.querySelector('input[name="port"]').value = rvm.port || 8000;
                 document.querySelector('select[name="timezone"]').value = rvm.timezone || 'Asia/Jakarta';
                 document.querySelector('select[name="status"]').value = rvm.status || 'active';
+                document.querySelector('input[name="capacity"]').value = rvm.capacity || 0;
                 
                 // Change modal title and submit button
                 document.querySelector('#addRvmModal .modal-title').innerHTML = '<i class="fas fa-edit me-2"></i>Edit RVM';

@@ -84,7 +84,8 @@ class RvmController extends Controller
             'ip_address' => 'required|ip',
             'port' => 'nullable|integer|min:1|max:65535',
             'timezone' => 'required|string',
-            'status' => 'required|in:active,inactive,maintenance,error'
+            'status' => 'required|in:active,inactive,maintenance,error',
+            'capacity' => 'nullable|integer|min:0|max:100'
         ]);
 
         if ($validator->fails()) {
@@ -105,6 +106,7 @@ class RvmController extends Controller
                 'timezone' => $request->timezone,
                 'timezone_offset' => $this->getTimezoneOffset($request->timezone),
                 'status' => $request->status,
+                'capacity' => $request->capacity ?? 0,
                 'api_key' => $this->generateApiKey(),
                 'created_at' => now(),
                 'updated_at' => now()
@@ -339,7 +341,8 @@ class RvmController extends Controller
             'ip_address' => 'sometimes|ip',
             'port' => 'nullable|integer|min:1|max:65535',
             'timezone' => 'sometimes|string',
-            'status' => 'sometimes|in:active,inactive,maintenance,error'
+            'status' => 'sometimes|in:active,inactive,maintenance,error',
+            'capacity' => 'nullable|integer|min:0|max:100'
         ]);
 
         if ($validator->fails()) {
@@ -351,7 +354,7 @@ class RvmController extends Controller
         }
 
         try {
-            $updateData = $request->only(['name', 'location', 'address', 'ip_address', 'port', 'timezone', 'status']);
+            $updateData = $request->only(['name', 'location', 'address', 'ip_address', 'port', 'timezone', 'status', 'capacity']);
             
             if (isset($updateData['timezone'])) {
                 $updateData['timezone_offset'] = $this->getTimezoneOffset($updateData['timezone']);
