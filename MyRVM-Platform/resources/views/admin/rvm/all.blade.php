@@ -625,7 +625,9 @@ function searchRVMs() {
 }
 
 // Add/Edit RVM form submission
+console.log('Setting up form event listener...'); // Debug log
 document.getElementById('addRvmForm').addEventListener('submit', function(e) {
+    console.log('Form submit event triggered!'); // Debug log
     e.preventDefault();
     
     // Validate required fields first
@@ -670,6 +672,11 @@ document.getElementById('addRvmForm').addEventListener('submit', function(e) {
     const method = isEdit ? 'PUT' : 'POST';
     
     console.log('Submitting RVM data:', data); // Debug log
+    console.log('URL:', url, 'Method:', method); // Debug log
+    
+    // Check CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+    console.log('CSRF Token:', csrfToken ? csrfToken.getAttribute('content') : 'NOT FOUND'); // Debug log
     
     fetch(url, {
         method: method,
