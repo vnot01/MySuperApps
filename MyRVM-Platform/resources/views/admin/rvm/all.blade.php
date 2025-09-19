@@ -8,6 +8,34 @@
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard/components.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard/animations.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard/responsive.css') }}">
+    <style>
+        /* Make RVM List card expandable to bottom */
+        .rvm-list-container {
+            min-height: calc(100vh - 300px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .rvm-list-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .rvm-list-card .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .rvm-list-card .table-responsive {
+            flex: 1;
+        }
+        
+        .rvm-list-card .table {
+            height: 100%;
+        }
+    </style>
 @endsection
 
 @section('breadcrumb')
@@ -166,9 +194,9 @@
     </div>
 
     <!-- RVM List -->
-    <div class="row">
+    <div class="row flex-grow-1 rvm-list-container">
         <div class="col-12">
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm h-100 rvm-list-card">
                 <div class="card-header border-0 bg-transparent p-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 fw-bold">RVM List</h5>
