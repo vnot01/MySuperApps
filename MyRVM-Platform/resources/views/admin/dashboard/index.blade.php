@@ -11,8 +11,13 @@
 @endsection
 
 @section('breadcrumb')
+    <li class="breadcrumb-item">
+        <a href="{{ url('/admin/dashboard') }}">
+            <i class="fas fa-home me-2"></i>Dashboard
+        </a>
+    </li>
     <li class="breadcrumb-item active" aria-current="page">
-        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+        <i class="fas fa-tachometer-alt me-2"></i>RVM Dashboard
     </li>
 @endsection
 
@@ -23,10 +28,12 @@
             <div class="page-header modern-header">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <h1 class="page-title fw-bold mb-2">RVM Dashboard</h1>
-                        <p class="page-subtitle text-muted mb-0">Monitor and manage your Reverse Vending Machines </br>
-                        dashboard/index.blade.php
-                        </p>
+                        <h1 class="page-title fw-bold mb-2">
+                            <i class="fas fa-recycle me-2"></i>
+                            MyRVM Platform
+                        </h1>
+                        <h2 class="page-subtitle fw-bold mb-2">RVM Dashboard</h2>
+                        <p class="page-description text-muted mb-0">Monitor and manage your Reverse Vending Machines</p>
                     </div>
                     <div class="page-actions">
                         <button class="btn btn-outline-primary btn-modern" id="refresh-dashboard">

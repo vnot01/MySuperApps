@@ -3,21 +3,21 @@
     <div class="container-xxl">
         <ul class="menu-inner">
             <!-- Dashboard -->
-            <li class="menu-item active">
+            <li class="menu-item {{ request()->is('admin/dashboard') ? 'active' : '' }}">
                 <a href="{{ url('/admin/dashboard') }}" class="menu-link">
                     <i class="menu-icon fas fa-tachometer-alt"></i>
-                    <span data-i18n="Dashboard">Dashboard 123</span>
+                    <span data-i18n="Dashboard">Dashboard</span>
                 </a>
             </li>
 
             <!-- RVM Management -->
-            <li class="menu-item">
+            <li class="menu-item {{ request()->is('admin/rvm*') ? 'active' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
                     <i class="menu-icon fas fa-recycle"></i>
-                    <span data-i18n="RVM Management">RVM Management 123</span>
+                    <span data-i18n="RVM Management">RVM Management</span>
                 </a>
                 <ul class="menu-sub">
-                    <li class="menu-item">
+                    <li class="menu-item {{ request()->is('admin/rvm') && !request()->is('admin/rvm/maintenance') ? 'active' : '' }}">
                         <a href="{{ route('admin.rvm.index') }}" class="menu-link">
                             <span data-i18n="All RVMs">All RVMs</span>
                         </a>
@@ -27,7 +27,7 @@
                             <span data-i18n="Add New RVM">Add New RVM</span>
                         </a>
                     </li>
-                    <li class="menu-item">
+                    <li class="menu-item {{ request()->is('admin/rvm/maintenance') ? 'active' : '' }}">
                         <a href="{{ route('admin.rvm.maintenance') }}" class="menu-link">
                             <span data-i18n="Maintenance">Maintenance</span>
                         </a>
