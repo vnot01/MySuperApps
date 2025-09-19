@@ -755,8 +755,102 @@ function remoteAccess(rvmId) {
 }
 
 function updateStatus(rvmId) {
-    const newStatus = prompt('Enter new status (active, inactive, maintenance, error):');
-    if (newStatus && ['active', 'inactive', 'maintenance', 'error'].includes(newStatus)) {
+    // Get RVM name for display
+    const rvmRow = document.querySelector(`tr[data-rvm-id="${rvmId}"]`);
+    const rvmName = rvmRow ? rvmRow.querySelector('.card-title, h6').textContent : `RVM-${rvmId}`;
+    
+    // Create modal HTML with dropdown
+    const modalHtml = `
+        <div class="modal fade" id="updateStatusModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-edit me-2"></i>
+                            Update Status - ${rvmName}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Select New Status:</label>
+                            <select class="form-select" id="statusSelect">
+                                <option value="">Choose status...</option>
+                                <option value="active">✅ Active</option>
+                                <option value="inactive">⏸️ Inactive</option>
+                                <option value="maintenance">🔧 Maintenance</option>
+                                <option value="error">❌ Error</option>
+                                <option value="full">📦 Full</option>
+                            </select>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>RVM ID:</strong> ${rvmId}<br>
+                            <strong>Current Status:</strong> <span id="currentStatus">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="updateStatusBtn" disabled>
+                            <i class="fas fa-save me-1"></i>Update Status
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('updateStatusModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('updateStatusModal'));
+    modal.show();
+    
+    // Get current status and populate dropdown
+    fetch(`/admin/rvm/${rvmId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const currentStatus = data.data.status;
+                document.getElementById('currentStatus').textContent = currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1);
+                
+                // Set current status as selected
+                const statusSelect = document.getElementById('statusSelect');
+                statusSelect.value = currentStatus;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching current status:', error);
+            document.getElementById('currentStatus').textContent = 'Unknown';
+        });
+    
+    // Handle dropdown change
+    document.getElementById('statusSelect').addEventListener('change', function() {
+        const updateBtn = document.getElementById('updateStatusBtn');
+        updateBtn.disabled = !this.value;
+    });
+    
+    // Handle update button click
+    document.getElementById('updateStatusBtn').addEventListener('click', function() {
+        const newStatus = document.getElementById('statusSelect').value;
+        
+        if (!newStatus) {
+            alert('Please select a status');
+            return;
+        }
+        
+        // Disable button and show loading
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Updating...';
+        
+        // Update status via API
         fetch(`/admin/rvm/${rvmId}`, {
             method: 'PUT',
             headers: {
@@ -768,16 +862,33 @@ function updateStatus(rvmId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('✅ Status updated successfully!');
+                // Show success message
+                alert(`✅ Status updated successfully!\n\n${rvmName} is now ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`);
+                
+                // Close modal
+                modal.hide();
+                
+                // Refresh the page
                 location.reload();
             } else {
-                alert('❌ Error updating status: ' + data.message);
+                alert(`❌ Error updating status: ${data.message}`);
+                // Re-enable button
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-save me-1"></i>Update Status';
             }
         })
         .catch(error => {
-            alert('❌ Error: ' + error.message);
+            alert(`❌ Error: ${error.message}`);
+            // Re-enable button
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-save me-1"></i>Update Status';
         });
-    }
+    });
+    
+    // Clean up modal after hiding
+    document.getElementById('updateStatusModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
 }
 </script>
 @endsection
