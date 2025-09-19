@@ -1,5 +1,29 @@
 /* Simple Menu Toggle Styles for MyRVM Platform */
 
+/* Fixed menu width to prevent expansion */
+.layout-menu {
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
+
+.layout-menu .menu-inner {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+}
+
+.layout-menu .menu-item {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+}
+
+.layout-menu .menu-link {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
 /* Hide all sub-menus by default */
 .layout-menu .menu-sub {
     display: none !important;
@@ -22,7 +46,7 @@
 
 /* Sub-menu positioning */
 .layout-menu .menu-sub {
-    position: absolute;
+    position: absolute !important;
     background: white;
     backdrop-filter: blur(10px);
     border-radius: 8px;
@@ -30,9 +54,13 @@
     margin-top: 5px;
     padding: 8px 0;
     min-width: 220px;
+    max-width: 300px;
     z-index: 1050;
     list-style: none;
     animation: slideDown 0.2s ease-out;
+    top: 100% !important;
+    left: 0 !important;
+    right: auto !important;
 }
 
 /* Nested sub-menu positioning */
@@ -85,4 +113,29 @@
 
 .layout-menu .menu-sub .menu-link::before {
     content: none !important;
+}
+
+/* Prevent menu expansion on different pages */
+.layout-menu .menu-inner {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 !important;
+}
+
+.layout-menu .menu-item {
+    max-width: 200px !important;
+    min-width: 120px !important;
+}
+
+/* Ensure consistent menu behavior across all pages */
+.layout-menu {
+    width: 100% !important;
+    position: relative !important;
+}
+
+/* Fix for menu items that might expand */
+.layout-menu .menu-link {
+    max-width: 100% !important;
+    padding: 0.75rem 1rem !important;
+    display: block !important;
 }
