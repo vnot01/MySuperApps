@@ -36,12 +36,25 @@
 
 /* Menu toggle styles */
 .layout-menu .menu-toggle {
-    cursor: pointer;
+    cursor: pointer !important;
     position: relative;
+    pointer-events: auto !important;
+    z-index: 10 !important;
+}
+
+.layout-menu .menu-link {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    z-index: 10 !important;
 }
 
 .layout-menu .menu-toggle:hover {
     background-color: rgba(102, 126, 234, 0.1);
+}
+
+.layout-menu .menu-item {
+    position: relative !important;
+    z-index: 10 !important;
 }
 
 /* Sub-menu positioning */
