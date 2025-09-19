@@ -22,8 +22,14 @@ class RvmController extends Controller
             $query->latest()->limit(1);
         }])->get();
 
+        // Calculate calculated_status for each RVM (consistent with Dashboard)
+        $rvms = $rvms->map(function($rvm) {
+            $rvm->calculated_status = $this->calculateRvmStatus($rvm->capacity, $rvm->status);
+            return $rvm;
+        });
+
         // Calculate statistics - consistent with Dashboard
-        $activeCount = $rvms->where('status', 'active')->count();
+        $activeCount = $rvms->where('calculated_status', 'active')->count();
         
         $timezoneSyncedCount = $rvms->filter(function($rvm) {
             return $rvm->last_timezone_sync && 
@@ -31,10 +37,10 @@ class RvmController extends Controller
         })->count();
 
         $needsAttentionCount = $rvms->filter(function($rvm) {
-            return $rvm->status === 'error' || 
-                   $rvm->status === 'maintenance' ||
-                   $rvm->status === 'inactive' ||
-                   $rvm->status === 'full' ||
+            return $rvm->calculated_status === 'error' || 
+                   $rvm->calculated_status === 'maintenance' ||
+                   $rvm->calculated_status === 'inactive' ||
+                   $rvm->calculated_status === 'full' ||
                    !$rvm->timezone ||
                    !$rvm->ip_address ||
                    $rvm->ip_address === '0.0.0.0';
@@ -519,6 +525,26 @@ class RvmController extends Controller
             'response_time' => $pingResult['response_time'],
             'is_dummy' => $pingResult['is_dummy'] ?? false
         ]);
+    }
+
+    /**
+     * Calculate RVM status based on capacity and status (consistent with Dashboard)
+     */
+    private function calculateRvmStatus($capacity, $status)
+    {
+        // Jika ada status khusus (maintenance, inactive, error), gunakan itu
+        if (in_array($status, ['maintenance', 'inactive', 'error', 'unknown'])) {
+            return $status;
+        }
+        
+        // Hitung status berdasarkan kapasitas
+        if ($capacity >= 100) {
+            return 'full';
+        } elseif ($capacity >= 0) {
+            return 'active';
+        } else {
+            return 'unknown';
+        }
     }
 
     /**

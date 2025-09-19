@@ -78,19 +78,14 @@ class DashboardController extends Controller
 
     private function calculateRvmStatus($capacity, $status)
     {
-        // Jika ada status khusus (maintenance, inactive, error), gunakan itu
-        if (in_array($status, ['maintenance', 'inactive', 'error', 'unknown'])) {
-            return $status;
+        // Prioritize database status over capacity-based calculation
+        // Only override if status is 'active' and capacity is 100%
+        if ($status === 'active' && $capacity >= 100) {
+            return 'full';
         }
         
-        // Hitung status berdasarkan kapasitas
-        if ($capacity >= 100) {
-            return 'full';
-        } elseif ($capacity >= 0) {
-            return 'active';
-        } else {
-            return 'unknown';
-        }
+        // Use database status as primary source
+        return $status;
     }
 
     private function getActiveSessionsCount()

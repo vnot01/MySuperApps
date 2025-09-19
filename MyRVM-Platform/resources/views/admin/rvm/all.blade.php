@@ -536,21 +536,27 @@ function searchRVMs() {
     });
 }
 
-// Add RVM form submission
+// Add/Edit RVM form submission
 document.getElementById('addRvmForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
     const data = Object.fromEntries(formData);
+    const editId = this.getAttribute('data-edit-id');
     
     // Show loading state
     const submitBtn = document.querySelector('#addRvmForm button[type="submit"]');
     const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Adding...';
+    const isEdit = !!editId;
+    
+    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin me-1"></i>${isEdit ? 'Updating...' : 'Adding...'}`;
     submitBtn.disabled = true;
     
-    fetch('/admin/rvm', {
-        method: 'POST',
+    const url = isEdit ? `/admin/rvm/${editId}` : '/admin/rvm';
+    const method = isEdit ? 'PUT' : 'POST';
+    
+    fetch(url, {
+        method: method,
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
@@ -564,15 +570,24 @@ document.getElementById('addRvmForm').addEventListener('submit', function(e) {
         
         if (data.success) {
             // Show success message
-            alert('✅ RVM added successfully!\n\nRVM ID: ' + data.data.id + '\nName: ' + data.data.name + '\nIP: ' + data.data.ip_address);
+            const action = isEdit ? 'updated' : 'added';
+            alert(`✅ RVM ${action} successfully!\n\nRVM ID: ${data.data.id}\nName: ${data.data.name}\nIP: ${data.data.ip_address}`);
             
             // Close modal and reload page
             const modal = bootstrap.Modal.getInstance(document.getElementById('addRvmModal'));
             modal.hide();
+            
+            // Reset form and modal title
+            this.reset();
+            this.removeAttribute('data-edit-id');
+            document.querySelector('#addRvmModal .modal-title').innerHTML = '<i class="fas fa-plus me-2"></i>Add New RVM';
+            document.querySelector('#addRvmForm button[type="submit"]').innerHTML = '<i class="fas fa-plus me-1"></i>Add RVM';
+            
             location.reload();
         } else {
             // Show error message with details
-            let errorMsg = '❌ Error adding RVM:\n' + data.message;
+            const action = isEdit ? 'updating' : 'adding';
+            let errorMsg = `❌ Error ${action} RVM:\n${data.message}`;
             if (data.errors) {
                 errorMsg += '\n\nValidation errors:';
                 for (const [field, errors] of Object.entries(data.errors)) {
@@ -589,22 +604,179 @@ document.getElementById('addRvmForm').addEventListener('submit', function(e) {
     });
 });
 
-// Placeholder functions for other actions
+// RVM Action Functions
 function viewRVMDetails(rvmId) {
-    alert('View RVM Details: ' + rvmId);
+    // Fetch RVM details and show in modal
+    fetch(`/admin/rvm/${rvmId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const rvm = data.data;
+                const modalHtml = `
+                    <div class="modal fade" id="viewRvmModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        <i class="fas fa-eye me-2"></i>
+                                        RVM Details - ${rvm.name}
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Basic Information</h6>
+                                            <p><strong>ID:</strong> ${rvm.id}</p>
+                                            <p><strong>Name:</strong> ${rvm.name}</p>
+                                            <p><strong>Location:</strong> ${rvm.location || 'Not Set'}</p>
+                                            <p><strong>Address:</strong> ${rvm.address || 'Not Set'}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Network & Status</h6>
+                                            <p><strong>IP Address:</strong> ${rvm.ip_address || 'Not Set'}</p>
+                                            <p><strong>Port:</strong> ${rvm.port || 8000}</p>
+                                            <p><strong>Status:</strong> <span class="badge bg-success">${rvm.status}</span></p>
+                                            <p><strong>Timezone:</strong> ${rvm.timezone || 'Not Set'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const modal = new bootstrap.Modal(document.getElementById('viewRvmModal'));
+                modal.show();
+                
+                // Clean up modal after hiding
+                document.getElementById('viewRvmModal').addEventListener('hidden.bs.modal', function() {
+                    this.remove();
+                });
+            } else {
+                alert('Error loading RVM details: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error.message);
+        });
 }
 
 function editRVM(rvmId) {
-    alert('Edit RVM: ' + rvmId);
+    // Fetch RVM data and populate edit form
+    fetch(`/admin/rvm/${rvmId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const rvm = data.data;
+                // Populate the add form with existing data
+                document.querySelector('input[name="name"]').value = rvm.name || '';
+                document.querySelector('input[name="location"]').value = rvm.location || '';
+                document.querySelector('textarea[name="address"]').value = rvm.address || '';
+                document.querySelector('input[name="ip_address"]').value = rvm.ip_address || '';
+                document.querySelector('input[name="port"]').value = rvm.port || 8000;
+                document.querySelector('select[name="timezone"]').value = rvm.timezone || 'Asia/Jakarta';
+                document.querySelector('select[name="status"]').value = rvm.status || 'active';
+                
+                // Change modal title and submit button
+                document.querySelector('#addRvmModal .modal-title').innerHTML = '<i class="fas fa-edit me-2"></i>Edit RVM';
+                document.querySelector('#addRvmForm button[type="submit"]').innerHTML = '<i class="fas fa-save me-1"></i>Update RVM';
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('addRvmModal'));
+                modal.show();
+                
+                // Change form action to update
+                document.getElementById('addRvmForm').setAttribute('data-edit-id', rvmId);
+            } else {
+                alert('Error loading RVM data: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error.message);
+        });
 }
 
 function maintenanceRVM(rvmId) {
-    window.location.href = `/admin/rvm/maintenance/${rvmId}`;
+    window.location.href = `/admin/rvm/maintenance`;
 }
 
 function deleteRVM(rvmId) {
-    if (confirm('Are you sure you want to delete this RVM?')) {
-        alert('Delete RVM: ' + rvmId);
+    if (confirm('Are you sure you want to delete this RVM? This action cannot be undone.')) {
+        fetch(`/admin/rvm/${rvmId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ RVM deleted successfully!');
+                location.reload();
+            } else {
+                alert('❌ Error deleting RVM: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('❌ Error: ' + error.message);
+        });
+    }
+}
+
+function syncTimezone(rvmId) {
+    if (confirm('Sync timezone for this RVM?')) {
+        fetch(`/admin/rvm/sync-timezone/${rvmId}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ Timezone synced successfully!');
+                location.reload();
+            } else {
+                alert('❌ Error syncing timezone: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('❌ Error: ' + error.message);
+        });
+    }
+}
+
+function remoteAccess(rvmId) {
+    alert('🔧 Remote Access feature will be implemented soon!\n\nRVM ID: ' + rvmId);
+}
+
+function updateStatus(rvmId) {
+    const newStatus = prompt('Enter new status (active, inactive, maintenance, error):');
+    if (newStatus && ['active', 'inactive', 'maintenance', 'error'].includes(newStatus)) {
+        fetch(`/admin/rvm/${rvmId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ Status updated successfully!');
+                location.reload();
+            } else {
+                alert('❌ Error updating status: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('❌ Error: ' + error.message);
+        });
     }
 }
 </script>
