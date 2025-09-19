@@ -313,7 +313,7 @@ class RvmController extends Controller
     /**
      * Get RVM details
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $rvm = ReverseVendingMachine::with(['timezoneSyncLogs' => function($query) {
             $query->latest()->limit(10);

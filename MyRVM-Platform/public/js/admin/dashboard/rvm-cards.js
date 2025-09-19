@@ -143,3 +143,42 @@ function changePage(direction) {
         goToPage(newPage);
     }
 }
+
+// --- RVM Action Functions ---
+
+function openRemoteAccess(rvmId, rvmName) {
+    // Show remote access modal or redirect
+    alert(`🔧 Remote Access for ${rvmName} (ID: ${rvmId})\n\nThis feature will be implemented soon!`);
+}
+
+function openStatusModal(rvmId, rvmName) {
+    // Show status update modal
+    const newStatus = prompt(`Update status for ${rvmName} (ID: ${rvmId}):\n\nEnter new status (active, inactive, maintenance, error, full):`);
+    
+    if (newStatus && ['active', 'inactive', 'maintenance', 'error', 'full'].includes(newStatus.toLowerCase())) {
+        // Update status via API
+        fetch(`/admin/rvm/${rvmId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ status: newStatus.toLowerCase() })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`✅ Status updated successfully!\n\n${rvmName} is now ${newStatus}`);
+                // Refresh the dashboard
+                location.reload();
+            } else {
+                alert(`❌ Error updating status: ${data.message}`);
+            }
+        })
+        .catch(error => {
+            alert(`❌ Error: ${error.message}`);
+        });
+    } else if (newStatus) {
+        alert('❌ Invalid status. Please enter: active, inactive, maintenance, error, or full');
+    }
+}
