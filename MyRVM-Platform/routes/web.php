@@ -139,6 +139,15 @@ Route::prefix('admin/rvm')->name('admin.rvm.')->group(function () {
     Route::post('/set-global-timezone', [RvmController::class, 'setGlobalTimezone'])->name('set-global-timezone');
 });
 
+// Debug route for testing
+Route::post('/admin/rvm/debug', function(Request $request) {
+    return response()->json([
+        'success' => true,
+        'message' => 'Debug route working',
+        'data' => $request->all()
+    ]);
+});
+
 // Dashboard Data Route (Public access for dashboard display)
 Route::get('/admin/rvm-dashboard/data', [AdminRvmController::class, 'getRvmMonitoring'])->name('admin.rvm.dashboard.data');
 

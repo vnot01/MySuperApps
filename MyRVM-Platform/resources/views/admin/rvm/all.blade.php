@@ -678,6 +678,24 @@ document.getElementById('addRvmForm').addEventListener('submit', function(e) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]');
     console.log('CSRF Token:', csrfToken ? csrfToken.getAttribute('content') : 'NOT FOUND'); // Debug log
     
+    // Test debug route first
+    console.log('Testing debug route...'); // Debug log
+    fetch('/admin/rvm/debug', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ test: 'data' })
+    })
+    .then(response => response.json())
+    .then(debugData => {
+        console.log('Debug route response:', debugData); // Debug log
+    })
+    .catch(debugError => {
+        console.error('Debug route error:', debugError); // Debug log
+    });
+    
     fetch(url, {
         method: method,
         headers: {
