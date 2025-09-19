@@ -440,10 +440,85 @@
 
 @endsection
 
-@section('scripts')
+@section('page-js')
 <script>
 // Global variables
 let rvmData = @json($rvms);
+
+// ===== GLOBAL FUNCTIONS =====
+// Refresh all RVMs
+function refreshAllRVMs() {
+    location.reload();
+}
+
+// Test connection in modal
+function testConnection() {
+    console.log('testConnection function called'); // Debug log
+    
+    const ipAddress = document.querySelector('input[name="ip_address"]').value;
+    const port = document.querySelector('input[name="port"]').value;
+    
+    console.log('IP Address:', ipAddress, 'Port:', port); // Debug log
+    
+    if (!ipAddress) {
+        alert('Please enter IP address');
+        return;
+    }
+
+    const testBtn = document.querySelector('button[onclick="testConnection()"]');
+    const originalText = testBtn.innerHTML;
+    testBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Testing...';
+    testBtn.disabled = true;
+
+    console.log('Making API call to test connection...'); // Debug log
+
+    // Real connection test via API
+    fetch('/admin/rvm/test-connection', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            ip_address: ipAddress,
+            port: port || 8000
+        })
+    })
+    .then(response => {
+        console.log('Response status:', response.status); // Debug log
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data); // Debug log
+        testBtn.innerHTML = originalText;
+        testBtn.disabled = false;
+        
+        if (data.success) {
+            if (data.is_dummy) {
+                alert('✅ Dummy data detected (0.0.0.0) - No actual connection test performed');
+            } else {
+                alert(`✅ Connection successful!\nResponse time: ${data.response_time}ms\nMessage: ${data.message}`);
+            }
+        } else {
+            alert(`❌ Connection failed!\nError: ${data.message}`);
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error); // Debug log
+        testBtn.innerHTML = originalText;
+        testBtn.disabled = false;
+        alert('❌ Connection test error: ' + error.message);
+    });
+}
+
+// Ping all RVMs
+function pingAllRVMs() {
+    rvmData.forEach(rvm => {
+        if (rvm.ip_address) {
+            pingRVM(rvm.id);
+        }
+    });
+}
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
@@ -455,15 +530,6 @@ document.addEventListener('DOMContentLoaded', function() {
         refreshAllRVMs();
     }, 30000);
 });
-
-// Ping all RVMs
-function pingAllRVMs() {
-    rvmData.forEach(rvm => {
-        if (rvm.ip_address) {
-            pingRVM(rvm.id);
-        }
-    });
-}
 
 // Ping specific RVM
 function pingRVM(rvmId) {
@@ -513,54 +579,6 @@ function updateConnectionStatus(rvmId, status, text) {
     connectionElement.className = `badge bg-${config.class} me-2`;
 }
 
-// Test connection in modal
-function testConnection() {
-    const ipAddress = document.querySelector('input[name="ip_address"]').value;
-    const port = document.querySelector('input[name="port"]').value;
-    
-    if (!ipAddress) {
-        alert('Please enter IP address');
-        return;
-    }
-
-    const testBtn = document.querySelector('button[onclick="testConnection()"]');
-    const originalText = testBtn.innerHTML;
-    testBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Testing...';
-    testBtn.disabled = true;
-
-    // Real connection test via API
-    fetch('/admin/rvm/test-connection', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({
-            ip_address: ipAddress,
-            port: port || 8000
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        testBtn.innerHTML = originalText;
-        testBtn.disabled = false;
-        
-        if (data.success) {
-            if (data.is_dummy) {
-                alert('✅ Dummy data detected (0.0.0.0) - No actual connection test performed');
-            } else {
-                alert(`✅ Connection successful!\nResponse time: ${data.response_time}ms\nMessage: ${data.message}`);
-            }
-        } else {
-            alert(`❌ Connection failed!\nError: ${data.message}`);
-        }
-    })
-    .catch(error => {
-        testBtn.innerHTML = originalText;
-        testBtn.disabled = false;
-        alert('❌ Connection test error: ' + error.message);
-    });
-}
 
 // Sync timezone for specific RVM
 function syncTimezone(rvmId) {
@@ -588,11 +606,6 @@ function syncTimezone(rvmId) {
             alert('Error: ' + error.message);
         });
     }
-}
-
-// Refresh all RVMs
-function refreshAllRVMs() {
-    location.reload();
 }
 
 // Filter RVMs by status
