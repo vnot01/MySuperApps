@@ -3,88 +3,60 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Initializing simple menu toggle...');
     
-    // Function to initialize menu toggles
-    function initMenuToggles() {
-        // Get all menu toggles
-        const menuToggles = document.querySelectorAll('.layout-menu .menu-toggle');
-        console.log('Found menu toggles:', menuToggles.length);
-        
-        // Add click event to each toggle
-        menuToggles.forEach((toggle, index) => {
-            console.log(`Setting up toggle ${index + 1}:`, toggle);
-            
-            // Remove any existing event listeners
-            toggle.removeEventListener('click', handleMenuToggle);
-            
-            // Add new event listener
-            toggle.addEventListener('click', handleMenuToggle);
-        });
-    }
+    // Get all menu toggles
+    const menuToggles = document.querySelectorAll('.layout-menu .menu-toggle');
+    console.log('Found menu toggles:', menuToggles.length);
     
-    // Menu toggle handler
-    function handleMenuToggle(e) {
-        e.preventDefault();
-        e.stopPropagation();
+    // Add click event to each toggle
+    menuToggles.forEach((toggle, index) => {
+        console.log(`Setting up toggle ${index + 1}:`, toggle);
         
-        console.log('Menu toggle clicked:', this);
-        
-        // Get the parent menu item
-        const menuItem = this.closest('.menu-item');
-        const subMenu = menuItem.querySelector(':scope > .menu-sub');
-        
-        if (!subMenu) {
-            console.log('No sub-menu found');
-            return;
-        }
-        
-        console.log('Menu item:', menuItem);
-        console.log('Sub menu:', subMenu);
-        
-        // Check if already open
-        const isOpen = menuItem.classList.contains('open');
-        
-        // Close all menus at the same level first
-        const parentMenu = menuItem.parentElement;
-        const siblingMenuItems = parentMenu.querySelectorAll(':scope > .menu-item');
-        
-        siblingMenuItems.forEach(sibling => {
-            if (sibling !== menuItem) {
-                sibling.classList.remove('open');
-                const siblingSub = sibling.querySelector(':scope > .menu-sub');
-                if (siblingSub) {
-                    siblingSub.classList.remove('show');
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('Menu toggle clicked:', this);
+            
+            // Get the parent menu item
+            const menuItem = this.closest('.menu-item');
+            const subMenu = menuItem.querySelector(':scope > .menu-sub');
+            
+            if (!subMenu) {
+                console.log('No sub-menu found');
+                return;
+            }
+            
+            console.log('Menu item:', menuItem);
+            console.log('Sub menu:', subMenu);
+            
+            // Check if already open
+            const isOpen = menuItem.classList.contains('open');
+            
+            // Close all menus at the same level first
+            const parentMenu = menuItem.parentElement;
+            const siblingMenuItems = parentMenu.querySelectorAll(':scope > .menu-item');
+            
+            siblingMenuItems.forEach(sibling => {
+                if (sibling !== menuItem) {
+                    sibling.classList.remove('open');
+                    const siblingSub = sibling.querySelector(':scope > .menu-sub');
+                    if (siblingSub) {
+                        siblingSub.classList.remove('show');
+                    }
                 }
+            });
+            
+            // Toggle current menu
+            if (!isOpen) {
+                menuItem.classList.add('open');
+                subMenu.classList.add('show');
+                console.log('Menu opened');
+            } else {
+                menuItem.classList.remove('open');
+                subMenu.classList.remove('show');
+                console.log('Menu closed');
             }
         });
-        
-        // Toggle current menu
-        if (!isOpen) {
-            menuItem.classList.add('open');
-            subMenu.classList.add('show');
-            console.log('Menu opened');
-        } else {
-            menuItem.classList.remove('open');
-            subMenu.classList.remove('show');
-            console.log('Menu closed');
-        }
-    }
-    
-    // Initialize menu toggles
-    initMenuToggles();
-    
-    // Re-initialize if DOM changes (for dynamic content)
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.type === 'childList') {
-                initMenuToggles();
-            }
-        });
-    });
-    
-    // Start observing
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
     });
     
     // Close menus when clicking outside
@@ -97,17 +69,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     sub.classList.remove('show');
                 }
             });
-        }
-    });
-    
-    // Also handle direct menu item clicks
-    document.addEventListener('click', function(e) {
-        const menuItem = e.target.closest('.layout-menu .menu-item');
-        if (menuItem && menuItem.querySelector('.menu-toggle')) {
-            const toggle = menuItem.querySelector('.menu-toggle');
-            if (e.target === toggle || toggle.contains(e.target)) {
-                handleMenuToggle.call(toggle, e);
-            }
         }
     });
 });

@@ -55,14 +55,12 @@
 
 <body>
     <!-- Layout wrapper -->
-    <!-- <div class="layout-wrapper layout-navbar-full layout-horizontal layout-without-menu"> -->
-    <!-- <div class="layout-wrapper layout-navbar-full layout-without-menu"> -->
     <div class="layout-wrapper layout-navbar-full layout-horizontal layout-without-menu">
         <div class="layout-container">
             <!-- Navbar -->
             @include('components.navbar')
             
-            <!-- Horizontal Menu -->
+            <!-- Menu -->
             @include('components.menu')
             
             <!-- Layout container -->

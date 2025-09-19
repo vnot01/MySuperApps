@@ -1,6 +1,6 @@
 <!-- Horizontal Menu -->
 <div class="layout-menu menu-horizontal menu bg-menu-theme">
-    <div class="container-xxl">
+    <div class="menu-container">
         <ul class="menu-inner">
             <!-- Dashboard -->
             <li class="menu-item {{ request()->is('admin/dashboard') ? 'active' : '' }}">

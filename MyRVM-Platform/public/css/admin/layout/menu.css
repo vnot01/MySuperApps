@@ -1,3 +1,16 @@
+/* ===== FIX: Stabilize Horizontal Menu Width ===== */
+/*
+  This rule creates a fixed-width container for the menu that doesn't depend on page content.
+  It ensures consistent menu width across all pages by using a fixed max-width and centering.
+*/
+.layout-menu.menu-horizontal > .menu-container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
 /* Menu Toggle Styles */
 .menu-toggle {
     position: relative;
