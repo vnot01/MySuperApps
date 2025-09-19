@@ -1,36 +1,14 @@
-/* ===== FIX: Card-Style Full Width Menu ===== */
+/* ===== FIX: Full Width Horizontal Menu ===== */
 /*
-  This approach makes the menu behave like a card that extends to the bottom
-  of the layout, creating a consistent full-width appearance.
+  This rule makes the menu container take full width of the screen,
+  ensuring consistent appearance across all pages regardless of content width.
 */
-.layout-menu.menu-horizontal {
-    position: relative;
-    width: 100% !important;
-    background: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    z-index: 1000;
-}
-
 .layout-menu.menu-horizontal > .menu-container {
     width: 100% !important;
     max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
     box-sizing: border-box !important;
-    position: relative;
-}
-
-/* Create a pseudo-element that extends to the bottom */
-.layout-menu.menu-horizontal::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    bottom: -100vh; /* Extend way down */
-    background: white;
-    z-index: -1;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 /* Center the menu items within the full-width container */
@@ -40,8 +18,6 @@
     padding: 0 20px;
     display: flex;
     justify-content: center;
-    position: relative;
-    z-index: 1;
 }
 
 /* Menu Toggle Styles */
