@@ -1,16 +1,25 @@
 /* Simple Menu Toggle Styles for MyRVM Platform */
 
-/* ===== FIX: Stabilize Horizontal Menu Width ===== */
+/* ===== FIX: Full Width Horizontal Menu ===== */
 /*
-  This rule creates a fixed-width container for the menu that doesn't depend on page content.
-  It ensures consistent menu width across all pages by using a fixed max-width and centering.
+  This rule makes the menu container take full width of the screen,
+  ensuring consistent appearance across all pages regardless of content width.
 */
 .layout-menu.menu-horizontal > .menu-container {
-    max-width: 1200px !important;
-    margin: 0 auto !important;
-    padding: 0 20px !important;
     width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
     box-sizing: border-box !important;
+}
+
+/* Center the menu items within the full-width container */
+.layout-menu.menu-horizontal .menu-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: center;
 }
 
 /* Hide all sub-menus by default */
