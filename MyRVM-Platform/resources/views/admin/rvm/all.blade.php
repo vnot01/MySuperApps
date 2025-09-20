@@ -1241,11 +1241,19 @@ function showRemoteAccessModal(rvmId) {
                     <div class="card-body">
                         <div class="mb-3">
                             <label class="form-label">Access Type</label>
-                            <select class="form-select" id="accessType">
-                                <option value="camera">Camera Access (Port 5000)</option>
-                                <option value="gui">GUI Access (Port 5001)</option>
-                                <option value="both">Both Camera & GUI</option>
-                            </select>
+                            <div class="input-group">
+                                <select class="form-select" id="accessType">
+                                    <option value="camera">Camera Access (Port 5000)</option>
+                                    <option value="gui">GUI Access (Port 5001)</option>
+                                    <option value="both">Both Camera & GUI</option>
+                                </select>
+                                <button class="btn btn-outline-primary" type="button" id="checkPortBtn" onclick="checkPortFromModal(${rvm.id})">
+                                    <i class="fas fa-search"></i> Check Port
+                                </button>
+                            </div>
+                            <div id="portStatus" class="mt-2" style="display: none;">
+                                <!-- Port status will be displayed here -->
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Session Duration (minutes)</label>
@@ -1357,6 +1365,75 @@ function getCurrentAdminId() {
 
 function getClientIP() {
     return '192.168.1.100'; // Placeholder - would need to be implemented based on your setup
+}
+
+// Check port from modal
+function checkPortFromModal(rvmId) {
+    const accessType = document.getElementById('accessType').value;
+    const port = accessType === 'camera' ? 5000 : 5001;
+    const checkBtn = document.getElementById('checkPortBtn');
+    const portStatus = document.getElementById('portStatus');
+    
+    // Show loading state
+    const originalText = checkBtn.innerHTML;
+    checkBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+    checkBtn.disabled = true;
+    
+    fetch(`/admin/rvm/${rvmId}/remote-access/check-port`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            port: port,
+            access_type: accessType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const result = data.data;
+            const statusIcon = result.status === 'open' ? 'check-circle' : 
+                              result.status === 'reject' ? 'exclamation-triangle' : 'times-circle';
+            
+            portStatus.innerHTML = `
+                <div class="alert alert-${result.status_class} mb-0">
+                    <i class="fas fa-${statusIcon}"></i>
+                    <strong>Port ${result.port} (${result.service_name}): ${result.status_text}</strong>
+                    <br>
+                    <small>Response Time: ${result.response_time}ms | ${result.message}</small>
+                </div>
+            `;
+            portStatus.style.display = 'block';
+        } else {
+            portStatus.innerHTML = `
+                <div class="alert alert-danger mb-0">
+                    <i class="fas fa-times-circle"></i>
+                    <strong>Port Check Failed</strong>
+                    <br>
+                    <small>${data.message}</small>
+                </div>
+            `;
+            portStatus.style.display = 'block';
+        }
+    })
+    .catch(error => {
+        console.error('Port check error:', error);
+        portStatus.innerHTML = `
+            <div class="alert alert-danger mb-0">
+                <i class="fas fa-times-circle"></i>
+                <strong>Network Error</strong>
+                <br>
+                <small>Failed to check port: ${error.message}</small>
+            </div>
+        `;
+        portStatus.style.display = 'block';
+    })
+    .finally(() => {
+        checkBtn.innerHTML = originalText;
+        checkBtn.disabled = false;
+    });
 }
 
 function updateStatus(rvmId) {

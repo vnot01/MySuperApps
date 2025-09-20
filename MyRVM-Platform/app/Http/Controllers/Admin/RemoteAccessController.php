@@ -336,6 +336,83 @@ class RemoteAccessController extends Controller
     }
 
     /**
+     * Check port availability for remote access
+     */
+    public function checkPort(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'port' => 'required|integer|min:1|max:65535',
+            'access_type' => 'nullable|in:camera,gui,both'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $rvm = ReverseVendingMachine::findOrFail($id);
+            $port = $request->port;
+            $accessType = $request->access_type ?? 'gui';
+
+            if (!$rvm->ip_address) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No IP address configured for this RVM'
+                ], 400);
+            }
+
+            // Test the specific port
+            $portTest = $this->testServicePort($rvm->ip_address, $port);
+            
+            // Determine port status
+            $status = 'closed';
+            $statusText = 'Closed';
+            $statusClass = 'danger';
+            
+            if ($portTest['success']) {
+                $status = 'open';
+                $statusText = 'Open';
+                $statusClass = 'success';
+            } else {
+                // Check if it's a connection refused vs timeout
+                if (strpos($portTest['message'], 'Connection refused') !== false) {
+                    $status = 'reject';
+                    $statusText = 'Reject';
+                    $statusClass = 'warning';
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'rvm_id' => $rvm->id,
+                    'rvm_name' => $rvm->name,
+                    'ip_address' => $rvm->ip_address,
+                    'port' => $port,
+                    'access_type' => $accessType,
+                    'service_name' => $this->getServiceName($port),
+                    'status' => $status,
+                    'status_text' => $statusText,
+                    'status_class' => $statusClass,
+                    'response_time' => $portTest['response_time'],
+                    'message' => $portTest['message'],
+                    'is_dummy' => $portTest['is_dummy'] ?? false
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Port check error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get service name by port
      */
     private function getServiceName($port)

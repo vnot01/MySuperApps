@@ -271,6 +271,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin/rvm')->name('admin.rvm.')
     Route::post('/{id}/remote-access/stop', [RemoteAccessController::class, 'stop'])->name('remote-access.stop');
     Route::get('/{id}/remote-access/status', [RemoteAccessController::class, 'status'])->name('remote-access.status');
     Route::get('/{id}/remote-access/history', [RemoteAccessController::class, 'history'])->name('remote-access.history');
+    Route::post('/{id}/remote-access/check-port', [RemoteAccessController::class, 'checkPort'])->name('remote-access.check-port');
     
     // Configuration Management Routes
     Route::get('/{id}/config', [ConfigurationController::class, 'index'])->name('config.index');
