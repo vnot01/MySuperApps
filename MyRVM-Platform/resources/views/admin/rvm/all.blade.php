@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard/components.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard/animations.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard/responsive.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/remote-access.css') }}">
     <style>
         /* Make RVM List card expandable to bottom */
         .rvm-list-container {
@@ -34,6 +35,41 @@
         
         .rvm-list-card .table {
             height: 100%;
+        }
+        
+        /* Port details styling */
+        .port-details {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+        }
+        
+        .port-details .d-block {
+            margin-bottom: 2px;
+        }
+        
+        .port-details .text-success {
+            color: #28a745 !important;
+        }
+        
+        .port-details .text-danger {
+            color: #dc3545 !important;
+        }
+        
+        .connection-status {
+            font-size: 0.875rem;
+        }
+        
+        .connection-status .text-success {
+            color: #28a745 !important;
+        }
+        
+        .connection-status .text-danger {
+            color: #dc3545 !important;
+        }
+        
+        .connection-status .text-warning {
+            color: #ffc107 !important;
         }
     </style>
 @endsection
@@ -223,6 +259,7 @@
                                     <th>IP Address</th>
                                     <th>Timezone</th>
                                     <th>Last Sync</th>
+                                    <th>Remote Access</th>
                                     <th>Connection</th>
                                     <th>Actions</th>
                                 </tr>
@@ -293,6 +330,13 @@
                                         </div>
                                     </td>
                                     <td>
+                                        <div class="remote-access-status" data-rvm-id="{{ $rvm->id }}">
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-circle"></i> Inactive
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
                                         <div class="d-flex align-items-center">
                                             <span class="badge bg-secondary me-2" id="connection-{{ $rvm->id }}">
                                                 <i class="fas fa-question-circle me-1"></i>
@@ -317,6 +361,9 @@
                                                 </a></li>
                                                 <li><a class="dropdown-item" href="#" onclick="syncTimezone({{ $rvm->id }})">
                                                     <i class="fas fa-clock me-2"></i>Sync Timezone
+                                                </a></li>
+                                                <li><a class="dropdown-item text-primary" href="#" onclick="showRemoteAccessModal({{ $rvm->id }})">
+                                                    <i class="fas fa-desktop me-2"></i>Remote Access
                                                 </a></li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li><a class="dropdown-item text-warning" href="#" onclick="maintenanceRVM({{ $rvm->id }})">
@@ -438,9 +485,60 @@
     </div>
 </div>
 
+<!-- Remote Access Modal -->
+<div class="modal fade" id="remoteAccessModal" tabindex="-1" aria-labelledby="remoteAccessModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="remoteAccessModalLabel">
+                    <i class="fas fa-desktop me-2"></i>Remote Access
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="remoteAccessContent">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="remoteAccessActionBtn">
+                    <i class="fas fa-desktop"></i> Start Remote Access
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Remote Access Status Modal -->
+<div class="modal fade" id="remoteAccessStatusModal" tabindex="-1" aria-labelledby="remoteAccessStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="remoteAccessStatusModalLabel">
+                    <i class="fas fa-info-circle me-2"></i>Remote Access Status
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="remoteAccessStatusContent">
+                    <!-- Status content will be loaded dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger" id="stopRemoteAccessBtn" style="display: none;">
+                    <i class="fas fa-stop"></i> Stop Remote Access
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @section('page-js')
+<script src="{{ asset('js/admin/dashboard/remote-access.js') }}"></script>
 <script>
 // Global variables
 let rvmData = @json($rvms);
@@ -540,10 +638,10 @@ function pingRVM(rvmId) {
     }
 
     const connectionElement = document.getElementById(`connection-${rvmId}`);
-    connectionElement.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Pinging...';
+    connectionElement.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Testing...';
     connectionElement.className = 'badge bg-warning me-2';
 
-    // Simulate ping (replace with actual API call)
+    // Ping RVM with multi-port testing
     fetch(`/admin/rvm/ping/${rvmId}`, {
         method: 'POST',
         headers: {
@@ -554,12 +652,32 @@ function pingRVM(rvmId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            updateConnectionStatus(rvmId, 'success', 'Connected');
+            const pingResult = data.data.ping_result;
+            
+            if (pingResult && pingResult.success) {
+                // Show successful connection
+                updateConnectionStatus(rvmId, 'success', 'Connected');
+                
+                // Show detailed port information
+                if (pingResult.ports) {
+                    let portInfo = '<div class="port-details mt-2">';
+                    for (const [port, result] of Object.entries(pingResult.ports)) {
+                        const icon = result.success ? 'check-circle text-success' : 'times-circle text-danger';
+                        portInfo += `<small class="d-block"><i class="fas fa-${icon}"></i> ${result.service}: ${result.response_time}ms</small>`;
+                    }
+                    portInfo += '</div>';
+                    connectionElement.innerHTML += portInfo;
+                }
+            } else {
+                updateConnectionStatus(rvmId, 'danger', 'Disconnected');
+            }
         } else {
-            updateConnectionStatus(rvmId, 'danger', 'Disconnected');
+            console.error('Ping API error:', data.message || 'Unknown error');
+            updateConnectionStatus(rvmId, 'danger', 'Error');
         }
     })
     .catch(error => {
+        console.error('Ping error:', error);
         updateConnectionStatus(rvmId, 'danger', 'Error');
     });
 }
@@ -759,7 +877,8 @@ document.getElementById('addRvmForm').addEventListener('submit', function(e) {
         console.error('Fetch error:', error); // Debug log
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
-        alert('❌ Network error: ' + error.message);
+        const errorMessage = error.message || error.toString() || 'Unknown network error';
+        alert('❌ Network error: ' + errorMessage);
     });
 });
 
@@ -911,7 +1030,181 @@ function syncTimezone(rvmId) {
 }
 
 function remoteAccess(rvmId) {
-    alert('🔧 Remote Access feature will be implemented soon!\n\nRVM ID: ' + rvmId);
+    // This function is called from the dropdown menu
+    // It should trigger the same modal as showRemoteAccessModal
+    showRemoteAccessModal(rvmId);
+}
+
+function showRemoteAccessModal(rvmId) {
+    const rvm = rvmData.find(r => r.id === rvmId);
+    if (!rvm) {
+        alert('❌ RVM not found');
+        return;
+    }
+    
+    // Populate modal content
+    const content = document.getElementById('remoteAccessContent');
+    content.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">RVM Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>RVM ID:</strong></td>
+                                <td>${rvm.id}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Name:</strong></td>
+                                <td>${rvm.name}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Location:</strong></td>
+                                <td>${rvm.location || 'Not Set'}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>IP Address:</strong></td>
+                                <td>${rvm.ip_address || 'Not Set'}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Port:</strong></td>
+                                <td>${rvm.port || 8000}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td><span class="badge bg-${getStatusClass(rvm.status)}">${rvm.status}</span></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Remote Access Options</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Access Type</label>
+                            <select class="form-select" id="accessType">
+                                <option value="camera">Camera Access (Port 5000)</option>
+                                <option value="gui">GUI Access (Port 5001)</option>
+                                <option value="both">Both Camera & GUI</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Session Duration (minutes)</label>
+                            <select class="form-select" id="sessionDuration">
+                                <option value="30">30 minutes</option>
+                                <option value="60" selected>1 hour</option>
+                                <option value="120">2 hours</option>
+                                <option value="240">4 hours</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Reason for Access</label>
+                            <textarea class="form-control" id="accessReason" rows="3" placeholder="Enter reason for remote access..."></textarea>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Note:</strong> Starting remote access will change RVM status to "maintenance" mode.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Update modal title and button
+    document.getElementById('remoteAccessModalLabel').innerHTML = `<i class="fas fa-desktop me-2"></i>Remote Access - ${rvm.name}`;
+    document.getElementById('remoteAccessActionBtn').innerHTML = '<i class="fas fa-desktop me-1"></i> Start Remote Access';
+    document.getElementById('remoteAccessActionBtn').onclick = () => startRemoteAccessFromModal(rvmId);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('remoteAccessModal'));
+    modal.show();
+}
+
+function startRemoteAccessFromModal(rvmId) {
+    const adminId = getCurrentAdminId();
+    
+    if (!adminId) {
+        alert('❌ Admin ID not found. Please login again.');
+        return;
+    }
+    
+    const accessType = document.getElementById('accessType').value;
+    const sessionDuration = document.getElementById('sessionDuration').value;
+    const reason = document.getElementById('accessReason').value;
+    
+    // Show loading state
+    const button = document.getElementById('remoteAccessActionBtn');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
+    button.disabled = true;
+    
+    fetch(`/admin/rvm/${rvmId}/remote-access/start`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            admin_id: adminId,
+            ip_address: getClientIP(),
+            port: accessType === 'camera' ? 5000 : 5001,
+            access_type: accessType,
+            session_duration: parseInt(sessionDuration),
+            reason: reason || 'Remote access session started from RVM management'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`✅ Remote access started successfully!\n\nSession ID: ${data.data.session_id}\nRVM Status: ${data.data.status}`);
+            
+            // Close modal and refresh page
+            bootstrap.Modal.getInstance(document.getElementById('remoteAccessModal')).hide();
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            const errorMessage = data.message || 'Unknown error occurred';
+            alert(`❌ Failed to start remote access:\n${errorMessage}`);
+        }
+    })
+    .catch(error => {
+        console.error('Remote access start error:', error);
+        const errorMessage = error.message || error.toString() || 'Unknown network error';
+        alert('❌ Network error: ' + errorMessage);
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function getStatusClass(status) {
+    const statusClasses = {
+        'active': 'success',
+        'inactive': 'secondary',
+        'maintenance': 'warning',
+        'full': 'danger',
+        'error': 'danger'
+    };
+    return statusClasses[status] || 'secondary';
+}
+
+function getCurrentAdminId() {
+    const adminIdMeta = document.querySelector('meta[name="admin-id"]');
+    return adminIdMeta ? adminIdMeta.getAttribute('content') : null;
+}
+
+function getClientIP() {
+    return '192.168.1.100'; // Placeholder - would need to be implemented based on your setup
 }
 
 function updateStatus(rvmId) {

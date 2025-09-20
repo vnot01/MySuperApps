@@ -11,6 +11,10 @@ use App\Http\Controllers\CvPlaygroundController;
 use App\Http\Controllers\Admin\EdgeVisionController;
 use App\Http\Controllers\Admin\ProcessingEngineController;
 use App\Http\Controllers\Admin\RvmController;
+use App\Http\Controllers\Admin\RemoteAccessController;
+use App\Http\Controllers\Admin\ConfigurationController;
+use App\Http\Controllers\Admin\SystemMonitoringController;
+use App\Http\Controllers\Admin\BackupController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -103,13 +107,139 @@ Route::get('/admin/login', function () {
     return view('auth.login');
 })->name('admin.login');
 
+// Simple admin login for testing
+Route::post('/admin/login', function (Illuminate\Http\Request $request) {
+    $credentials = $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
+
+    if (Auth::attempt($credentials)) {
+        $request->session()->regenerate();
+        return redirect()->intended('/admin/dashboard');
+    }
+
+    return back()->withErrors([
+        'email' => 'The provided credentials do not match our records.',
+    ])->onlyInput('email');
+})->name('admin.login.post')->withoutMiddleware(['csrf']);
+
+// Alternative login route without CSRF for testing
+Route::post('/admin/login-test', function (Illuminate\Http\Request $request) {
+    $credentials = $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
+
+    if (Auth::attempt($credentials)) {
+        $request->session()->regenerate();
+        return response()->json([
+            'success' => true,
+            'message' => 'Login successful',
+            'redirect' => '/admin/dashboard'
+        ]);
+    }
+
+    return response()->json([
+        'success' => false,
+        'message' => 'The provided credentials do not match our records.'
+    ], 401);
+})->name('admin.login.test')->withoutMiddleware(['csrf']);
+
+// Simple test route to check if CSRF is the issue
+Route::get('/admin/test-csrf', function () {
+    return response()->json([
+        'success' => true,
+        'message' => 'CSRF test successful',
+        'csrf_token' => csrf_token()
+    ]);
+})->name('admin.test.csrf');
+
+// Test login route to verify authentication works
+Route::get('/admin/test-login', function () {
+    if (Auth::attempt(['email' => 'admin@myrvm.com', 'password' => 'admin123'])) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Login test successful',
+            'user' => Auth::user()
+        ]);
+    } else {
+        return response()->json([
+            'success' => false,
+            'message' => 'Login test failed'
+        ]);
+    }
+})->name('admin.test.login');
+
+// Debug route to check what's happening with form submission
+Route::post('/admin/debug-login', function (Illuminate\Http\Request $request) {
+    \Illuminate\Support\Facades\Log::info('Debug login attempt', [
+        'email' => $request->email,
+        'password_length' => strlen($request->password ?? ''),
+        'has_csrf_token' => $request->has('_token'),
+        'all_request_data' => $request->all()
+    ]);
+    
+    $credentials = [
+        'email' => $request->email,
+        'password' => $request->password
+    ];
+    
+    if (Auth::attempt($credentials)) {
+        \Illuminate\Support\Facades\Log::info('Debug login SUCCESS');
+        return redirect()->intended('/admin/dashboard');
+    } else {
+        \Illuminate\Support\Facades\Log::info('Debug login FAILED');
+        return back()->withErrors([
+            'email' => 'Debug: The provided credentials do not match our records.',
+        ])->onlyInput('email');
+    }
+})->name('admin.debug.login');
+
+// Create admin user for testing
+Route::get('/admin/create-admin', function () {
+    try {
+        // Create Admin role if it doesn't exist
+        $adminRole = \App\Models\Role::firstOrCreate(
+            ['name' => 'Admin'],
+            ['slug' => 'admin']
+        );
+
+        // Create admin user
+        $adminUser = \App\Models\User::firstOrCreate(
+            ['email' => 'admin@myrvm.com'],
+            [
+                'name' => 'Admin User',
+                'password' => \Illuminate\Support\Facades\Hash::make('admin123'),
+                'role_id' => $adminRole->id,
+                'email_verified_at' => now(),
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Admin user created successfully!',
+            'data' => [
+                'email' => 'admin@myrvm.com',
+                'password' => 'admin123',
+                'user_id' => $adminUser->id
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to create admin user: ' . $e->getMessage()
+        ], 500);
+    }
+})->name('admin.create-admin');
+
 // Admin RVM Dashboard Route (Protected with authentication) - REDIRECT TO NEW DASHBOARD
 Route::get('/admin/rvm-dashboard', function () {
     return redirect()->route('admin.dashboard.index');
 })->name('admin.rvm.dashboard');
 
-// New Dashboard Routes (Template Inheritance)
-Route::prefix('admin/dashboard')->name('admin.dashboard.')->group(function () {
+// New Dashboard Routes (Template Inheritance) - Protected with authentication
+Route::middleware(['auth', 'verified'])->prefix('admin/dashboard')->name('admin.dashboard.')->group(function () {
     Route::get('/', [AdminDashboardController::class, 'index'])->name('index');
     Route::get('/live-camera', function () {
         return view('admin.dashboard.live-camera');
@@ -125,22 +255,53 @@ Route::prefix('admin/dashboard')->name('admin.dashboard.')->group(function () {
     })->name('remote-control');
 });
 
-// RVM Management Routes
-Route::prefix('admin/rvm')->name('admin.rvm.')->group(function () {
+// RVM Management Routes - Protected with authentication
+Route::middleware(['auth', 'verified'])->prefix('admin/rvm')->name('admin.rvm.')->group(function () {
     Route::get('/', [RvmController::class, 'index'])->name('index');
     Route::get('/maintenance', [RvmController::class, 'maintenance'])->name('maintenance');
     Route::post('/', [RvmController::class, 'store'])->name('store');
     Route::post('/test-connection', [RvmController::class, 'testConnection'])->name('test-connection');
-    Route::get('/{id}', [RvmController::class, 'show'])->name('show');
-    Route::put('/{id}', [RvmController::class, 'update'])->name('update');
-    Route::delete('/{id}', [RvmController::class, 'destroy'])->name('destroy');
+    Route::post('/{id}/test-service-ports', [RvmController::class, 'testServicePorts'])->name('test-service-ports');
     Route::post('/ping/{id}', [RvmController::class, 'ping'])->name('ping');
     Route::post('/sync-timezone/{id}', [RvmController::class, 'syncTimezone'])->name('sync-timezone');
     Route::post('/set-global-timezone', [RvmController::class, 'setGlobalTimezone'])->name('set-global-timezone');
+    
+    // Remote Access Routes
+    Route::post('/{id}/remote-access/start', [RemoteAccessController::class, 'start'])->name('remote-access.start');
+    Route::post('/{id}/remote-access/stop', [RemoteAccessController::class, 'stop'])->name('remote-access.stop');
+    Route::get('/{id}/remote-access/status', [RemoteAccessController::class, 'status'])->name('remote-access.status');
+    Route::get('/{id}/remote-access/history', [RemoteAccessController::class, 'history'])->name('remote-access.history');
+    
+    // Configuration Management Routes
+    Route::get('/{id}/config', [ConfigurationController::class, 'index'])->name('config.index');
+    Route::get('/{id}/config/{key}', [ConfigurationController::class, 'get'])->name('config.get');
+    Route::put('/{id}/config/{key}', [ConfigurationController::class, 'update'])->name('config.update');
+    Route::delete('/{id}/config/{key}', [ConfigurationController::class, 'delete'])->name('config.delete');
+    Route::put('/{id}/config/bulk', [ConfigurationController::class, 'bulkUpdate'])->name('config.bulk-update');
+    
+    // System Monitoring Routes
+    Route::get('/{id}/metrics', [SystemMonitoringController::class, 'index'])->name('metrics.index');
+    Route::get('/{id}/metrics/latest', [SystemMonitoringController::class, 'latest'])->name('metrics.latest');
+    Route::post('/{id}/metrics', [SystemMonitoringController::class, 'store'])->name('metrics.store');
+    Route::get('/{id}/metrics/alerts', [SystemMonitoringController::class, 'alerts'])->name('metrics.alerts');
+    Route::get('/{id}/metrics/statistics', [SystemMonitoringController::class, 'statistics'])->name('metrics.statistics');
+    
+    // Backup Operations Routes
+    Route::get('/{id}/backups', [BackupController::class, 'index'])->name('backups.index');
+    Route::get('/{id}/backups/latest', [BackupController::class, 'latest'])->name('backups.latest');
+    Route::post('/{id}/backups', [BackupController::class, 'store'])->name('backups.store');
+    Route::put('/{id}/backups/{backupId}', [BackupController::class, 'update'])->name('backups.update');
+    Route::get('/{id}/backups/statistics', [BackupController::class, 'statistics'])->name('backups.statistics');
+    Route::get('/{id}/backups/alerts', [BackupController::class, 'alerts'])->name('backups.alerts');
+    
+    // Basic CRUD Routes (must be last to avoid conflicts with specific routes above)
+    Route::get('/{id}', [RvmController::class, 'show'])->name('show');
+    Route::put('/{id}', [RvmController::class, 'update'])->name('update');
+    Route::delete('/{id}', [RvmController::class, 'destroy'])->name('destroy');
 });
 
 // Debug route for testing
-Route::post('/admin/rvm/debug', function(Request $request) {
+Route::post('/admin/rvm/debug', function(Illuminate\Http\Request $request) {
     return response()->json([
         'success' => true,
         'message' => 'Debug route working',

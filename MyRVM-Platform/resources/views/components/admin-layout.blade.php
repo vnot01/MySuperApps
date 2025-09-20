@@ -6,6 +6,7 @@
     <title>@yield('title', 'MyRVM Platform')</title>
     <meta name="description" content="@yield('description', 'RVM Monitoring Dashboard')">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="admin-id" content="{{ auth()->id() }}">
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico">

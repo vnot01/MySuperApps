@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard/components.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard/animations.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard/responsive.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/remote-access.css') }}">
 @endsection
 
 @section('breadcrumb')
@@ -284,6 +285,56 @@
         </div>
     </div>
 
+    <!-- Remote Access Modal -->
+    <div class="modal fade" id="remoteAccessModal" tabindex="-1" aria-labelledby="remoteAccessModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="remoteAccessModalLabel">
+                        <i class="fas fa-desktop me-2"></i>Remote Access
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="remoteAccessContent">
+                        <!-- Content will be loaded dynamically -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="remoteAccessActionBtn">
+                        <i class="fas fa-desktop"></i> Start Remote Access
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Remote Access Status Modal -->
+    <div class="modal fade" id="remoteAccessStatusModal" tabindex="-1" aria-labelledby="remoteAccessStatusModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="remoteAccessStatusModalLabel">
+                        <i class="fas fa-info-circle me-2"></i>Remote Access Status
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="remoteAccessStatusContent">
+                        <!-- Status content will be loaded dynamically -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-danger" id="stopRemoteAccessBtn" style="display: none;">
+                        <i class="fas fa-stop"></i> Stop Remote Access
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Data for JavaScript -->
     <script>
         window.dashboardData = {
@@ -310,4 +361,5 @@
     <script src="{{ asset('js/admin/dashboard/charts.js') }}"></script>
     <script src="{{ asset('js/admin/dashboard/rvm-cards.js') }}"></script>
     <script src="{{ asset('js/admin/dashboard/api.js') }}"></script>
+    <script src="{{ asset('js/admin/dashboard/remote-access.js') }}"></script>
 @endsection

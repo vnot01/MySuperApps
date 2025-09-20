@@ -302,16 +302,23 @@
         <div class="error-message" id="errorMessage"></div>
         <div class="success-message" id="successMessage"></div>
 
-        <form id="loginForm">
+        <form id="loginForm" method="POST" action="{{ route('admin.debug.login') }}">
+            @csrf
             <div class="form-group">
                 <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" required>
+                <input type="email" id="email" name="email" value="{{ old('email') }}" required>
+                @error('email')
+                    <div class="text-red-500 text-sm mt-1">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
-        </div>
+                @error('password')
+                    <div class="text-red-500 text-sm mt-1">{{ $message }}</div>
+                @enderror
+            </div>
 
             <button type="submit" class="login-button" id="loginButton">
                 Sign In
@@ -331,10 +338,10 @@
                     <div class="demo-account-title">Super Admin</div>
                     <div class="demo-account-role super-admin">SUPER ADMIN</div>
                 </div>
-                <div class="demo-credentials-text">admin@myrvm.com / password</div>
+                <div class="demo-credentials-text">admin@myrvm.com / admin123</div>
                 <div class="demo-buttons">
-                    <button class="demo-button copy" onclick="copyCredentials('admin@myrvm.com', 'password', this)">📋 Copy</button>
-                    <button class="demo-button signin" onclick="quickSignin('admin@myrvm.com', 'password')">🚀 Sign In</button>
+                    <button class="demo-button copy" onclick="copyCredentials('admin@myrvm.com', 'admin123', this)">📋 Copy</button>
+                    <button class="demo-button signin" onclick="quickSignin('admin@myrvm.com', 'admin123')">🚀 Sign In</button>
                 </div>
                 <div class="copy-success">Credentials copied!</div>
             </div>
@@ -397,109 +404,6 @@
         </div>
     </div>
 
-    <script>
-        // Inline AuthManager untuk menghindari 404 error
-        class AuthManager {
-            constructor() {
-                this.token = localStorage.getItem('auth_token');
-                this.user = JSON.parse(localStorage.getItem('auth_user') || 'null');
-                this.baseUrl = '/api/v2';
-            }
-
-            async login(email, password) {
-                try {
-                    const response = await fetch(`${this.baseUrl}/auth/login`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                        },
-                        body: JSON.stringify({ email, password })
-                    });
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        this.token = data.data.token;
-                        this.user = data.data.user;
-                        
-                        localStorage.setItem('auth_token', this.token);
-                        localStorage.setItem('auth_user', JSON.stringify(this.user));
-                        
-                        // Force token to be available immediately
-                        console.log('Token stored:', this.token);
-                        console.log('User stored:', this.user);
-                        
-                        return { success: true, data: data.data };
-                    } else {
-                        return { success: false, message: data.message };
-                    }
-                } catch (error) {
-                    console.error('Login error:', error);
-                    return { success: false, message: 'Network error occurred' };
-                }
-            }
-
-            async logout() {
-                try {
-                    if (this.token) {
-                        await fetch(`${this.baseUrl}/auth/logout`, {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${this.token}`,
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                            }
-                        });
-                    }
-                } catch (error) {
-                    console.error('Logout error:', error);
-                } finally {
-                    this.token = null;
-                    this.user = null;
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('auth_user');
-                }
-            }
-
-            isAuthenticated() {
-                return !!this.token && !!this.user;
-            }
-
-            getToken() {
-                return this.token;
-            }
-
-            getCurrentUser() {
-                return this.user;
-            }
-        }
-
-        // Create global instance
-        window.authManager = new AuthManager();
-        
-        // Global error handler untuk catch uncaught errors
-        window.addEventListener('error', function(event) {
-            console.error('Global error caught:', event.error);
-            // Jangan biarkan error mengganggu redirect
-            if (event.error && event.error.message && event.error.message.includes('Could not establish connection')) {
-                console.log('Browser extension error detected, ignoring...');
-                return;
-            }
-        });
-        
-        // Handle unhandled promise rejections
-        window.addEventListener('unhandledrejection', function(event) {
-            console.error('Unhandled promise rejection:', event.reason);
-            // Jangan biarkan promise rejection mengganggu redirect
-            if (event.reason && event.reason.message && event.reason.message.includes('Could not establish connection')) {
-                console.log('Browser extension promise rejection detected, ignoring...');
-                event.preventDefault();
-                return;
-            }
-        });
-    </script>
     <script>
         function copyCredentials(email, password, button) {
             // Copy to clipboard
@@ -607,101 +511,18 @@
             });
         });
 
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+        // Simple form submission - let Laravel handle the authentication
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
             const loginButton = document.getElementById('loginButton');
             const loading = document.getElementById('loading');
-            const errorMessage = document.getElementById('errorMessage');
-            const successMessage = document.getElementById('successMessage');
-
-            // Clear previous messages completely
-            errorMessage.style.display = 'none';
-            errorMessage.textContent = '';
-            successMessage.style.display = 'none';
-            successMessage.textContent = '';
-            successMessage.innerHTML = '';
-
-            // Show loading
+            
+            // Show loading state
             loginButton.disabled = true;
             loading.classList.add('show');
-
-            try {
-                const result = await window.authManager.login(email, password);
-                
-                if (result.success) {
-                    successMessage.innerHTML = 'Login successful! Redirecting...<br><small>If redirect fails, <a href="/admin/rvm-dashboard" class="text-blue-600 underline">click here</a></small>';
-                    successMessage.style.display = 'block';
-                    
-                    // Redirect to admin dashboard immediately
-                    console.log('Login successful, redirecting to dashboard...');
-                    console.log('Token:', window.authManager.getToken());
-                    
-                    // Force redirect with error handling
-                    try {
-                        // Method 1: Direct redirect
-                        console.log('Attempting direct redirect...');
-                        window.location.href = '/admin/rvm-dashboard';
-                    } catch (error) {
-                        console.error('Direct redirect failed:', error);
-                        try {
-                            // Method 2: Replace current location
-                            console.log('Attempting replace redirect...');
-                            window.location.replace('/admin/rvm-dashboard');
-                        } catch (error2) {
-                            console.error('Replace redirect failed:', error2);
-                            // Method 3: Force redirect with assignment
-                            console.log('Attempting assignment redirect...');
-                            window.location = '/admin/rvm-dashboard';
-                        }
-                    }
-                    
-                    // Force redirect after a short delay to ensure token is stored
-                    setTimeout(() => {
-                        if (window.location.pathname === '/admin/login') {
-                            console.log('Force redirect after delay...');
-                            window.location.href = '/admin/rvm-dashboard';
-                        }
-                    }, 100);
-                    
-                    // Fallback: Show manual redirect button after 2 seconds
-                    setTimeout(() => {
-                        if (window.location.pathname === '/admin/login') {
-                            console.log('Redirect failed, showing manual link...');
-                            successMessage.innerHTML = 'Login successful! <a href="/admin/rvm-dashboard" class="text-blue-600 underline font-semibold">Click here to continue to dashboard</a>';
-                        }
-                    }, 2000);
-                } else {
-                    // Clear success message first
-                    successMessage.style.display = 'none';
-                    successMessage.textContent = '';
-                    successMessage.innerHTML = '';
-                    
-                    errorMessage.textContent = result.message || 'Login failed';
-                    errorMessage.style.display = 'block';
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                
-                // Clear success message first
-                successMessage.style.display = 'none';
-                successMessage.textContent = '';
-                successMessage.innerHTML = '';
-                
-                errorMessage.textContent = 'An error occurred during login';
-                errorMessage.style.display = 'block';
-            } finally {
-                loginButton.disabled = false;
-                loading.classList.remove('show');
-            }
+            
+            // Let the form submit naturally to Laravel
+            // No need to prevent default or handle redirects manually
         });
-
-        // Check if already logged in
-        if (window.authManager.isAuthenticated()) {
-            window.location.href = '/admin/rvm-dashboard';
-        }
     </script>
 </body>
 </html>

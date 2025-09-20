@@ -141,8 +141,8 @@ class RvmController extends Controller
         }
 
         try {
-            // Simulate ping (replace with actual ping implementation)
-            $pingResult = $this->performPing($rvm->ip_address, $rvm->port ?? 8000);
+            // Use network health check (IP ping only, no port testing)
+            $pingResult = $this->performNetworkHealthCheck($rvm->ip_address);
             
             // Update last ping time
             $rvm->update([
@@ -155,9 +155,10 @@ class RvmController extends Controller
                 'message' => $pingResult['message'],
                 'data' => [
                     'ip_address' => $rvm->ip_address,
-                    'port' => $rvm->port ?? 8000,
                     'response_time' => $pingResult['response_time'] ?? null,
-                    'last_ping' => $rvm->last_ping
+                    'last_ping' => $rvm->last_ping,
+                    'ping_result' => $pingResult,
+                    'type' => 'network_health'
                 ]
             ]);
 
@@ -402,6 +403,68 @@ class RvmController extends Controller
     /**
      * Perform actual ping to RVM
      */
+    /**
+     * Perform network health check (IP ping only, no port testing)
+     */
+    private function performNetworkHealthCheck($ip)
+    {
+        $startTime = microtime(true);
+        
+        // Handle dummy data (0.0.0.0)
+        if ($ip === '0.0.0.0' || $ip === 'localhost' || $ip === '127.0.0.1') {
+            $responseTime = round((microtime(true) - $startTime) * 1000, 2);
+            return [
+                'success' => true,
+                'message' => 'Dummy data - No actual connection test',
+                'response_time' => $responseTime,
+                'is_dummy' => true,
+                'type' => 'network_health'
+            ];
+        }
+        
+        // Perform actual ICMP ping (network health check)
+        try {
+            // Use system ping command for network health check
+            $pingCommand = "ping -c 1 -W 3 " . escapeshellarg($ip) . " 2>/dev/null";
+            $output = shell_exec($pingCommand);
+            
+            if ($output && strpos($output, '1 received') !== false) {
+                // Extract response time from ping output
+                preg_match('/time=([0-9.]+)/', $output, $matches);
+                $responseTime = isset($matches[1]) ? floatval($matches[1]) : 0;
+                
+                return [
+                    'success' => true,
+                    'message' => "Network health check successful - IP reachable",
+                    'response_time' => $responseTime,
+                    'type' => 'network_health',
+                    'is_dummy' => false
+                ];
+            } else {
+                $responseTime = round((microtime(true) - $startTime) * 1000, 2);
+                return [
+                    'success' => false,
+                    'message' => "Network health check failed - IP not reachable",
+                    'response_time' => $responseTime,
+                    'type' => 'network_health',
+                    'is_dummy' => false
+                ];
+            }
+        } catch (\Exception $e) {
+            $responseTime = round((microtime(true) - $startTime) * 1000, 2);
+            return [
+                'success' => false,
+                'message' => "Network health check error: " . $e->getMessage(),
+                'response_time' => $responseTime,
+                'type' => 'network_health',
+                'is_dummy' => false
+            ];
+        }
+    }
+
+    /**
+     * Perform service port testing (for remote access)
+     */
     private function performPing($ip, $port = 8000)
     {
         $startTime = microtime(true);
@@ -413,43 +476,74 @@ class RvmController extends Controller
                 'success' => true,
                 'message' => 'Dummy data - No actual connection test',
                 'response_time' => $responseTime,
-                'is_dummy' => true
+                'is_dummy' => true,
+                'type' => 'service_port'
             ];
         }
         
-        // Real ping implementation for actual IP addresses
-        try {
-            // Try to connect to the RVM
-            $connection = @fsockopen($ip, $port, $errno, $errstr, 5);
+        // Test multiple ports
+        $ports = [8000, 5000, 5001]; // RVM API, Camera, Remote Access Controller
+        $results = [];
+        
+        foreach ($ports as $testPort) {
+            $portStartTime = microtime(true);
             
-            if ($connection) {
-                $responseTime = round((microtime(true) - $startTime) * 1000, 2);
-                fclose($connection);
+            try {
+                $connection = @fsockopen($ip, $testPort, $errno, $errstr, 5);
                 
-                return [
-                    'success' => true,
-                    'message' => 'Connection successful',
-                    'response_time' => $responseTime,
-                    'is_dummy' => false
-                ];
-            } else {
-                $responseTime = round((microtime(true) - $startTime) * 1000, 2);
-                return [
+                if ($connection) {
+                    $responseTime = round((microtime(true) - $portStartTime) * 1000, 2);
+                    fclose($connection);
+                    
+                    $results[$testPort] = [
+                        'success' => true,
+                        'message' => "Port $testPort: Connection successful",
+                        'response_time' => $responseTime,
+                        'service' => $this->getServiceName($testPort)
+                    ];
+                } else {
+                    $responseTime = round((microtime(true) - $portStartTime) * 1000, 2);
+                    $results[$testPort] = [
+                        'success' => false,
+                        'message' => "Port $testPort: Connection failed: $errstr ($errno)",
+                        'response_time' => $responseTime,
+                        'service' => $this->getServiceName($testPort)
+                    ];
+                }
+            } catch (\Exception $e) {
+                $responseTime = round((microtime(true) - $portStartTime) * 1000, 2);
+                $results[$testPort] = [
                     'success' => false,
-                    'message' => "Connection failed: $errstr ($errno)",
+                    'message' => "Port $testPort: Connection error: " . $e->getMessage(),
                     'response_time' => $responseTime,
-                    'is_dummy' => false
+                    'service' => $this->getServiceName($testPort)
                 ];
             }
-        } catch (\Exception $e) {
-            $responseTime = round((microtime(true) - $startTime) * 1000, 2);
-            return [
-                'success' => false,
-                'message' => 'Connection error: ' . $e->getMessage(),
-                'response_time' => $responseTime,
-                'is_dummy' => false
-            ];
         }
+        
+        // Determine overall success
+        $overallSuccess = !empty(array_filter($results, function($result) {
+            return $result['success'];
+        }));
+        
+        return [
+            'success' => $overallSuccess,
+            'message' => 'Multi-port connectivity test',
+            'response_time' => round((microtime(true) - $startTime) * 1000, 2),
+            'is_dummy' => false,
+            'ports' => $results
+        ];
+    }
+
+    private function getServiceName($port)
+    {
+        $services = [
+            8000 => 'RVM API',
+            5000 => 'Camera Service',
+            5001 => 'Remote Access Controller'
+        ];
+        
+        return $services[$port] ?? "Port $port";
     }
 
     /**
@@ -520,14 +614,53 @@ class RvmController extends Controller
         $ipAddress = $request->ip_address;
         $port = $request->port ?? 8000;
 
-        $pingResult = $this->performPing($ipAddress, $port);
+        // Use network health check for connection testing
+        $pingResult = $this->performNetworkHealthCheck($ipAddress);
 
         return response()->json([
             'success' => $pingResult['success'],
             'message' => $pingResult['message'],
             'response_time' => $pingResult['response_time'],
-            'is_dummy' => $pingResult['is_dummy'] ?? false
+            'is_dummy' => $pingResult['is_dummy'] ?? false,
+            'type' => 'network_health'
         ]);
+    }
+
+    /**
+     * Test service ports (for remote access)
+     */
+    public function testServicePorts(Request $request, $id)
+    {
+        $rvm = ReverseVendingMachine::findOrFail($id);
+
+        if (!$rvm->ip_address) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No IP address configured for this RVM'
+            ], 400);
+        }
+
+        try {
+            $pingResult = $this->performPing($rvm->ip_address, $rvm->port ?? 8000);
+
+            return response()->json([
+                'success' => $pingResult['success'],
+                'message' => $pingResult['message'],
+                'data' => [
+                    'ip_address' => $rvm->ip_address,
+                    'port' => $rvm->port ?? 8000,
+                    'response_time' => $pingResult['response_time'] ?? null,
+                    'ping_result' => $pingResult,
+                    'type' => 'service_port'
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Service port test error: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

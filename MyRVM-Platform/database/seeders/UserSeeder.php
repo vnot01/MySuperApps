@@ -24,8 +24,24 @@ class UserSeeder extends Seeder
             ]);
         }
 
+        // Get or create Admin role
+        $adminRole = Role::where('name', 'Admin')->first();
+        if (!$adminRole) {
+            $adminRole = Role::create([
+                'name' => 'Admin',
+                'slug' => 'admin'
+            ]);
+        }
+
         // Create test users
         $users = [
+            [
+                'name' => 'Admin User',
+                'email' => 'admin@myrvm.com',
+                'password' => Hash::make('admin123'),
+                'role_id' => $adminRole->id,
+                'email_verified_at' => now(),
+            ],
             [
                 'name' => 'John Doe',
                 'email' => 'john@test.com',

@@ -147,8 +147,299 @@ function changePage(direction) {
 // --- RVM Action Functions ---
 
 function openRemoteAccess(rvmId, rvmName) {
-    // Show remote access modal or redirect
-    alert(`🔧 Remote Access for ${rvmName} (ID: ${rvmId})\n\nThis feature will be implemented soon!`);
+    // Get RVM data from dashboard data
+    const rvm = window.dashboardData.rvms.find(r => r.id === rvmId);
+    if (!rvm) {
+        alert('❌ RVM not found');
+        return;
+    }
+    
+    // Check current remote access status
+    fetch(`/admin/rvm/${rvmId}/remote-access/status`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const status = data.data;
+                
+                if (status.active_session) {
+                    // Show active session info
+                    showActiveRemoteAccessModal(status);
+                } else {
+                    // Show start remote access modal
+                    showStartRemoteAccessModal(rvm);
+                }
+            } else {
+                const errorMessage = data.message || 'Unknown error occurred';
+                alert('❌ Failed to get remote access status: ' + errorMessage);
+            }
+        })
+        .catch(error => {
+            console.error('Remote access status error:', error);
+            const errorMessage = error.message || error.toString() || 'Unknown network error';
+            alert('❌ Network error: ' + errorMessage);
+        });
+}
+
+function showStartRemoteAccessModal(rvm) {
+    const modal = new bootstrap.Modal(document.getElementById('remoteAccessModal'));
+    const content = document.getElementById('remoteAccessContent');
+    const actionBtn = document.getElementById('remoteAccessActionBtn');
+    
+    content.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>RVM Information</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Name:</strong></td>
+                        <td>${rvm.name}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Location:</strong></td>
+                        <td>${rvm.location || 'Not Set'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>IP Address:</strong></td>
+                        <td>${rvm.ip_address || 'Not Set'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Current Status:</strong></td>
+                        <td><span class="badge bg-${rvm.calculated_status === 'active' ? 'success' : 'warning'}">${rvm.calculated_status}</span></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>Remote Access Information</h6>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Note:</strong> Starting remote access will change RVM status to "maintenance" and disable normal operations.
+                </div>
+                <div class="form-group">
+                    <label>Access Type:</label>
+                    <select class="form-select" id="accessType">
+                        <option value="camera">Camera Access (Port 5000)</option>
+                        <option value="gui">GUI Access (Port 5001)</option>
+                        <option value="both">Both Camera & GUI</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Session Duration (minutes):</label>
+                    <select class="form-select" id="sessionDuration">
+                        <option value="30">30 minutes</option>
+                        <option value="60" selected>1 hour</option>
+                        <option value="120">2 hours</option>
+                        <option value="240">4 hours</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Reason for Access:</label>
+                    <textarea class="form-control" id="accessReason" rows="3" placeholder="Enter reason for remote access..."></textarea>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    actionBtn.innerHTML = '<i class="fas fa-desktop"></i> Start Remote Access';
+    actionBtn.className = 'btn btn-primary';
+    actionBtn.onclick = () => startRemoteAccessFromModal(rvm.id);
+    
+    modal.show();
+}
+
+function showActiveRemoteAccessModal(status) {
+    const modal = new bootstrap.Modal(document.getElementById('remoteAccessStatusModal'));
+    const content = document.getElementById('remoteAccessStatusContent');
+    const stopBtn = document.getElementById('stopRemoteAccessBtn');
+    
+    const session = status.active_session;
+    const duration = formatDuration(session.duration);
+    
+    content.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Active Session</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Session ID:</strong></td>
+                        <td>${session.session_id}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Admin:</strong></td>
+                        <td>${session.admin_name || 'Unknown'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Start Time:</strong></td>
+                        <td>${formatDateTime(session.start_time)}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Duration:</strong></td>
+                        <td>${duration}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>IP Address:</strong></td>
+                        <td>${session.ip_address || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Port:</strong></td>
+                        <td>${session.port || 'N/A'}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>RVM Status</h6>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Maintenance Mode:</strong> RVM is currently in maintenance mode due to active remote access session.
+                </div>
+                <div class="form-group">
+                    <label>Stop Reason:</label>
+                    <textarea class="form-control" id="stopReason" rows="3" placeholder="Optional reason for stopping remote access..."></textarea>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    stopBtn.style.display = 'block';
+    stopBtn.onclick = () => stopRemoteAccessFromStatusModal(status.rvm_id);
+    
+    modal.show();
+}
+
+function startRemoteAccessFromModal(rvmId) {
+    const adminId = getCurrentAdminId();
+    
+    if (!adminId) {
+        alert('❌ Admin ID not found. Please login again.');
+        return;
+    }
+    
+    const accessType = document.getElementById('accessType').value;
+    const sessionDuration = document.getElementById('sessionDuration').value;
+    const reason = document.getElementById('accessReason').value;
+    
+    // Show loading state
+    const button = document.getElementById('remoteAccessActionBtn');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
+    button.disabled = true;
+    
+    fetch(`/admin/rvm/${rvmId}/remote-access/start`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            admin_id: adminId,
+            ip_address: getClientIP(),
+            port: accessType === 'camera' ? 5000 : 5001,
+            access_type: accessType,
+            session_duration: parseInt(sessionDuration),
+            reason: reason || 'Remote access session started from dashboard'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`✅ Remote access started successfully!\n\nSession ID: ${data.data.session_id}\nRVM Status: ${data.data.status}`);
+            
+            // Close modal and refresh dashboard
+            bootstrap.Modal.getInstance(document.getElementById('remoteAccessModal')).hide();
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            alert(`❌ Failed to start remote access:\n${data.message}`);
+        }
+    })
+    .catch(error => {
+        console.error('Remote access start error:', error);
+        alert('❌ Network error: ' + error.message);
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function stopRemoteAccessFromStatusModal(rvmId) {
+    const adminId = getCurrentAdminId();
+    
+    if (!adminId) {
+        alert('❌ Admin ID not found. Please login again.');
+        return;
+    }
+    
+    const reason = document.getElementById('stopReason').value;
+    
+    // Show loading state
+    const button = document.getElementById('stopRemoteAccessBtn');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Stopping...';
+    button.disabled = true;
+    
+    fetch(`/admin/rvm/${rvmId}/remote-access/stop`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            admin_id: adminId,
+            reason: reason || 'Remote access session stopped from dashboard'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`✅ Remote access stopped successfully!\n\nDuration: ${data.data.duration} seconds\nRVM Status: ${data.data.status}`);
+            
+            // Close modal and refresh dashboard
+            bootstrap.Modal.getInstance(document.getElementById('remoteAccessStatusModal')).hide();
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            alert(`❌ Failed to stop remote access:\n${data.message}`);
+        }
+    })
+    .catch(error => {
+        console.error('Remote access stop error:', error);
+        alert('❌ Network error: ' + error.message);
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+// Helper functions
+function formatDuration(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+        return `${hours}h ${minutes}m ${secs}s`;
+    } else if (minutes > 0) {
+        return `${minutes}m ${secs}s`;
+    } else {
+        return `${secs}s`;
+    }
+}
+
+function formatDateTime(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleString();
+}
+
+function getCurrentAdminId() {
+    const adminIdMeta = document.querySelector('meta[name="admin-id"]');
+    return adminIdMeta ? adminIdMeta.getAttribute('content') : null;
+}
+
+function getClientIP() {
+    return '192.168.1.100'; // Placeholder - would need to be implemented based on your setup
 }
 
 function openStatusModal(rvmId, rvmName) {

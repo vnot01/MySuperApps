@@ -249,6 +249,26 @@ class ReverseVendingMachine extends Model
         return $this->hasMany(TimezoneSyncLog::class, 'device_id')->where('device_type', 'rvm');
     }
 
+    public function remoteAccessSessions(): HasMany
+    {
+        return $this->hasMany(RemoteAccessSession::class, 'rvm_id');
+    }
+
+    public function configurations(): HasMany
+    {
+        return $this->hasMany(RvmConfiguration::class, 'rvm_id');
+    }
+
+    public function backupLogs(): HasMany
+    {
+        return $this->hasMany(BackupLog::class, 'rvm_id');
+    }
+
+    public function systemMetrics(): HasMany
+    {
+        return $this->hasMany(SystemMetric::class, 'rvm_id');
+    }
+
     /**
      * Get cached RVM monitoring data
      */
