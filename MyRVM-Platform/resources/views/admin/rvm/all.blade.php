@@ -546,7 +546,140 @@ let rvmData = @json($rvms);
 // ===== GLOBAL FUNCTIONS =====
 // Refresh all RVMs
 function refreshAllRVMs() {
-    location.reload();
+    // Use AJAX to refresh only the RVM data instead of full page reload
+    fetch('/admin/rvm', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update RVM data
+            rvmData = data.rvms;
+            
+            // Update statistics
+            updateStatistics(data.statistics);
+            
+            // Update RVM table
+            updateRVMTable(data.rvms);
+            
+            // Ping all RVMs to update connection status
+            pingAllRVMs();
+        }
+    })
+    .catch(error => {
+        console.error('Refresh error:', error);
+        // Fallback to full page reload if AJAX fails
+        location.reload();
+    });
+}
+
+// Update statistics display
+function updateStatistics(statistics) {
+    document.querySelector('.stat-card.total .stat-number').textContent = statistics.total;
+    document.querySelector('.stat-card.active .stat-number').textContent = statistics.active;
+    document.querySelector('.stat-card.timezone-synced .stat-number').textContent = statistics.timezone_synced;
+    document.querySelector('.stat-card.needs-attention .stat-number').textContent = statistics.needs_attention;
+}
+
+// Update RVM table display
+function updateRVMTable(rvms) {
+    const tbody = document.querySelector('#rvmTable tbody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    rvms.forEach(rvm => {
+        const row = createRVMTableRow(rvm);
+        tbody.appendChild(row);
+    });
+}
+
+// Create RVM table row
+function createRVMTableRow(rvm) {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>
+            <div class="rvm-id">
+                <strong>${rvm.name}</strong>
+                <small class="text-muted">ID: ${rvm.id}</small>
+            </div>
+        </td>
+        <td>
+            <div class="location-info">
+                <strong>${rvm.location || 'Not Set'}</strong>
+                ${rvm.address ? `<br><small class="text-muted">${rvm.address}</small>` : ''}
+            </div>
+        </td>
+        <td>
+            <span class="badge bg-${getStatusClass(rvm.status)}">${rvm.status}</span>
+        </td>
+        <td>
+            <div class="connection-info">
+                <strong>${rvm.ip_address || 'Not Set'}</strong>
+                ${rvm.port ? `<br><small class="text-muted">Port: ${rvm.port}</small>` : ''}
+            </div>
+        </td>
+        <td>
+            <div class="timezone-info">
+                <strong>${rvm.timezone || 'Not Set'}</strong>
+                ${rvm.timezone_offset ? `<br><small class="text-muted">${rvm.timezone_offset}</small>` : ''}
+            </div>
+        </td>
+        <td>
+            <div class="sync-info">
+                <strong>${rvm.last_timezone_sync ? formatDate(rvm.last_timezone_sync) : 'Never'}</strong>
+                <br><small class="text-muted">${rvm.last_timezone_sync ? 'Synced' : 'No sync'}</small>
+            </div>
+        </td>
+        <td>
+            <span class="badge bg-secondary">Inactive</span>
+        </td>
+        <td>
+            <div id="connection-${rvm.id}" class="connection-status">
+                <span class="badge bg-warning">
+                    <i class="fas fa-wifi"></i> Testing...
+                </span>
+            </div>
+        </td>
+        <td>
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" onclick="viewRVMDetails(${rvm.id})"><i class="fas fa-eye"></i> View Details</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="editRVM(${rvm.id})"><i class="fas fa-edit"></i> Edit RVM</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="pingRVM(${rvm.id})"><i class="fas fa-wifi"></i> Ping RVM</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="syncTimezone(${rvm.id})"><i class="fas fa-clock"></i> Sync Timezone</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="remoteAccess(${rvm.id})"><i class="fas fa-desktop"></i> Remote Access</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteRVM(${rvm.id})"><i class="fas fa-trash"></i> Delete RVM</a></li>
+                </ul>
+            </div>
+        </td>
+    `;
+    return row;
+}
+
+// Helper functions
+function getStatusClass(status) {
+    const statusClasses = {
+        'active': 'success',
+        'inactive': 'secondary',
+        'maintenance': 'warning',
+        'full': 'danger',
+        'error': 'danger'
+    };
+    return statusClasses[status] || 'secondary';
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
 }
 
 // Test connection in modal
@@ -623,10 +756,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // Ping all RVMs on page load
     pingAllRVMs();
     
-    // Auto refresh every 30 seconds
+    // Auto refresh every 30 seconds (only if no modal is open)
     setInterval(function() {
-        refreshAllRVMs();
+        // Check if any modal is open
+        const openModals = document.querySelectorAll('.modal.show');
+        const modalOpen = window.modalOpen || false;
+        
+        if (openModals.length === 0 && !modalOpen) {
+            refreshAllRVMs();
+        }
     }, 30000);
+    
+    // Add event listeners for modal open/close
+    document.addEventListener('show.bs.modal', function(event) {
+        console.log('Modal opened:', event.target.id);
+        // Stop auto-refresh when modal is open
+        window.modalOpen = true;
+    });
+    
+    document.addEventListener('hide.bs.modal', function(event) {
+        console.log('Modal closed:', event.target.id);
+        // Resume auto-refresh when modal is closed
+        window.modalOpen = false;
+    });
 });
 
 // Ping specific RVM

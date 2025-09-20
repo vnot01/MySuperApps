@@ -46,6 +46,23 @@ class RvmController extends Controller
                    $rvm->ip_address === '0.0.0.0';
         })->count();
 
+        // Prepare statistics data
+        $statistics = [
+            'total' => $rvms->count(),
+            'active' => $activeCount,
+            'timezone_synced' => $timezoneSyncedCount,
+            'needs_attention' => $needsAttentionCount
+        ];
+
+        // Check if this is an AJAX request
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'rvms' => $rvms,
+                'statistics' => $statistics
+            ]);
+        }
+
         return view('admin.rvm.all', compact('rvms', 'activeCount', 'timezoneSyncedCount', 'needsAttentionCount'));
     }
 
