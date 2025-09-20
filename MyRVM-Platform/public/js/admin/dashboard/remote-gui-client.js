@@ -329,11 +329,26 @@ class RemoteGUIClient {
         this.isConnected = false;
         this.updateConnectionStatus('Disconnected', 'secondary');
         
-        // Close modal or redirect
-        const modal = bootstrap.Modal.getInstance(document.getElementById('remoteAccessModal'));
+        // Close modal and cleanup
+        const modal = bootstrap.Modal.getInstance(document.getElementById('remoteGUIModal'));
         if (modal) {
             modal.hide();
         }
+        
+        // Cleanup iframe
+        const iframe = document.getElementById('remoteGUIIframe');
+        if (iframe) {
+            iframe.src = '';
+        }
+        
+        // Hide GUI container
+        const container = document.getElementById('guiIframeContainer');
+        if (container) {
+            container.style.display = 'none';
+        }
+        
+        // Show loading state
+        this.showLoading();
     }
 }
 
