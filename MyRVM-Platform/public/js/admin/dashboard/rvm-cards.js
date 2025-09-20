@@ -175,8 +175,13 @@ function openRemoteAccess(rvmId, rvmName) {
         })
         .catch(error => {
             console.error('Remote access status error:', error);
-            const errorMessage = error.message || error.toString() || 'Unknown network error';
-            alert('❌ Network error: ' + errorMessage);
+            // Don't show alert for network errors, just log them
+            if (error.name !== 'TypeError' || !error.message.includes('Load failed')) {
+                const errorMessage = error.message || error.toString() || 'Unknown network error';
+                alert('❌ Network error: ' + errorMessage);
+            } else {
+                console.warn('Network connectivity issue - this is normal for unreachable hosts');
+            }
         });
 }
 
