@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard/animations.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard/responsive.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/remote-access.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/remote-gui-client.css') }}">
 @endsection
 
 @section('breadcrumb')
@@ -362,4 +363,5 @@
     <script src="{{ asset('js/admin/dashboard/rvm-cards.js') }}"></script>
     <script src="{{ asset('js/admin/dashboard/api.js') }}"></script>
     <script src="{{ asset('js/admin/dashboard/remote-access.js') }}"></script>
+    <script src="{{ asset('js/admin/dashboard/remote-gui-client.js') }}"></script>
 @endsection

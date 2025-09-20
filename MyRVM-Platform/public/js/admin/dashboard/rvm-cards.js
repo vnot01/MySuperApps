@@ -211,7 +211,34 @@ function showStartRemoteAccessModal(rvm) {
                         <td><strong>Current Status:</strong></td>
                         <td><span class="badge bg-${rvm.calculated_status === 'active' ? 'success' : 'warning'}">${rvm.calculated_status}</span></td>
                     </tr>
+                    <tr>
+                        <td><strong>Last Ping:</strong></td>
+                        <td>${rvm.last_ping ? new Date(rvm.last_ping).toLocaleString() : 'Never'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Connection:</strong></td>
+                        <td><span class="badge bg-${rvm.connection_status === 'connected' ? 'success' : 'danger'}">${rvm.connection_status || 'Unknown'}</span></td>
+                    </tr>
                 </table>
+                
+                <!-- System Status -->
+                <div class="mt-3">
+                    <h6>System Status</h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h5 mb-0" id="cpu-usage">--</div>
+                                <small class="text-muted">CPU Usage</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <div class="h5 mb-0" id="memory-usage">--</div>
+                                <small class="text-muted">Memory</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="col-md-6">
                 <h6>Remote Access Information</h6>
@@ -248,6 +275,16 @@ function showStartRemoteAccessModal(rvm) {
                     <label>Reason for Access:</label>
                     <textarea class="form-control" id="accessReason" rows="3" placeholder="Enter reason for remote access..."></textarea>
                 </div>
+                
+                <!-- Remote GUI Access -->
+                <div class="form-group mt-3">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-info" type="button" id="openRemoteGUI" onclick="openRemoteGUI('${rvm.id}', '${rvm.ip_address}')">
+                            <i class="fas fa-external-link-alt"></i> Open Remote GUI (View LED Screen)
+                        </button>
+                        <small class="text-muted">View what's displayed on the RVM LED Touch Screen</small>
+                    </div>
+                </div>
             </div>
         </div>
     `;
@@ -255,6 +292,9 @@ function showStartRemoteAccessModal(rvm) {
     actionBtn.innerHTML = '<i class="fas fa-desktop"></i> Start Remote Access';
     actionBtn.className = 'btn btn-primary';
     actionBtn.onclick = () => startRemoteAccessFromModal(rvm.id);
+    
+    // Load system metrics
+    loadSystemMetrics(rvm.id);
     
     modal.show();
 }
@@ -453,6 +493,49 @@ function getCurrentAdminId() {
 
 function getClientIP() {
     return '192.168.1.100'; // Placeholder - would need to be implemented based on your setup
+}
+
+// Open Remote GUI to view LED Screen
+function openRemoteGUI(rvmId, rvmIp) {
+    if (!rvmIp || rvmIp === 'Not Set' || rvmIp === '0.0.0.0') {
+        alert('❌ Cannot open Remote GUI: No valid IP address configured for this RVM');
+        return;
+    }
+    
+    // Start Remote GUI Access
+    if (typeof startRemoteGUIAccess === 'function') {
+        startRemoteGUIAccess(rvmId, rvmIp);
+    } else {
+        // Fallback: Open in new window
+        const guiUrl = `http://${rvmIp}:5001`;
+        window.open(guiUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+    }
+}
+
+// Load system metrics for RVM
+function loadSystemMetrics(rvmId) {
+    fetch(`/admin/rvm/${rvmId}/metrics/latest`, {
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.data) {
+            const metrics = data.data;
+            document.getElementById('cpu-usage').textContent = (metrics.cpu_usage || 0).toFixed(1) + '%';
+            document.getElementById('memory-usage').textContent = (metrics.memory_usage || 0).toFixed(1) + '%';
+        } else {
+            document.getElementById('cpu-usage').textContent = 'N/A';
+            document.getElementById('memory-usage').textContent = 'N/A';
+        }
+    })
+    .catch(error => {
+        console.error('Error loading system metrics:', error);
+        document.getElementById('cpu-usage').textContent = 'Error';
+        document.getElementById('memory-usage').textContent = 'Error';
+    });
 }
 
 // Check port from modal

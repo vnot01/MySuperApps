@@ -36,3 +36,4 @@ class CreateAdminUserSeeder extends Seeder
         $this->command->info('Password: admin123');
     }
 }
+
