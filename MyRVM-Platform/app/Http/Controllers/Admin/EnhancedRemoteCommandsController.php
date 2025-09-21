@@ -48,12 +48,14 @@ class EnhancedRemoteCommandsController extends Controller
                 'command_name' => $data['command_name'],
                 'command_payload' => json_encode($data['command_payload'] ?? []),
                 'status' => 'pending',
-                'executed_by' => auth()->id(),
+                'executed_by' => auth()->id() ?? 1, // Default to admin user ID 1 for API requests
                 'executed_at' => Carbon::now()
             ]);
             
             // Execute command based on type
-            $result = $this->executeCommandByType($data['command_name'], $data['command_payload'] ?? []);
+            Log::info('Executing command: ' . $data['command_name']);
+            $result = $this->executeCommandByType($data['command_name'], $data['command_payload'] ?? [], $rvmId);
+            Log::info('Command result: ' . json_encode($result));
             
             // Update command status
             $command->update([
@@ -63,6 +65,7 @@ class EnhancedRemoteCommandsController extends Controller
                 'error_message' => $result['success'] ? null : $result['error']
             ]);
             
+            Log::info('Returning response for command ID: ' . $command->id);
             return response()->json([
                 'success' => $result['success'],
                 'message' => $result['message'],
@@ -83,33 +86,33 @@ class EnhancedRemoteCommandsController extends Controller
     /**
      * Execute command by type
      */
-    private function executeCommandByType(string $commandName, array $payload): array
+    private function executeCommandByType(string $commandName, array $payload, int $rvmId): array
     {
         try {
             switch ($commandName) {
                 case 'reboot_system':
-                    return $this->executeRebootSystem($payload);
+                    return $this->executeRebootSystem($payload, $rvmId);
                     
                 case 'restart_app':
-                    return $this->executeRestartApp($payload);
+                    return $this->executeRestartApp($payload, $rvmId);
                     
                 case 'open_door':
-                    return $this->executeOpenDoor($payload);
+                    return $this->executeOpenDoor($payload, $rvmId);
                     
                 case 'close_door':
-                    return $this->executeCloseDoor($payload);
+                    return $this->executeCloseDoor($payload, $rvmId);
                     
                 case 'run_motor_test':
-                    return $this->executeMotorTest($payload);
+                    return $this->executeMotorTest($payload, $rvmId);
                     
                 case 'check_system_health':
-                    return $this->executeSystemHealthCheck($payload);
+                    return $this->executeSystemHealthCheck($payload, $rvmId);
                     
                 case 'git_pull':
-                    return $this->executeGitPull($payload);
+                    return $this->executeGitPull($payload, $rvmId);
                     
                 case 'update_ai_model':
-                    return $this->executeUpdateAiModel($payload);
+                    return $this->executeUpdateAiModel($payload, $rvmId);
                     
                 default:
                     return [
@@ -130,11 +133,11 @@ class EnhancedRemoteCommandsController extends Controller
     /**
      * Send command to RVM Jetson
      */
-    private function sendCommandToRVM(string $commandName, array $payload = []): array
+    private function sendCommandToRVM(string $commandName, array $payload = [], int $rvmId = null): array
     {
         try {
             // Get RVM details
-            $rvm = ReverseVendingMachine::find($this->getRvmIdFromRequest());
+            $rvm = ReverseVendingMachine::find($rvmId ?? $this->getRvmIdFromRequest());
             if (!$rvm) {
                 return [
                     'success' => false,
@@ -352,12 +355,12 @@ class EnhancedRemoteCommandsController extends Controller
     /**
      * Execute reboot system command
      */
-    private function executeRebootSystem(array $payload): array
+    private function executeRebootSystem(array $payload, int $rvmId): array
     {
         Log::info("Executing system reboot command");
         
         // Try to send real command to RVM first
-        $result = $this->sendCommandToRVM('reboot_system', $payload);
+        $result = $this->sendCommandToRVM('reboot_system', $payload, $rvmId);
         
         // If RVM is not reachable, use simulation
         if (!$result['success'] && str_contains($result['error'], 'RVM API not reachable')) {
@@ -370,65 +373,65 @@ class EnhancedRemoteCommandsController extends Controller
     /**
      * Execute restart app command
      */
-    private function executeRestartApp(array $payload): array
+    private function executeRestartApp(array $payload, int $rvmId): array
     {
         Log::info("Executing app restart command");
-        return $this->sendCommandToRVM('restart_app', $payload);
+        return $this->sendCommandToRVM('restart_app', $payload, $rvmId);
     }
     
     /**
      * Execute open door command
      */
-    private function executeOpenDoor(array $payload): array
+    private function executeOpenDoor(array $payload, int $rvmId): array
     {
         Log::info("Executing open door command");
-        return $this->sendCommandToRVM('open_door', $payload);
+        return $this->sendCommandToRVM('open_door', $payload, $rvmId);
     }
     
     /**
      * Execute close door command
      */
-    private function executeCloseDoor(array $payload): array
+    private function executeCloseDoor(array $payload, int $rvmId): array
     {
         Log::info("Executing close door command");
-        return $this->sendCommandToRVM('close_door', $payload);
+        return $this->sendCommandToRVM('close_door', $payload, $rvmId);
     }
     
     /**
      * Execute motor test command
      */
-    private function executeMotorTest(array $payload): array
+    private function executeMotorTest(array $payload, int $rvmId): array
     {
         Log::info("Executing motor test command");
-        return $this->sendCommandToRVM('run_motor_test', $payload);
+        return $this->sendCommandToRVM('run_motor_test', $payload, $rvmId);
     }
     
     
     /**
      * Execute git pull command
      */
-    private function executeGitPull(array $payload): array
+    private function executeGitPull(array $payload, int $rvmId): array
     {
         Log::info("Executing git pull command");
-        return $this->sendCommandToRVM('git_pull', $payload);
+        return $this->sendCommandToRVM('git_pull', $payload, $rvmId);
     }
     
     /**
      * Execute update AI model command
      */
-    private function executeUpdateAiModel(array $payload): array
+    private function executeUpdateAiModel(array $payload, int $rvmId): array
     {
         Log::info("Executing AI model update command");
-        return $this->sendCommandToRVM('update_ai_model', $payload);
+        return $this->sendCommandToRVM('update_ai_model', $payload, $rvmId);
     }
     
     /**
      * Execute system health check command
      */
-    private function executeSystemHealthCheck(array $payload): array
+    private function executeSystemHealthCheck(array $payload, int $rvmId): array
     {
         Log::info("Executing system health check command");
-        return $this->sendCommandToRVM('check_system_health', $payload);
+        return $this->sendCommandToRVM('check_system_health', $payload, $rvmId);
     }
     
     /**
