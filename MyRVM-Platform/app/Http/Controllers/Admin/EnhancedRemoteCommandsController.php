@@ -87,17 +87,14 @@ class EnhancedRemoteCommandsController extends Controller
                 case 'run_motor_test':
                     return $this->executeMotorTest($payload);
                     
-                case 'take_snapshot':
-                    return $this->executeTakeSnapshot($payload);
+                case 'check_system_health':
+                    return $this->executeSystemHealthCheck($payload);
                     
                 case 'git_pull':
                     return $this->executeGitPull($payload);
                     
                 case 'update_ai_model':
                     return $this->executeUpdateAiModel($payload);
-                    
-                case 'check_system_health':
-                    return $this->executeSystemHealthCheck($payload);
                     
                 default:
                     return [
@@ -268,10 +265,11 @@ class EnhancedRemoteCommandsController extends Controller
                     'success' => true,
                     'message' => 'Snapshot captured successfully (SIMULATED)',
                     'data' => [
-                        'snapshot_path' => '/snapshots/snapshot_' . time() . '.jpg',
+                        'snapshot_path' => '/home/my/test-cv-yolo11-sam2-camera/storages/images/camera_captures/camera_capture_' . date('Ymd_His') . '.jpg',
                         'file_size' => '2.5 MB',
                         'captured_at' => now()->toISOString(),
-                        'simulation' => true
+                        'simulation' => true,
+                        'note' => 'Real camera integration available in camera_service.py'
                     ]
                 ];
                 
@@ -390,14 +388,6 @@ class EnhancedRemoteCommandsController extends Controller
         return $this->sendCommandToRVM('run_motor_test', $payload);
     }
     
-    /**
-     * Execute take snapshot command
-     */
-    private function executeTakeSnapshot(array $payload): array
-    {
-        Log::info("Executing take snapshot command");
-        return $this->sendCommandToRVM('take_snapshot', $payload);
-    }
     
     /**
      * Execute git pull command
