@@ -302,9 +302,12 @@ Route::middleware(['auth', 'verified'])->prefix('admin/rvm')->name('admin.rvm.')
     Route::get('/{id}/command/{commandId}/status', [RemoteCommandsController::class, 'getCommandStatus'])->name('command-status');
     Route::put('/{id}/command/{commandId}/status', [RemoteCommandsController::class, 'updateCommandStatus'])->name('update-command-status');
     
-    // OTA Management Routes
-    Route::get('/{id}/ota-info', [OTAManagementController::class, 'index'])->name('ota-info');
-    Route::get('/{id}/check-updates', [OTAManagementController::class, 'checkForUpdates'])->name('check-updates');
+        // OTA Management Routes
+        Route::get('/{id}/ota-info', [OTAManagementController::class, 'index'])->name('ota-info');
+        Route::get('/{id}/check-updates', [OTAManagementController::class, 'checkForUpdates'])->name('check-updates');
+        
+        // Maintenance Mode Routes
+        Route::get('/{id}/maintenance-mode', [RvmController::class, 'maintenanceMode'])->name('maintenance-mode');
     
     // Backup Operations Routes
     Route::get('/{id}/backups', [BackupController::class, 'index'])->name('backups.index');

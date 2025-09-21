@@ -286,25 +286,33 @@
         </div>
     </div>
 
-    <!-- Remote Access Modal -->
+    <!-- Remote Access Modal - Simplified -->
     <div class="modal fade" id="remoteAccessModal" tabindex="-1" aria-labelledby="remoteAccessModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="remoteAccessModalLabel">
-                        <i class="fas fa-desktop me-2"></i>Remote Access
+                        <i class="fas fa-wrench me-2"></i>Enter Maintenance Mode
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div id="remoteAccessContent">
-                        <!-- Content will be loaded dynamically -->
+                    <div class="text-center">
+                        <div class="mb-4">
+                            <i class="fas fa-tools fa-3x text-warning mb-3"></i>
+                            <h6>RVM Maintenance Mode</h6>
+                            <p class="text-muted">Enter maintenance mode to access advanced monitoring, remote commands, and OTA management features.</p>
+                        </div>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Note:</strong> This will change RVM status to "maintenance" and disable normal operations.
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="remoteAccessActionBtn">
-                        <i class="fas fa-desktop"></i> Start Remote Access
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" id="enterMaintenanceModeBtn">
+                        <i class="fas fa-wrench me-2"></i>Enter Maintenance Mode
                     </button>
                 </div>
             </div>

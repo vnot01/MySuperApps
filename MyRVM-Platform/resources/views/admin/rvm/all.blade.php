@@ -363,12 +363,9 @@
                                                     <i class="fas fa-clock me-2"></i>Sync Timezone
                                                 </a></li>
                                                 <li><a class="dropdown-item text-primary" href="#" onclick="showRemoteAccessModal({{ $rvm->id }})">
-                                                    <i class="fas fa-desktop me-2"></i>Remote Access
+                                                    <i class="fas fa-wrench me-2"></i>Enter Maintenance Mode
                                                 </a></li>
                                                 <li><hr class="dropdown-divider"></li>
-                                                <li><a class="dropdown-item text-warning" href="#" onclick="maintenanceRVM({{ $rvm->id }})">
-                                                    <i class="fas fa-wrench me-2"></i>Maintenance
-                                                </a></li>
                                                 <li><a class="dropdown-item text-danger" href="#" onclick="deleteRVM({{ $rvm->id }})">
                                                     <i class="fas fa-trash me-2"></i>Delete
                                                 </a></li>
@@ -485,25 +482,33 @@
     </div>
 </div>
 
-<!-- Remote Access Modal -->
+<!-- Remote Access Modal - Simplified -->
 <div class="modal fade" id="remoteAccessModal" tabindex="-1" aria-labelledby="remoteAccessModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="remoteAccessModalLabel">
-                    <i class="fas fa-desktop me-2"></i>Remote Access
+                    <i class="fas fa-wrench me-2"></i>Enter Maintenance Mode
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div id="remoteAccessContent">
-                    <!-- Content will be loaded dynamically -->
+                <div class="text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-tools fa-3x text-warning mb-3"></i>
+                        <h6>RVM Maintenance Mode</h6>
+                        <p class="text-muted">Enter maintenance mode to access advanced monitoring, remote commands, and OTA management features.</p>
+                    </div>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Note:</strong> This will change RVM status to "maintenance" and disable normal operations.
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="remoteAccessActionBtn">
-                    <i class="fas fa-desktop"></i> Start Remote Access
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="enterMaintenanceModeBtn">
+                    <i class="fas fa-wrench me-2"></i>Enter Maintenance Mode
                 </button>
             </div>
         </div>
@@ -534,6 +539,7 @@
         </div>
     </div>
 </div>
+
 
 @endsection
 
@@ -655,7 +661,7 @@ function createRVMTableRow(rvm) {
                     <li><a class="dropdown-item" href="#" onclick="editRVM(${rvm.id})"><i class="fas fa-edit"></i> Edit RVM</a></li>
                     <li><a class="dropdown-item" href="#" onclick="pingRVM(${rvm.id})"><i class="fas fa-wifi"></i> Ping RVM</a></li>
                     <li><a class="dropdown-item" href="#" onclick="syncTimezone(${rvm.id})"><i class="fas fa-clock"></i> Sync Timezone</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="remoteAccess(${rvm.id})"><i class="fas fa-desktop"></i> Remote Access</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="remoteAccess(${rvm.id})"><i class="fas fa-wrench"></i> Enter Maintenance Mode</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item text-danger" href="#" onclick="deleteRVM(${rvm.id})"><i class="fas fa-trash"></i> Delete RVM</a></li>
                 </ul>
@@ -1194,98 +1200,25 @@ function showRemoteAccessModal(rvmId) {
         return;
     }
     
-    // Populate modal content
-    const content = document.getElementById('remoteAccessContent');
-    content.innerHTML = `
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="mb-0">RVM Information</h6>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-sm">
-                            <tr>
-                                <td><strong>RVM ID:</strong></td>
-                                <td>${rvm.id}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Name:</strong></td>
-                                <td>${rvm.name}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Location:</strong></td>
-                                <td>${rvm.location || 'Not Set'}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>IP Address:</strong></td>
-                                <td>${rvm.ip_address || 'Not Set'}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Port:</strong></td>
-                                <td>${rvm.port || 8000}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Status:</strong></td>
-                                <td><span class="badge bg-${getStatusClass(rvm.status)}">${rvm.status}</span></td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="mb-0">Remote Access Options</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label class="form-label">Access Type</label>
-                            <div class="input-group">
-                                <select class="form-select" id="accessType">
-                                    <option value="camera">Camera Access (Port 5000)</option>
-                                    <option value="gui">GUI Access (Port 5001)</option>
-                                    <option value="both">Both Camera & GUI</option>
-                                </select>
-                                <button class="btn btn-outline-primary" type="button" id="checkPortBtn" onclick="checkPortFromModal(${rvm.id})">
-                                    <i class="fas fa-search"></i> Check Port
-                                </button>
-                            </div>
-                            <div id="portStatus" class="mt-2" style="display: none;">
-                                <!-- Port status will be displayed here -->
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Session Duration (minutes)</label>
-                            <select class="form-select" id="sessionDuration">
-                                <option value="30">30 minutes</option>
-                                <option value="60" selected>1 hour</option>
-                                <option value="120">2 hours</option>
-                                <option value="240">4 hours</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Reason for Access</label>
-                            <textarea class="form-control" id="accessReason" rows="3" placeholder="Enter reason for remote access..."></textarea>
-                        </div>
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Note:</strong> Starting remote access will change RVM status to "maintenance" mode.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
+    // Update modal title
+    document.getElementById('remoteAccessModalLabel').innerHTML = `<i class="fas fa-wrench me-2"></i>Enter Maintenance Mode - ${rvm.name}`;
     
-    // Update modal title and button
-    document.getElementById('remoteAccessModalLabel').innerHTML = `<i class="fas fa-desktop me-2"></i>Remote Access - ${rvm.name}`;
-    document.getElementById('remoteAccessActionBtn').innerHTML = '<i class="fas fa-desktop me-1"></i> Start Remote Access';
-    document.getElementById('remoteAccessActionBtn').onclick = () => startRemoteAccessFromModal(rvmId);
+    // Set up button click handler
+    document.getElementById('enterMaintenanceModeBtn').onclick = () => enterMaintenanceMode(rvmId);
     
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('remoteAccessModal'));
     modal.show();
+}
+
+// Enter Maintenance Mode - Redirect to full page
+function enterMaintenanceMode(rvmId) {
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('remoteAccessModal'));
+    modal.hide();
+    
+    // Redirect to maintenance mode page
+    window.location.href = `/admin/rvm/${rvmId}/maintenance-mode`;
 }
 
 function startRemoteAccessFromModal(rvmId) {
@@ -1572,5 +1505,6 @@ function updateStatus(rvmId) {
         this.remove();
     });
 }
+
 </script>
 @endsection

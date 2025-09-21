@@ -55,7 +55,7 @@ function createRvmCard(rvm) {
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item text-primary" href="#" onclick="openRemoteAccess(${rvm.id}, '${rvm.name}')"><i class="fas fa-desktop me-2"></i>Remote Access</a></li>
+                            <li><a class="dropdown-item text-primary" href="#" onclick="openRemoteAccess(${rvm.id}, '${rvm.name}')"><i class="fas fa-wrench me-2"></i>Enter Maintenance Mode</a></li>
                             <li><a class="dropdown-item" href="#" onclick="openStatusModal(${rvm.id}, '${rvm.name}')"><i class="fas fa-edit me-2"></i>Update Status</a></li>
                         </ul>
                     </div>
@@ -147,42 +147,27 @@ function changePage(direction) {
 // --- RVM Action Functions ---
 
 function openRemoteAccess(rvmId, rvmName) {
-    // Get RVM data from dashboard data
-    const rvm = window.dashboardData.rvms.find(r => r.id === rvmId);
-    if (!rvm) {
-        alert('❌ RVM not found');
-        return;
-    }
+    // Show confirmation modal
+    const modal = new bootstrap.Modal(document.getElementById('remoteAccessModal'));
     
-    // Check current remote access status
-    fetch(`/admin/rvm/${rvmId}/remote-access/status`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const status = data.data;
-                
-                if (status.active_session) {
-                    // Show active session info
-                    showActiveRemoteAccessModal(status);
-                } else {
-                    // Show start remote access modal
-                    showStartRemoteAccessModal(rvm);
-                }
-            } else {
-                const errorMessage = data.message || 'Unknown error occurred';
-                alert('❌ Failed to get remote access status: ' + errorMessage);
-            }
-        })
-        .catch(error => {
-            console.error('Remote access status error:', error);
-            // Don't show alert for network errors, just log them
-            if (error.name !== 'TypeError' || !error.message.includes('Load failed')) {
-                const errorMessage = error.message || error.toString() || 'Unknown network error';
-                alert('❌ Network error: ' + errorMessage);
-            } else {
-                console.warn('Network connectivity issue - this is normal for unreachable hosts');
-            }
-        });
+    // Update modal title
+    document.getElementById('remoteAccessModalLabel').innerHTML = `<i class="fas fa-wrench me-2"></i>Enter Maintenance Mode - ${rvmName}`;
+    
+    // Set up button click handler
+    document.getElementById('enterMaintenanceModeBtn').onclick = () => enterMaintenanceMode(rvmId);
+    
+    // Show modal
+    modal.show();
+}
+
+// Enter Maintenance Mode - Redirect to full page
+function enterMaintenanceMode(rvmId) {
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('remoteAccessModal'));
+    modal.hide();
+    
+    // Redirect to maintenance mode page
+    window.location.href = `/admin/rvm/${rvmId}/maintenance-mode`;
 }
 
 function showStartRemoteAccessModal(rvm) {

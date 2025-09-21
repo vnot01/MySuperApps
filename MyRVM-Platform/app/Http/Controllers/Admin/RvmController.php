@@ -63,7 +63,7 @@ class RvmController extends Controller
             ]);
         }
 
-        return view('admin.rvm.all', compact('rvms', 'activeCount', 'timezoneSyncedCount', 'needsAttentionCount'));
+        return view('admin.rvm.all-modern', compact('rvms', 'activeCount', 'timezoneSyncedCount', 'needsAttentionCount'));
     }
 
     /**
@@ -735,5 +735,39 @@ class RvmController extends Controller
     private function generateApiKey()
     {
         return 'rvm_' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 16));
+    }
+
+    /**
+     * Show Maintenance Mode page
+     */
+    public function maintenanceMode(Request $request, $id)
+    {
+        $rvm = ReverseVendingMachine::find($id);
+
+        if (!$rvm) {
+            abort(404, 'RVM not found');
+        }
+
+        // Get latest metrics
+        $latestSystemMetrics = $rvm->systemMetrics()->latest('timestamp')->first();
+        $latestApplicationMetrics = $rvm->applicationMetrics()->latest('recorded_at')->first();
+        $latestNetworkInformation = $rvm->networkInformation()->latest('recorded_at')->first();
+
+        // Get recent commands
+        $recentCommands = $rvm->remoteCommands()->latest('created_at')->limit(10)->get();
+
+        // Get software update info
+        $latestSoftwareUpdate = $rvm->softwareUpdates()->latest('created_at')->first();
+        $activeAiModel = $rvm->aiModels()->where('is_active', true)->first();
+
+        return view('admin.rvm.maintenance-mode', compact(
+            'rvm',
+            'latestSystemMetrics',
+            'latestApplicationMetrics', 
+            'latestNetworkInformation',
+            'recentCommands',
+            'latestSoftwareUpdate',
+            'activeAiModel'
+        ));
     }
 }

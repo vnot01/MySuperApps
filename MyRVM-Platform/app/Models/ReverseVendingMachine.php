@@ -269,6 +269,31 @@ class ReverseVendingMachine extends Model
         return $this->hasMany(SystemMetric::class, 'rvm_id');
     }
 
+    public function applicationMetrics(): HasMany
+    {
+        return $this->hasMany(ApplicationMetric::class, 'rvm_id');
+    }
+
+    public function networkInformation(): HasMany
+    {
+        return $this->hasMany(NetworkInformation::class, 'rvm_id');
+    }
+
+    public function remoteCommands(): HasMany
+    {
+        return $this->hasMany(RemoteCommand::class, 'rvm_id');
+    }
+
+    public function softwareUpdates(): HasMany
+    {
+        return $this->hasMany(SoftwareUpdate::class, 'rvm_id');
+    }
+
+    public function aiModels(): HasMany
+    {
+        return $this->hasMany(AiModel::class, 'rvm_id');
+    }
+
     /**
      * Get cached RVM monitoring data
      */
