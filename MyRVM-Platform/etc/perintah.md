@@ -117,3 +117,20 @@ Anda pasti berasumi bahwa ini adalah lanjutan proyek!
 Ingat ini adalah Evolusi Proyek yang menggunakan Laravel kosong. yang artinya belum ada apa apa.
 Anda boleh merujuk ke Proyek yang terdahulu atau versi 1.
 Tolong Fokus! Baca Dokumentasi Perubahan & Rencana Pengembangan: MyRVM v2.0 dan Dokumentasi Revisi & Rencana Pengembangan: MyRVM v2.1, serta Analisis Menyeluruh Visi Baru Proyek MyRVM.
+
+### **2. Enhanced Commands:**
+```bash
+# Terminal commands yang tersedia:
+help                    # Show available commands
+reboot_system          # Reboot RVM
+restart_app            # Restart application
+open_door              # Open collection door
+close_door             # Close collection door
+run_motor_test         # Test motor functionality
+take_snapshot          # Take camera snapshot
+git_pull               # Pull latest changes from GitHub
+update_ai_model        # Update AI model from GitHub
+check_system_health    # Check system health status
+status                 # Show system status
+clear                  # Clear terminal
+```

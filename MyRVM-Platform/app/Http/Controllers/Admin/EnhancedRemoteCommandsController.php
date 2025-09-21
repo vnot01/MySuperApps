@@ -116,21 +116,242 @@ class EnhancedRemoteCommandsController extends Controller
     }
     
     /**
+     * Send command to RVM Jetson
+     */
+    private function sendCommandToRVM(string $commandName, array $payload = []): array
+    {
+        try {
+            // Get RVM details
+            $rvm = ReverseVendingMachine::find($this->getRvmIdFromRequest());
+            if (!$rvm) {
+                return [
+                    'success' => false,
+                    'error' => 'RVM not found',
+                    'message' => 'RVM not found'
+                ];
+            }
+            
+            // Prepare command data
+            $commandData = [
+                'command' => $commandName,
+                'payload' => $payload,
+                'timestamp' => now()->toISOString(),
+                'source' => 'maintenance_mode'
+            ];
+            
+            // Send to RVM via HTTP API (if RVM has API endpoint)
+            $response = $this->sendHttpCommandToRVM($rvm, $commandData);
+            
+            if ($response['success']) {
+                return [
+                    'success' => true,
+                    'message' => $response['message'],
+                    'data' => $response['data'] ?? []
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'error' => $response['error'],
+                    'message' => $response['message']
+                ];
+            }
+            
+        } catch (\Exception $e) {
+            Log::error("Failed to send command to RVM: " . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'message' => 'Failed to communicate with RVM'
+            ];
+        }
+    }
+    
+    /**
+     * Send HTTP command to RVM
+     */
+    private function sendHttpCommandToRVM(ReverseVendingMachine $rvm, array $commandData): array
+    {
+        try {
+            // RVM API endpoint (assuming RVM has a command endpoint)
+            $rvmApiUrl = "http://{$rvm->ip_address}:8000/api/commands";
+            
+            $response = \Http::timeout(30)->post($rvmApiUrl, $commandData);
+            
+            if ($response->successful()) {
+                $data = $response->json();
+                return [
+                    'success' => true,
+                    'message' => $data['message'] ?? 'Command executed successfully',
+                    'data' => $data['data'] ?? []
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'error' => 'RVM API error: ' . $response->status(),
+                    'message' => 'Failed to execute command on RVM'
+                ];
+            }
+            
+        } catch (\Exception $e) {
+            // Fallback to simulation if RVM is not reachable
+            Log::warning("RVM API not reachable, using simulation: " . $e->getMessage());
+            return $this->simulateCommandExecution($commandData['command'], $commandData['payload']);
+        }
+    }
+    
+    /**
+     * Simulate command execution (fallback)
+     */
+    private function simulateCommandExecution(string $commandName, array $payload): array
+    {
+        // This is the current simulation logic
+        switch ($commandName) {
+            case 'reboot_system':
+                return [
+                    'success' => true,
+                    'message' => 'System reboot initiated successfully (SIMULATED)',
+                    'data' => [
+                        'reboot_time' => now()->addMinutes(2)->toISOString(),
+                        'estimated_downtime' => '2-3 minutes',
+                        'simulation' => true
+                    ]
+                ];
+                
+            case 'restart_app':
+                return [
+                    'success' => true,
+                    'message' => 'Application restart initiated successfully (SIMULATED)',
+                    'data' => [
+                        'restart_time' => now()->addSeconds(30)->toISOString(),
+                        'estimated_downtime' => '30 seconds',
+                        'simulation' => true
+                    ]
+                ];
+                
+            case 'open_door':
+                return [
+                    'success' => true,
+                    'message' => 'Door opened successfully (SIMULATED)',
+                    'data' => [
+                        'door_status' => 'open',
+                        'opened_at' => now()->toISOString(),
+                        'simulation' => true
+                    ]
+                ];
+                
+            case 'close_door':
+                return [
+                    'success' => true,
+                    'message' => 'Door closed successfully (SIMULATED)',
+                    'data' => [
+                        'door_status' => 'closed',
+                        'closed_at' => now()->toISOString(),
+                        'simulation' => true
+                    ]
+                ];
+                
+            case 'run_motor_test':
+                return [
+                    'success' => true,
+                    'message' => 'Motor test completed successfully (SIMULATED)',
+                    'data' => [
+                        'test_result' => 'passed',
+                        'motor_status' => 'operational',
+                        'test_duration' => '5 seconds',
+                        'tested_at' => now()->toISOString(),
+                        'simulation' => true
+                    ]
+                ];
+                
+            case 'take_snapshot':
+                return [
+                    'success' => true,
+                    'message' => 'Snapshot captured successfully (SIMULATED)',
+                    'data' => [
+                        'snapshot_path' => '/snapshots/snapshot_' . time() . '.jpg',
+                        'file_size' => '2.5 MB',
+                        'captured_at' => now()->toISOString(),
+                        'simulation' => true
+                    ]
+                ];
+                
+            case 'git_pull':
+                return [
+                    'success' => true,
+                    'message' => 'Git pull executed successfully (SIMULATED)',
+                    'data' => [
+                        'repository' => $payload['repository'] ?? 'main',
+                        'branch' => $payload['branch'] ?? 'main',
+                        'changes_pulled' => rand(1, 10),
+                        'restart_services' => $payload['restart_services'] ?? true,
+                        'executed_at' => now()->toISOString(),
+                        'simulation' => true
+                    ]
+                ];
+                
+            case 'update_ai_model':
+                return [
+                    'success' => true,
+                    'message' => 'AI model updated successfully (SIMULATED)',
+                    'data' => [
+                        'model_name' => $payload['model_name'] ?? 'best.pt',
+                        'model_version' => $payload['model_version'] ?? 'latest',
+                        'model_size' => '45.2 MB',
+                        'updated_at' => now()->toISOString(),
+                        'simulation' => true
+                    ]
+                ];
+                
+            case 'check_system_health':
+                return [
+                    'success' => true,
+                    'message' => 'System health check completed (SIMULATED)',
+                    'data' => [
+                        'overall_health' => 'good',
+                        'cpu_usage' => rand(20, 80),
+                        'memory_usage' => rand(30, 70),
+                        'disk_usage' => rand(40, 60),
+                        'temperature' => rand(35, 65),
+                        'network_status' => 'connected',
+                        'checked_at' => now()->toISOString(),
+                        'simulation' => true
+                    ]
+                ];
+                
+            default:
+                return [
+                    'success' => false,
+                    'error' => "Unknown command: {$commandName}",
+                    'message' => "Command not found"
+                ];
+        }
+    }
+    
+    /**
+     * Get RVM ID from request
+     */
+    private function getRvmIdFromRequest(): ?int
+    {
+        $route = request()->route();
+        return $route ? $route->parameter('rvmId') : null;
+    }
+    
+    /**
      * Execute reboot system command
      */
     private function executeRebootSystem(array $payload): array
     {
-        // Simulate system reboot
         Log::info("Executing system reboot command");
         
-        return [
-            'success' => true,
-            'message' => 'System reboot initiated successfully',
-            'data' => [
-                'reboot_time' => Carbon::now()->addMinutes(2)->toISOString(),
-                'estimated_downtime' => '2-3 minutes'
-            ]
-        ];
+        // Try to send real command to RVM first
+        $result = $this->sendCommandToRVM('reboot_system', $payload);
+        
+        // If RVM is not reachable, use simulation
+        if (!$result['success'] && str_contains($result['error'], 'RVM API not reachable')) {
+            return $this->simulateCommandExecution('reboot_system', $payload);
+        }
+        
+        return $result;
     }
     
     /**
@@ -138,17 +359,8 @@ class EnhancedRemoteCommandsController extends Controller
      */
     private function executeRestartApp(array $payload): array
     {
-        // Simulate app restart
         Log::info("Executing app restart command");
-        
-        return [
-            'success' => true,
-            'message' => 'Application restart initiated successfully',
-            'data' => [
-                'restart_time' => Carbon::now()->addSeconds(30)->toISOString(),
-                'estimated_downtime' => '30 seconds'
-            ]
-        ];
+        return $this->sendCommandToRVM('restart_app', $payload);
     }
     
     /**
@@ -156,17 +368,8 @@ class EnhancedRemoteCommandsController extends Controller
      */
     private function executeOpenDoor(array $payload): array
     {
-        // Simulate door opening
         Log::info("Executing open door command");
-        
-        return [
-            'success' => true,
-            'message' => 'Door opened successfully',
-            'data' => [
-                'door_status' => 'open',
-                'opened_at' => Carbon::now()->toISOString()
-            ]
-        ];
+        return $this->sendCommandToRVM('open_door', $payload);
     }
     
     /**
@@ -174,17 +377,8 @@ class EnhancedRemoteCommandsController extends Controller
      */
     private function executeCloseDoor(array $payload): array
     {
-        // Simulate door closing
         Log::info("Executing close door command");
-        
-        return [
-            'success' => true,
-            'message' => 'Door closed successfully',
-            'data' => [
-                'door_status' => 'closed',
-                'closed_at' => Carbon::now()->toISOString()
-            ]
-        ];
+        return $this->sendCommandToRVM('close_door', $payload);
     }
     
     /**
@@ -192,19 +386,8 @@ class EnhancedRemoteCommandsController extends Controller
      */
     private function executeMotorTest(array $payload): array
     {
-        // Simulate motor test
         Log::info("Executing motor test command");
-        
-        return [
-            'success' => true,
-            'message' => 'Motor test completed successfully',
-            'data' => [
-                'test_result' => 'passed',
-                'motor_status' => 'operational',
-                'test_duration' => '5 seconds',
-                'tested_at' => Carbon::now()->toISOString()
-            ]
-        ];
+        return $this->sendCommandToRVM('run_motor_test', $payload);
     }
     
     /**
@@ -212,18 +395,8 @@ class EnhancedRemoteCommandsController extends Controller
      */
     private function executeTakeSnapshot(array $payload): array
     {
-        // Simulate snapshot capture
         Log::info("Executing take snapshot command");
-        
-        return [
-            'success' => true,
-            'message' => 'Snapshot captured successfully',
-            'data' => [
-                'snapshot_path' => '/snapshots/snapshot_' . time() . '.jpg',
-                'file_size' => '2.5 MB',
-                'captured_at' => Carbon::now()->toISOString()
-            ]
-        ];
+        return $this->sendCommandToRVM('take_snapshot', $payload);
     }
     
     /**
@@ -231,24 +404,8 @@ class EnhancedRemoteCommandsController extends Controller
      */
     private function executeGitPull(array $payload): array
     {
-        // Simulate git pull
         Log::info("Executing git pull command");
-        
-        $repository = $payload['repository'] ?? 'main';
-        $branch = $payload['branch'] ?? 'main';
-        $restartServices = $payload['restart_services'] ?? true;
-        
-        return [
-            'success' => true,
-            'message' => 'Git pull executed successfully',
-            'data' => [
-                'repository' => $repository,
-                'branch' => $branch,
-                'changes_pulled' => rand(1, 10),
-                'restart_services' => $restartServices,
-                'executed_at' => Carbon::now()->toISOString()
-            ]
-        ];
+        return $this->sendCommandToRVM('git_pull', $payload);
     }
     
     /**
@@ -256,22 +413,8 @@ class EnhancedRemoteCommandsController extends Controller
      */
     private function executeUpdateAiModel(array $payload): array
     {
-        // Simulate AI model update
         Log::info("Executing AI model update command");
-        
-        $modelName = $payload['model_name'] ?? 'best.pt';
-        $modelVersion = $payload['model_version'] ?? 'latest';
-        
-        return [
-            'success' => true,
-            'message' => 'AI model updated successfully',
-            'data' => [
-                'model_name' => $modelName,
-                'model_version' => $modelVersion,
-                'model_size' => '45.2 MB',
-                'updated_at' => Carbon::now()->toISOString()
-            ]
-        ];
+        return $this->sendCommandToRVM('update_ai_model', $payload);
     }
     
     /**
@@ -279,22 +422,8 @@ class EnhancedRemoteCommandsController extends Controller
      */
     private function executeSystemHealthCheck(array $payload): array
     {
-        // Simulate system health check
         Log::info("Executing system health check command");
-        
-        return [
-            'success' => true,
-            'message' => 'System health check completed',
-            'data' => [
-                'overall_health' => 'good',
-                'cpu_usage' => rand(20, 80),
-                'memory_usage' => rand(30, 70),
-                'disk_usage' => rand(40, 60),
-                'temperature' => rand(35, 65),
-                'network_status' => 'connected',
-                'checked_at' => Carbon::now()->toISOString()
-            ]
-        ];
+        return $this->sendCommandToRVM('check_system_health', $payload);
     }
     
     /**

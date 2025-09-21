@@ -61,7 +61,13 @@ class EnhancedMetricsController extends Controller
     private function getSystemMetrics($systemMetrics): array
     {
         if (!$systemMetrics) {
-            // Simulate real-time data
+            // Try to get real metrics from RVM first
+            $realMetrics = $this->getRealMetricsFromRVM();
+            if ($realMetrics) {
+                return $realMetrics;
+            }
+            
+            // Fallback to simulation if RVM is not reachable
             return [
                 'cpu_usage' => rand(20, 90),
                 'memory_usage' => rand(30, 80),
@@ -75,7 +81,8 @@ class EnhancedMetricsController extends Controller
                 'network_download_speed' => rand(20, 150),
                 'memory_available' => rand(1000, 4000),
                 'disk_available' => rand(5000, 20000),
-                'load_average' => rand(1, 4)
+                'load_average' => rand(1, 4),
+                'simulation' => true
             ];
         }
         
@@ -233,6 +240,38 @@ class EnhancedMetricsController extends Controller
                 'success' => false,
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+    
+    /**
+     * Get real metrics from RVM
+     */
+    private function getRealMetricsFromRVM(): ?array
+    {
+        try {
+            // Get RVM details from request
+            $rvmId = request()->route('rvmId');
+            $rvm = ReverseVendingMachine::find($rvmId);
+            
+            if (!$rvm) {
+                return null;
+            }
+            
+            // Try to get metrics from RVM API
+            $rvmApiUrl = "http://{$rvm->ip_address}:8000/api/metrics";
+            
+            $response = \Http::timeout(10)->get($rvmApiUrl);
+            
+            if ($response->successful()) {
+                $data = $response->json();
+                return $data['system_metrics'] ?? null;
+            }
+            
+            return null;
+            
+        } catch (\Exception $e) {
+            Log::warning("Failed to get real metrics from RVM: " . $e->getMessage());
+            return null;
         }
     }
 }

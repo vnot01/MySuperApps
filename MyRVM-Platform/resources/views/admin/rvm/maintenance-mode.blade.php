@@ -604,6 +604,13 @@
             document.getElementById('disk-usage').textContent = metrics.system.disk_usage + '%';
             document.getElementById('gpu-usage').textContent = metrics.system.gpu_usage + '%';
             document.getElementById('temperature').textContent = metrics.system.temperature + '°C';
+            
+            // Show simulation indicator if data is simulated
+            if (metrics.system.simulation) {
+                showSimulationIndicator('system-metrics');
+            } else {
+                hideSimulationIndicator('system-metrics');
+            }
         }
         
         // Update Application Status metrics
@@ -645,6 +652,32 @@
         const secs = seconds % 60;
         
         return `${hours}h ${minutes}m ${secs}s`;
+    }
+    
+    // Show simulation indicator
+    function showSimulationIndicator(elementId) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            let indicator = element.querySelector('.simulation-indicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.className = 'simulation-indicator';
+                indicator.innerHTML = '<small class="text-warning"><i class="fas fa-exclamation-triangle me-1"></i>Simulated Data</small>';
+                element.appendChild(indicator);
+            }
+            indicator.style.display = 'block';
+        }
+    }
+    
+    // Hide simulation indicator
+    function hideSimulationIndicator(elementId) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            const indicator = element.querySelector('.simulation-indicator');
+            if (indicator) {
+                indicator.style.display = 'none';
+            }
+        }
     }
 
 
@@ -763,7 +796,17 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                addTerminalLine(`✅ Command executed successfully: ${data.message}`);
+                const simulationText = data.data && data.data.simulation ? ' (SIMULATED)' : '';
+                addTerminalLine(`✅ Command executed successfully: ${data.message}${simulationText}`);
+                
+                // Show additional data if available
+                if (data.data && Object.keys(data.data).length > 0) {
+                    Object.entries(data.data).forEach(([key, value]) => {
+                        if (key !== 'simulation') {
+                            addTerminalLine(`   ${key}: ${value}`);
+                        }
+                    });
+                }
             } else {
                 addTerminalLine(`❌ Command failed: ${data.message}`);
             }
