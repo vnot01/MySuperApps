@@ -20,14 +20,12 @@ use App\Http\Controllers\Admin\RemoteCommandsController;
 use App\Http\Controllers\Admin\OTAManagementController;
 use App\Http\Controllers\Admin\EnhancedRemoteCommandsController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\Api\RvmAuthController;
 
 // Route::get('/', function () {
 //     return view('welcome');
 // });
 
-// Health Check Routes (Public access for RVM-Jetson)
-Route::get('/api/health-check', [HealthController::class, 'check'])->name('api.health-check');
-Route::get('/api/status', [HealthController::class, 'status'])->name('api.status');
 
 // --- TAMBAHKAN RUTE INI ---
 Route::get('/', function () {

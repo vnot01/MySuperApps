@@ -23,7 +23,7 @@ class EnhancedMetricsController extends Controller
             
             // Get latest metrics
             $systemMetrics = SystemMetric::where('rvm_id', $rvmId)
-                ->latest('recorded_at')
+                ->latest('timestamp')
                 ->first();
                 
             $applicationMetrics = ApplicationMetric::where('rvm_id', $rvmId)
@@ -186,15 +186,7 @@ class EnhancedMetricsController extends Controller
                     'disk_usage' => $data['system_metrics']['disk_usage'] ?? 0,
                     'gpu_usage' => $data['system_metrics']['gpu_usage'] ?? 0,
                     'temperature' => $data['system_metrics']['temperature'] ?? 0,
-                    'gpu_temperature' => $data['system_metrics']['gpu_temperature'] ?? 0,
-                    'disk_read_speed' => $data['system_metrics']['disk_read_speed'] ?? 0,
-                    'disk_write_speed' => $data['system_metrics']['disk_write_speed'] ?? 0,
-                    'network_upload_speed' => $data['system_metrics']['network_upload_speed'] ?? 0,
-                    'network_download_speed' => $data['system_metrics']['network_download_speed'] ?? 0,
-                    'memory_available' => $data['system_metrics']['memory_available'] ?? 0,
-                    'disk_available' => $data['system_metrics']['disk_available'] ?? 0,
-                    'load_average' => $data['system_metrics']['load_average'] ?? 0,
-                    'recorded_at' => Carbon::now()
+                    'timestamp' => Carbon::now()
                 ]);
             }
             

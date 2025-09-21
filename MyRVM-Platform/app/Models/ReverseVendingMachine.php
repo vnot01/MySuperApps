@@ -21,6 +21,9 @@ class ReverseVendingMachine extends Model
         'capacity',
         'special_status',
         'api_key',
+        'api_token',
+        'api_token_expires_at',
+        'last_api_access',
         'last_status_change',
         'last_capacity_update',
         'admin_access_pin',
@@ -44,6 +47,8 @@ class ReverseVendingMachine extends Model
         'last_capacity_update' => 'datetime',
         'last_timezone_sync' => 'datetime',
         'last_ping' => 'datetime',
+        'api_token_expires_at' => 'datetime',
+        'last_api_access' => 'datetime',
         'capacity' => 'integer',
         'port' => 'integer',
     ];

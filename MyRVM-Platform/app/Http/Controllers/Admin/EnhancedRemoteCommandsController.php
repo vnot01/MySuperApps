@@ -18,7 +18,22 @@ class EnhancedRemoteCommandsController extends Controller
     public function executeCommand(Request $request, $rvmId): JsonResponse
     {
         try {
-            $rvm = ReverseVendingMachine::findOrFail($rvmId);
+            // Debug: Log the RVM ID
+            Log::info('Looking for RVM ID: ' . $rvmId);
+            
+            $rvm = ReverseVendingMachine::find($rvmId);
+            
+            if (!$rvm) {
+                Log::warning('RVM not found for ID: ' . $rvmId);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'RVM not found',
+                    'command_id' => null,
+                    'data' => null
+                ], 404);
+            }
+            
+            Log::info('RVM found: ' . $rvm->name);
             
             $data = $request->validate([
                 'command_type' => 'required|string',

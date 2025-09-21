@@ -16,6 +16,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'session.security' => \App\Http\Middleware\SessionSecurityMiddleware::class,
+            'rvm.csrf' => \App\Http\Middleware\RvmCsrfMiddleware::class,
+        ]);
+        
+        // Replace default CSRF middleware with RVM-aware CSRF middleware
+        $middleware->web(replace: [
+            \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class => \App\Http\Middleware\RvmCsrfMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
