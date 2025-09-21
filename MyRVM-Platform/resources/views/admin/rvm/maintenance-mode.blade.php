@@ -399,8 +399,8 @@
                         <button class="command-button" onclick="executeCommand('run_motor_test')">
                             <i class="fas fa-cog me-2"></i>Motor Test
                         </button>
-                        <button class="command-button" onclick="executeCommand('take_snapshot')">
-                            <i class="fas fa-camera me-2"></i>Take Snapshot
+                        <button class="command-button" onclick="executeCommand('check_system_health')">
+                            <i class="fas fa-heartbeat me-2"></i>System Health
                         </button>
                     </div>
                 </div>
@@ -739,11 +739,12 @@
             addTerminalLine('  open_door - Open the collection door');
             addTerminalLine('  close_door - Close the collection door');
             addTerminalLine('  run_motor_test - Test motor functionality');
-            addTerminalLine('  take_snapshot - Take a camera snapshot');
             addTerminalLine('  git_pull - Pull latest changes from GitHub');
             addTerminalLine('  update_ai_model - Update AI model from GitHub');
             addTerminalLine('  check_system_health - Check system health status');
             addTerminalLine('  status - Show system status');
+            addTerminalLine('  status <command_id> - Show command execution status');
+            addTerminalLine('  history - Show recent command history');
             addTerminalLine('  clear - Clear terminal');
         } else if (command === 'clear') {
             clearTerminal();
@@ -752,9 +753,18 @@
             addTerminalLine('  CPU: ' + document.getElementById('cpu-usage').textContent);
             addTerminalLine('  Memory: ' + document.getElementById('memory-usage').textContent);
             addTerminalLine('  Temperature: ' + document.getElementById('temperature').textContent);
+        } else if (command === 'history') {
+            showCommandHistory();
+        } else if (command.startsWith('status ')) {
+            const commandId = command.split(' ')[1];
+            if (commandId) {
+                getCommandStatus(commandId);
+            } else {
+                addTerminalLine('Usage: status <command_id>');
+            }
         } else if (command === 'git_pull') {
             executeGitPull();
-        } else if (['reboot_system', 'restart_app', 'open_door', 'close_door', 'run_motor_test', 'take_snapshot', 'update_ai_model', 'check_system_health'].includes(command)) {
+        } else if (['reboot_system', 'restart_app', 'open_door', 'close_door', 'run_motor_test', 'update_ai_model', 'check_system_health'].includes(command)) {
             executeCommand(command);
         } else {
             addTerminalLine(`Command not found: ${command}. Type 'help' for available commands.`);
@@ -799,6 +809,11 @@
                 const simulationText = data.data && data.data.simulation ? ' (SIMULATED)' : '';
                 addTerminalLine(`✅ Command executed successfully: ${data.message}${simulationText}`);
                 
+                // Show command ID for status tracking
+                if (data.command_id) {
+                    addTerminalLine(`   Command ID: ${data.command_id} (use 'status ${data.command_id}' to check status)`);
+                }
+                
                 // Show additional data if available
                 if (data.data && Object.keys(data.data).length > 0) {
                     Object.entries(data.data).forEach(([key, value]) => {
@@ -813,6 +828,74 @@
         })
         .catch(error => {
             addTerminalLine(`❌ Network error: ${error.message}`);
+        });
+    }
+
+    // Show Command History
+    function showCommandHistory() {
+        addTerminalLine('📋 Recent Command History:');
+        
+        fetch(`/admin/rvm/${window.maintenanceModeData.rvmId}/recent-commands`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': window.maintenanceModeData.csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data && data.data.length > 0) {
+                data.data.forEach((cmd, index) => {
+                    const statusIcon = cmd.status === 'completed' ? '✅' : cmd.status === 'failed' ? '❌' : '⏳';
+                    const timestamp = new Date(cmd.executed_at).toLocaleString();
+                    addTerminalLine(`  ${index + 1}. ${statusIcon} [${cmd.id}] ${cmd.command_name} - ${cmd.status} (${timestamp})`);
+                });
+            } else {
+                addTerminalLine('  No command history found.');
+            }
+        })
+        .catch(error => {
+            addTerminalLine(`❌ Error fetching command history: ${error.message}`);
+        });
+    }
+
+    // Get Command Status
+    function getCommandStatus(commandId) {
+        addTerminalLine(`🔍 Checking status for command ID: ${commandId}`);
+        
+        fetch(`/admin/rvm/${window.maintenanceModeData.rvmId}/command/${commandId}/status`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': window.maintenanceModeData.csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data) {
+                const cmd = data.data;
+                const statusIcon = cmd.status === 'completed' ? '✅' : cmd.status === 'failed' ? '❌' : '⏳';
+                addTerminalLine(`Command Status: ${statusIcon} ${cmd.command_name}`);
+                addTerminalLine(`  Status: ${cmd.status}`);
+                addTerminalLine(`  Executed: ${new Date(cmd.executed_at).toLocaleString()}`);
+                if (cmd.completed_at) {
+                    addTerminalLine(`  Completed: ${new Date(cmd.completed_at).toLocaleString()}`);
+                }
+                if (cmd.result) {
+                    const result = typeof cmd.result === 'string' ? JSON.parse(cmd.result) : cmd.result;
+                    if (result.message) {
+                        addTerminalLine(`  Result: ${result.message}`);
+                    }
+                }
+                if (cmd.error_message) {
+                    addTerminalLine(`  Error: ${cmd.error_message}`);
+                }
+            } else {
+                addTerminalLine(`❌ Command not found or error: ${data.message || 'Unknown error'}`);
+            }
+        })
+        .catch(error => {
+            addTerminalLine(`❌ Error fetching command status: ${error.message}`);
         });
     }
 
@@ -841,7 +924,14 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    addTerminalLine(`✅ Git pull executed successfully: ${data.message}`);
+                    const simulationText = data.data && data.data.simulation ? ' (SIMULATED)' : '';
+                    addTerminalLine(`✅ Git pull executed successfully: ${data.message}${simulationText}`);
+                    
+                    // Show command ID for status tracking
+                    if (data.command_id) {
+                        addTerminalLine(`   Command ID: ${data.command_id} (use 'status ${data.command_id}' to check status)`);
+                    }
+                    
                     addTerminalLine('🔄 Services will be restarted automatically...');
                 } else {
                     addTerminalLine(`❌ Git pull failed: ${data.message}`);
