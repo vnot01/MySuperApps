@@ -257,6 +257,10 @@
                             <small class="text-muted">IP Address</small>
                             <small class="fw-medium">{{ $rvm->ip_address ?? 'Not Set' }}</small>
                         </div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small class="text-muted">Port</small>
+                            <small class="fw-medium">{{ $rvm->port ?? '8000' }}</small>
+                        </div>
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="text-muted">Uptime</small>
                             <small class="fw-medium" id="uptime-{{ $rvm->id }}">--</small>
