@@ -7,6 +7,7 @@ services:
     container_name: myrvm_app_dev
     restart: unless-stopped
     working_dir: /var/www/html
+    user: "${UID}:${GID}" # Hak akses user dan group
     environment:
       CONTAINER_ROLE: app # Menandai kontainer ini sebagai 'app'
       DB_HOST: ${DB_HOST:-db}

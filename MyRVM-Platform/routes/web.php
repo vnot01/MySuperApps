@@ -15,6 +15,9 @@ use App\Http\Controllers\Admin\RemoteAccessController;
 use App\Http\Controllers\Admin\ConfigurationController;
 use App\Http\Controllers\Admin\SystemMonitoringController;
 use App\Http\Controllers\Admin\BackupController;
+use App\Http\Controllers\Admin\EnhancedMetricsController;
+use App\Http\Controllers\Admin\RemoteCommandsController;
+use App\Http\Controllers\Admin\OTAManagementController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -286,6 +289,22 @@ Route::middleware(['auth', 'verified'])->prefix('admin/rvm')->name('admin.rvm.')
     Route::post('/{id}/metrics', [SystemMonitoringController::class, 'store'])->name('metrics.store');
     Route::get('/{id}/metrics/alerts', [SystemMonitoringController::class, 'alerts'])->name('metrics.alerts');
     Route::get('/{id}/metrics/statistics', [SystemMonitoringController::class, 'statistics'])->name('metrics.statistics');
+    
+    // Enhanced Metrics Routes
+    Route::get('/{id}/enhanced-metrics', [EnhancedMetricsController::class, 'getComprehensiveMetrics'])->name('enhanced-metrics');
+    Route::get('/{id}/metrics-history', [EnhancedMetricsController::class, 'getMetricsHistory'])->name('metrics-history');
+    Route::post('/{id}/store-metrics', [EnhancedMetricsController::class, 'storeMetrics'])->name('store-metrics');
+    
+    // Remote Commands Routes
+    Route::get('/{id}/remote-commands', [RemoteCommandsController::class, 'index'])->name('remote-commands');
+    Route::get('/{id}/available-commands', [RemoteCommandsController::class, 'getAvailableCommands'])->name('available-commands');
+    Route::post('/{id}/execute-command', [RemoteCommandsController::class, 'executeCommand'])->name('execute-command');
+    Route::get('/{id}/command/{commandId}/status', [RemoteCommandsController::class, 'getCommandStatus'])->name('command-status');
+    Route::put('/{id}/command/{commandId}/status', [RemoteCommandsController::class, 'updateCommandStatus'])->name('update-command-status');
+    
+    // OTA Management Routes
+    Route::get('/{id}/ota-info', [OTAManagementController::class, 'index'])->name('ota-info');
+    Route::get('/{id}/check-updates', [OTAManagementController::class, 'checkForUpdates'])->name('check-updates');
     
     // Backup Operations Routes
     Route::get('/{id}/backups', [BackupController::class, 'index'])->name('backups.index');
