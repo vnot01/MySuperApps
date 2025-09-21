@@ -46,6 +46,23 @@ class RvmController extends Controller
                    $rvm->ip_address === '0.0.0.0';
         })->count();
 
+        // Prepare statistics data
+        $statistics = [
+            'total' => $rvms->count(),
+            'active' => $activeCount,
+            'timezone_synced' => $timezoneSyncedCount,
+            'needs_attention' => $needsAttentionCount
+        ];
+
+        // Check if this is an AJAX request
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'rvms' => $rvms,
+                'statistics' => $statistics
+            ]);
+        }
+
         return view('admin.rvm.all', compact('rvms', 'activeCount', 'timezoneSyncedCount', 'needsAttentionCount'));
     }
 
@@ -425,29 +442,58 @@ class RvmController extends Controller
         // Perform actual ICMP ping (network health check)
         try {
             // Use system ping command for network health check
-            $pingCommand = "ping -c 1 -W 3 " . escapeshellarg($ip) . " 2>/dev/null";
-            $output = shell_exec($pingCommand);
+            $pingCommand = "ping -c 1 -W 3 " . escapeshellarg($ip) . " 2>&1";
+            $output = [];
+            $returnCode = 0;
             
-            if ($output && strpos($output, '1 received') !== false) {
-                // Extract response time from ping output
-                preg_match('/time=([0-9.]+)/', $output, $matches);
-                $responseTime = isset($matches[1]) ? floatval($matches[1]) : 0;
+            exec($pingCommand, $output, $returnCode);
+            $outputString = implode("\n", $output);
+            
+            // Check if ping was successful (return code 0 and contains success indicators)
+            $successIndicators = [
+                '1 received',
+                '1 packets transmitted, 1 received',
+                '1 packets transmitted, 1 packets received',
+                '0% packet loss',
+                'round-trip min/avg/max'
+            ];
+            
+            $isSuccess = $returnCode === 0 && (
+                strpos($outputString, '1 received') !== false ||
+                strpos($outputString, '1 packets transmitted, 1 received') !== false ||
+                strpos($outputString, '1 packets transmitted, 1 packets received') !== false ||
+                strpos($outputString, '0% packet loss') !== false ||
+                strpos($outputString, 'round-trip min/avg/max') !== false
+            );
+            
+            if ($isSuccess) {
+                // Extract response time from ping output (multiple formats)
+                $responseTime = 0;
+                if (preg_match('/time=([0-9.]+)/', $outputString, $matches)) {
+                    $responseTime = floatval($matches[1]);
+                } elseif (preg_match('/round-trip min\/avg\/max = ([0-9.]+)/', $outputString, $matches)) {
+                    $responseTime = floatval($matches[1]);
+                } elseif (preg_match('/([0-9.]+) ms/', $outputString, $matches)) {
+                    $responseTime = floatval($matches[1]);
+                }
                 
                 return [
                     'success' => true,
                     'message' => "Network health check successful - IP reachable",
                     'response_time' => $responseTime,
                     'type' => 'network_health',
-                    'is_dummy' => false
+                    'is_dummy' => false,
+                    'debug_output' => $outputString
                 ];
             } else {
                 $responseTime = round((microtime(true) - $startTime) * 1000, 2);
                 return [
                     'success' => false,
-                    'message' => "Network health check failed - IP not reachable",
+                    'message' => "Network health check failed - IP not reachable (return code: $returnCode)",
                     'response_time' => $responseTime,
                     'type' => 'network_health',
-                    'is_dummy' => false
+                    'is_dummy' => false,
+                    'debug_output' => $outputString
                 ];
             }
         } catch (\Exception $e) {

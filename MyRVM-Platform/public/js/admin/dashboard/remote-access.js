@@ -138,6 +138,10 @@ function getRemoteAccessStatus(rvmId) {
         })
         .catch(error => {
             console.error('Remote access status error:', error);
+            // Don't show alert for network errors, just log them
+            if (error.name !== 'TypeError' || !error.message.includes('Load failed')) {
+                console.warn('Network connectivity issue - this is normal for unreachable hosts');
+            }
         });
 }
 
