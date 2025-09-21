@@ -563,50 +563,90 @@
 
     // Start real-time metrics refresh
     function startMetricsRefresh() {
+        // Initial load
+        refreshMetrics();
+        
+        // Set interval for auto-refresh
         metricsRefreshInterval = setInterval(() => {
             refreshMetrics();
         }, 5000); // Refresh every 5 seconds
     }
-
-    // Refresh metrics
+    
+    // Refresh metrics using Enhanced Metrics Controller
     function refreshMetrics() {
-        fetch(`/admin/rvm/${window.maintenanceModeData.rvmId}/enhanced-metrics`, {
+        fetch(`/admin/rvm/${window.maintenanceModeData.rvmId}/metrics`, {
+            method: 'GET',
             headers: {
+                'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': window.maintenanceModeData.csrfToken,
                 'Accept': 'application/json'
             }
         })
         .then(response => response.json())
         .then(data => {
-            if (data.success && data.data) {
+            if (data.success) {
                 updateMetricsDisplay(data.data);
+            } else {
+                console.error('Failed to fetch metrics:', data.error);
             }
         })
         .catch(error => {
-            console.error('Error refreshing metrics:', error);
+            console.error('Error fetching metrics:', error);
         });
     }
-
+    
     // Update metrics display
     function updateMetricsDisplay(metrics) {
-        if (metrics.system_metrics) {
-            const sm = metrics.system_metrics;
-            document.getElementById('cpu-usage').textContent = (sm.cpu_usage || 0).toFixed(1) + '%';
-            document.getElementById('memory-usage').textContent = (sm.memory_usage || 0).toFixed(1) + '%';
-            document.getElementById('gpu-usage').textContent = (sm.gpu_usage || 0).toFixed(1) + '%';
-            document.getElementById('disk-usage').textContent = (sm.disk_usage || 0).toFixed(1) + '%';
-            document.getElementById('temperature').textContent = (sm.temperature || 0).toFixed(1) + '°C';
+        // Update System Performance metrics
+        if (metrics.system) {
+            document.getElementById('cpu-usage').textContent = metrics.system.cpu_usage + '%';
+            document.getElementById('memory-usage').textContent = metrics.system.memory_usage + '%';
+            document.getElementById('disk-usage').textContent = metrics.system.disk_usage + '%';
+            document.getElementById('gpu-usage').textContent = metrics.system.gpu_usage + '%';
+            document.getElementById('temperature').textContent = metrics.system.temperature + '°C';
         }
         
-        if (metrics.application_metrics) {
-            const am = metrics.application_metrics;
-            document.getElementById('software-version').textContent = am.software_version || 'N/A';
-            document.getElementById('ai-model-version').textContent = am.ai_model_version || 'N/A';
-            document.getElementById('uptime').textContent = am.uptime_seconds ? formatDuration(am.uptime_seconds) : 'N/A';
-            document.getElementById('deposits-today').textContent = am.deposit_count_since_restart || 'N/A';
-            document.getElementById('error-count').textContent = am.error_count || 'N/A';
+        // Update Application Status metrics
+        if (metrics.application) {
+            document.getElementById('software-version').textContent = metrics.application.software_version;
+            document.getElementById('ai-model-version').textContent = metrics.application.ai_model_version;
+            document.getElementById('uptime').textContent = formatUptime(metrics.application.uptime_seconds);
+            document.getElementById('deposits-today').textContent = metrics.application.deposit_count_since_restart;
+            document.getElementById('error-count').textContent = metrics.application.error_count;
+        }
+        
+        // Update Network Information
+        if (metrics.network) {
+            // Update network info display if elements exist
+            const networkElements = {
+                'local-ip': metrics.network.local_ip,
+                'gateway-ip': metrics.network.gateway_ip,
+                'dns-servers': Array.isArray(metrics.network.dns_servers) ? metrics.network.dns_servers.join(', ') : 'N/A',
+                'network-interface': metrics.network.network_interface,
+                'connection-type': metrics.network.connection_type,
+                'signal-strength': metrics.network.signal_strength + ' dBm'
+            };
+            
+            Object.entries(networkElements).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = value;
+                }
+            });
         }
     }
+    
+    // Format uptime from seconds to readable format
+    function formatUptime(seconds) {
+        if (!seconds) return 'N/A';
+        
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        
+        return `${hours}h ${minutes}m ${secs}s`;
+    }
+
 
     // Format duration
     function formatDuration(seconds) {
@@ -668,6 +708,8 @@
             addTerminalLine('  run_motor_test - Test motor functionality');
             addTerminalLine('  take_snapshot - Take a camera snapshot');
             addTerminalLine('  git_pull - Pull latest changes from GitHub');
+            addTerminalLine('  update_ai_model - Update AI model from GitHub');
+            addTerminalLine('  check_system_health - Check system health status');
             addTerminalLine('  status - Show system status');
             addTerminalLine('  clear - Clear terminal');
         } else if (command === 'clear') {
@@ -679,7 +721,7 @@
             addTerminalLine('  Temperature: ' + document.getElementById('temperature').textContent);
         } else if (command === 'git_pull') {
             executeGitPull();
-        } else if (['reboot_system', 'restart_app', 'open_door', 'close_door', 'run_motor_test', 'take_snapshot'].includes(command)) {
+        } else if (['reboot_system', 'restart_app', 'open_door', 'close_door', 'run_motor_test', 'take_snapshot', 'update_ai_model', 'check_system_health'].includes(command)) {
             executeCommand(command);
         } else {
             addTerminalLine(`Command not found: ${command}. Type 'help' for available commands.`);

@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\EnhancedMetricsController;
 use App\Http\Controllers\Admin\RemoteCommandsController;
 use App\Http\Controllers\Admin\OTAManagementController;
+use App\Http\Controllers\Admin\EnhancedRemoteCommandsController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -308,6 +309,15 @@ Route::middleware(['auth', 'verified'])->prefix('admin/rvm')->name('admin.rvm.')
         
         // Maintenance Mode Routes
         Route::get('/{id}/maintenance-mode', [RvmController::class, 'maintenanceMode'])->name('maintenance-mode');
+        
+        // Enhanced Metrics Routes
+        Route::get('/{id}/metrics', [EnhancedMetricsController::class, 'getComprehensiveMetrics'])->name('metrics');
+        Route::post('/{id}/metrics', [EnhancedMetricsController::class, 'storeMetrics'])->name('store-metrics');
+        
+        // Enhanced Remote Commands Routes
+        Route::post('/{id}/execute-command', [EnhancedRemoteCommandsController::class, 'executeCommand'])->name('execute-command');
+        Route::get('/{id}/command/{commandId}/status', [EnhancedRemoteCommandsController::class, 'getCommandStatus'])->name('command-status');
+        Route::get('/{id}/recent-commands', [EnhancedRemoteCommandsController::class, 'getRecentCommands'])->name('recent-commands');
     
     // Backup Operations Routes
     Route::get('/{id}/backups', [BackupController::class, 'index'])->name('backups.index');
