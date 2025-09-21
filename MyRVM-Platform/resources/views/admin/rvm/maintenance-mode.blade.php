@@ -280,6 +280,12 @@
                     <h5 class="mb-0">
                         <i class="fas fa-microchip me-2"></i>
                         System Performance
+                        <span class="badge bg-warning ms-2" id="system-simulation-badge" style="display: none;">
+                            <i class="fas fa-exclamation-triangle me-1"></i>SIMULATED DATA
+                        </span>
+                        <span class="badge bg-success ms-2" id="system-real-badge" style="display: none;">
+                            <i class="fas fa-check-circle me-1"></i>REAL DATA
+                        </span>
                     </h5>
                 </div>
                 <div class="card-body">
@@ -324,6 +330,12 @@
                     <h5 class="mb-0">
                         <i class="fas fa-cogs me-2"></i>
                         Application Status
+                        <span class="badge bg-warning ms-2" id="app-simulation-badge" style="display: none;">
+                            <i class="fas fa-exclamation-triangle me-1"></i>SIMULATED DATA
+                        </span>
+                        <span class="badge bg-success ms-2" id="app-real-badge" style="display: none;">
+                            <i class="fas fa-check-circle me-1"></i>REAL DATA
+                        </span>
                     </h5>
                 </div>
                 <div class="card-body">
@@ -414,6 +426,12 @@
                     <h5 class="mb-0">
                         <i class="fas fa-terminal me-2"></i>
                         Command Terminal
+                        <span class="badge bg-warning ms-2" id="terminal-simulation-badge">
+                            <i class="fas fa-exclamation-triangle me-1"></i>SIMULATED COMMANDS
+                        </span>
+                        <span class="badge bg-success ms-2" id="terminal-real-badge" style="display: none;">
+                            <i class="fas fa-check-circle me-1"></i>REAL COMMANDS
+                        </span>
                     </h5>
                 </div>
                 <div class="card-body p-0">
@@ -421,6 +439,13 @@
                         <div class="terminal-header">
                             <span>RVM Terminal - {{ $rvm->name }}</span>
                             <span class="real-time-indicator"></span>
+                            <div class="alert alert-warning alert-sm mt-2 mb-0" id="terminal-notification" style="display: none;">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>RVM-Jetson Not Reachable!</strong> Commands are being simulated. 
+                                <button class="btn btn-sm btn-outline-warning ms-2" onclick="testRvmConnection()">
+                                    <i class="fas fa-wifi me-1"></i>Test Connection
+                                </button>
+                            </div>
                         </div>
                         <div id="terminal-content">
                             <div class="terminal-line">
@@ -605,11 +630,13 @@
             document.getElementById('gpu-usage').textContent = metrics.system.gpu_usage + '%';
             document.getElementById('temperature').textContent = metrics.system.temperature + '°C';
             
-            // Show simulation indicator if data is simulated
+            // Show simulation indicator for system metrics
             if (metrics.system.simulation) {
-                showSimulationIndicator('system-metrics');
+                document.getElementById('system-simulation-badge').style.display = 'inline-block';
+                document.getElementById('system-real-badge').style.display = 'none';
             } else {
-                hideSimulationIndicator('system-metrics');
+                document.getElementById('system-simulation-badge').style.display = 'none';
+                document.getElementById('system-real-badge').style.display = 'inline-block';
             }
         }
         
@@ -620,6 +647,15 @@
             document.getElementById('uptime').textContent = formatUptime(metrics.application.uptime_seconds);
             document.getElementById('deposits-today').textContent = metrics.application.deposit_count_since_restart;
             document.getElementById('error-count').textContent = metrics.application.error_count;
+            
+            // Show simulation indicator for application metrics
+            if (metrics.application.simulation) {
+                document.getElementById('app-simulation-badge').style.display = 'inline-block';
+                document.getElementById('app-real-badge').style.display = 'none';
+            } else {
+                document.getElementById('app-simulation-badge').style.display = 'none';
+                document.getElementById('app-real-badge').style.display = 'inline-block';
+            }
         }
         
         // Update Network Information
@@ -941,6 +977,45 @@
                 addTerminalLine(`❌ Network error: ${error.message}`);
             });
         }
+    }
+
+    // Test RVM Connection
+    function testRvmConnection() {
+        addTerminalLine('🔍 Testing RVM-Jetson connection...');
+        
+        fetch(`/admin/rvm/${window.maintenanceModeData.rvmId}/test-connection`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': window.maintenanceModeData.csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.connected) {
+                addTerminalLine('✅ RVM-Jetson connection successful!');
+                addTerminalLine('🔄 Switching to real commands...');
+                
+                // Hide simulation badge and show real badge
+                document.getElementById('terminal-simulation-badge').style.display = 'none';
+                document.getElementById('terminal-real-badge').style.display = 'inline-block';
+                
+                // Hide notification
+                document.getElementById('terminal-notification').style.display = 'none';
+                
+                // Refresh metrics to get real data
+                refreshMetrics();
+            } else {
+                addTerminalLine('❌ RVM-Jetson connection failed: ' + (data.message || 'Unknown error'));
+                addTerminalLine('💡 Please check:');
+                addTerminalLine('   - RVM-Jetson is powered on');
+                addTerminalLine('   - Network connection is stable');
+                addTerminalLine('   - API service is running on port 8000');
+            }
+        })
+        .catch(error => {
+            addTerminalLine('❌ Connection test failed: ' + error.message);
+        });
     }
 
     // Exit maintenance mode

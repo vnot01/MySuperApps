@@ -99,7 +99,8 @@ class EnhancedMetricsController extends Controller
             'network_download_speed' => $systemMetrics->network_download_speed ?? 0,
             'memory_available' => $systemMetrics->memory_available ?? 0,
             'disk_available' => $systemMetrics->disk_available ?? 0,
-            'load_average' => $systemMetrics->load_average ?? 0
+            'load_average' => $systemMetrics->load_average ?? 0,
+            'simulation' => false
         ];
     }
     
@@ -118,7 +119,8 @@ class EnhancedMetricsController extends Controller
                 'deposit_count_since_restart' => rand(0, 50),
                 'last_deposit_time' => Carbon::now()->subMinutes(rand(1, 60))->toISOString(),
                 'error_count' => rand(0, 5),
-                'warning_count' => rand(0, 10)
+                'warning_count' => rand(0, 10),
+                'simulation' => true
             ];
         }
         
@@ -130,7 +132,8 @@ class EnhancedMetricsController extends Controller
             'deposit_count_since_restart' => $applicationMetrics->deposit_count_since_restart ?? 0,
             'last_deposit_time' => $applicationMetrics->last_deposit_time ?? null,
             'error_count' => $applicationMetrics->error_count ?? 0,
-            'warning_count' => $applicationMetrics->warning_count ?? 0
+            'warning_count' => $applicationMetrics->warning_count ?? 0,
+            'simulation' => false
         ];
     }
     

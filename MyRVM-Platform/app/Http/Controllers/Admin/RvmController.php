@@ -738,6 +738,52 @@ class RvmController extends Controller
     }
 
     /**
+     * Test RVM connection
+     */
+    public function testConnection($id)
+    {
+        try {
+            $rvm = ReverseVendingMachine::findOrFail($id);
+            
+            // Test connection to RVM-Jetson
+            $rvmApiUrl = "http://{$rvm->ip_address}:8000/api/health-check";
+            
+            $response = \Http::timeout(5)->get($rvmApiUrl);
+            
+            if ($response->successful()) {
+                return response()->json([
+                    'success' => true,
+                    'connected' => true,
+                    'message' => 'RVM-Jetson is reachable and responding',
+                    'rvm_id' => $rvm->id,
+                    'rvm_name' => $rvm->name,
+                    'ip_address' => $rvm->ip_address,
+                    'response_time' => $response->transferStats->getHandlerStat('total_time') ?? 'N/A'
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'connected' => false,
+                    'message' => 'RVM-Jetson responded with status: ' . $response->status(),
+                    'rvm_id' => $rvm->id,
+                    'rvm_name' => $rvm->name,
+                    'ip_address' => $rvm->ip_address
+                ]);
+            }
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'connected' => false,
+                'message' => 'RVM-Jetson connection failed: ' . $e->getMessage(),
+                'rvm_id' => $rvm->id ?? $id,
+                'rvm_name' => $rvm->name ?? 'Unknown',
+                'ip_address' => $rvm->ip_address ?? 'Unknown'
+            ]);
+        }
+    }
+
+    /**
      * Show Maintenance Mode page
      */
     public function maintenanceMode(Request $request, $id)
