@@ -85,6 +85,8 @@ RUN mkdir -p /var/www/html/storage/app/cv_models \
 USER root
 COPY ./docker/php/www.conf /usr/local/etc/php-fpm.d/www.conf
 
+RUN addgroup -g 1000 appgroup && \
+    adduser -u 1000 -G appgroup -s /bin/sh -D appuser
 # COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 # RUN chmod +x /usr/local/bin/entrypoint.sh
 # ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
