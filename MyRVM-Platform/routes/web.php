@@ -312,7 +312,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin/rvm')->name('admin.rvm.')
         
         // Maintenance Mode Routes
         Route::get('/{id}/maintenance-mode', [RvmController::class, 'maintenanceMode'])->name('maintenance-mode');
-        Route::get('/{id}/test-connection', [RvmController::class, 'testConnection'])->name('test-connection');
+        Route::get('/{id}/test-connection', [RvmController::class, 'testRvmConnection'])->name('test-connection');
         
         // Enhanced Metrics Routes
         Route::get('/{id}/metrics', [EnhancedMetricsController::class, 'getComprehensiveMetrics'])->name('metrics');

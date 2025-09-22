@@ -188,7 +188,7 @@ class EnhancedRemoteCommandsController extends Controller
     {
         try {
             // RVM API endpoint (assuming RVM has a command endpoint)
-            $rvmApiUrl = "http://{$rvm->ip_address}:8000/api/commands";
+            $rvmApiUrl = "http://{$rvm->ip_address}:5000/api/remote_access";
             
             $response = \Http::timeout(30)->post($rvmApiUrl, $commandData);
             

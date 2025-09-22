@@ -129,6 +129,12 @@ Route::prefix('v2')->middleware('auth:sanctum')->group(function () {
         Route::get('/{id}/statistics', [RVMController::class, 'getRVMStatistics']);
         Route::patch('/{id}/status', [RVMController::class, 'updateRVMStatus']);
         Route::patch('/{id}/regenerate-api-key', [RVMController::class, 'regenerateAPIKey']);
+        
+        // RVM Metrics Routes
+        Route::post('/{id}/metrics', [App\Http\Controllers\Admin\EnhancedMetricsController::class, 'storeMetrics']);
+        Route::get('/{id}/metrics', [App\Http\Controllers\Admin\EnhancedMetricsController::class, 'getComprehensiveMetrics']);
+        Route::get('/{id}/metrics/latest', [App\Http\Controllers\Admin\EnhancedMetricsController::class, 'getLatestMetrics']);
+        Route::get('/{id}/metrics/history', [App\Http\Controllers\Admin\EnhancedMetricsController::class, 'getMetricsHistory']);
     });
 
     // User Management Routes

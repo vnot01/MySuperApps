@@ -414,6 +414,9 @@
                         <button class="command-button" onclick="executeCommand('check_system_health')">
                             <i class="fas fa-heartbeat me-2"></i>System Health
                         </button>
+                        <button class="command-button" onclick="testRvmConnection()" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                            <i class="fas fa-wifi me-2"></i>Test Connection
+                        </button>
                     </div>
                 </div>
             </div>

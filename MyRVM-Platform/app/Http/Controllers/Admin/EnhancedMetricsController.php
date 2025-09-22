@@ -269,4 +269,97 @@ class EnhancedMetricsController extends Controller
             return null;
         }
     }
+    
+    /**
+     * Get latest metrics for RVM
+     */
+    public function getLatestMetrics(Request $request, $rvmId): JsonResponse
+    {
+        try {
+            $rvm = ReverseVendingMachine::findOrFail($rvmId);
+            
+            // Get latest metrics from database
+            $systemMetrics = SystemMetric::where('rvm_id', $rvmId)
+                ->latest('timestamp')
+                ->first();
+                
+            $applicationMetrics = ApplicationMetric::where('rvm_id', $rvmId)
+                ->latest('recorded_at')
+                ->first();
+                
+            $networkInfo = NetworkInformation::where('rvm_id', $rvmId)
+                ->latest('recorded_at')
+                ->first();
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'system' => $systemMetrics,
+                    'application' => $applicationMetrics,
+                    'network' => $networkInfo,
+                    'timestamp' => Carbon::now()->toISOString()
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Get metrics history for RVM
+     */
+    public function getMetricsHistory(Request $request, $rvmId): JsonResponse
+    {
+        try {
+            $rvm = ReverseVendingMachine::findOrFail($rvmId);
+            
+            $limit = $request->get('limit', 100);
+            $hours = $request->get('hours', 24);
+            
+            $since = Carbon::now()->subHours($hours);
+            
+            // Get metrics history
+            $systemMetrics = SystemMetric::where('rvm_id', $rvmId)
+                ->where('timestamp', '>=', $since)
+                ->orderBy('timestamp', 'desc')
+                ->limit($limit)
+                ->get();
+                
+            $applicationMetrics = ApplicationMetric::where('rvm_id', $rvmId)
+                ->where('recorded_at', '>=', $since)
+                ->orderBy('recorded_at', 'desc')
+                ->limit($limit)
+                ->get();
+                
+            $networkInfo = NetworkInformation::where('rvm_id', $rvmId)
+                ->where('recorded_at', '>=', $since)
+                ->orderBy('recorded_at', 'desc')
+                ->limit($limit)
+                ->get();
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'system' => $systemMetrics,
+                    'application' => $applicationMetrics,
+                    'network' => $networkInfo,
+                    'period' => [
+                        'hours' => $hours,
+                        'since' => $since->toISOString(),
+                        'until' => Carbon::now()->toISOString()
+                    ]
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

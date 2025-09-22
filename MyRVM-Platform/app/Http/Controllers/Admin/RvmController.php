@@ -738,15 +738,15 @@ class RvmController extends Controller
     }
 
     /**
-     * Test RVM connection
+     * Test RVM connection by ID
      */
-    public function testConnection($id)
+    public function testRvmConnection($id)
     {
         try {
             $rvm = ReverseVendingMachine::findOrFail($id);
             
             // Test connection to RVM-Jetson
-            $rvmApiUrl = "http://{$rvm->ip_address}:8000/api/health-check";
+            $rvmApiUrl = "http://{$rvm->ip_address}:5000/health";
             
             $response = \Http::timeout(5)->get($rvmApiUrl);
             
