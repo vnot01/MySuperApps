@@ -461,6 +461,8 @@
                         a.textContent = label || formatted || 'Result';
                         a.setAttribute('data-mapbox-id', s.mapbox_id);
                         a.setAttribute('data-fallback-query', `${label} ${formatted}`.trim());
+                        if (s.full_address) a.setAttribute('data-full-address', s.full_address);
+                        if (s.address) a.setAttribute('data-address', s.address);
                         sugg.appendChild(a);
                     });
                     // Delegate handler to parent to avoid event loss
@@ -470,6 +472,8 @@
                         ev.preventDefault(); ev.stopPropagation();
                         const id = item.getAttribute('data-mapbox-id');
                         const fallbackQuery = item.getAttribute('data-fallback-query') || input.value;
+                        const suggestedFull = item.getAttribute('data-full-address') || '';
+                        const suggestedAddr = item.getAttribute('data-address') || '';
                         if (!id) return;
                         try {
                             // Close suggestions immediately for better UX
@@ -522,11 +526,11 @@
                             try { console.log('[Mapbox] chosen feature:', feat); } catch(_) {}
                             map.flyTo({center: [lng, lat], zoom: 17});
                             marker.setLngLat([lng, lat]);
-                            // Prefer full_address only; if not present, build from address + place_formatted
+                            // Prefer full_address from retrieve; else use suggested full_address from suggest item; else build
                             const addrEl = document.getElementById('address');
                             const paddr = feat.properties?.address;
                             const pformatted = feat.properties?.place_formatted;
-                            const fullAddr = feat.properties?.full_address || (paddr && pformatted ? `${paddr}, ${pformatted}` : '');
+                            const fullAddr = feat.properties?.full_address || suggestedFull || (paddr && pformatted ? `${paddr}, ${pformatted}` : (suggestedAddr && pformatted ? `${suggestedAddr}, ${pformatted}` : ''));
                             if (addrEl && fullAddr) addrEl.value = fullAddr;
                             updateLatLng(lat, lng, feat);
                             sessionToken = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now()+''+Math.random());
