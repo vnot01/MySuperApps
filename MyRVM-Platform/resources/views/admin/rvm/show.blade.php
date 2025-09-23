@@ -443,37 +443,42 @@
                     if (!sugg) return;
                     if (!suggestions.length) { hideSuggest(); return; }
                     sugg.innerHTML = '';
-                    suggestions.forEach((s, idx) => {
+                    // Build list items
+                    suggestions.forEach((s) => {
                         const a = document.createElement('a');
                         a.href = '#';
                         a.className = 'list-group-item list-group-item-action';
                         a.textContent = s.name || s.place_formatted || s.full_address || s.feature_name || (s.address?.street + ' ' + s.address?.name) || 'Result';
-                        a.dataset.mapboxId = s.mapbox_id;
-                        const pick = async (ev) => {
-                            try {
-                                ev.preventDefault(); ev.stopPropagation();
-                                hideSuggest();
-                                const rurl = `https://api.mapbox.com/search/searchbox/v1/retrieve?mapbox_id=${encodeURIComponent(a.dataset.mapboxId)}&session_token=${sessionToken}&access_token=${mapboxgl.accessToken}`;
-                                const rres = await fetch(rurl);
-                                const rdata = await rres.json();
-                                const feat = (rdata && rdata.features && rdata.features[0]) ? rdata.features[0] : null;
-                                if (!feat) return;
-                                const coords = feat.geometry && feat.geometry.coordinates ? feat.geometry.coordinates : null;
-                                if (!coords) return;
-                                const lng = coords[0];
-                                const lat = coords[1];
-                                map.flyTo({center: [lng, lat], zoom: 17});
-                                marker.setLngLat([lng, lat]);
-                                updateLatLng(lat, lng, feat);
-                                input.value = a.textContent;
-                                sessionToken = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now()+''+Math.random());
-                            } catch(_) {}
-                        };
-                        // Use mousedown to avoid losing focus/blur before click fires
-                        a.addEventListener('mousedown', pick);
-                        a.addEventListener('click', pick);
+                        a.setAttribute('data-mapbox-id', s.mapbox_id);
                         sugg.appendChild(a);
                     });
+                    // Delegate handler to parent to avoid event loss
+                    const handlePick = async (ev) => {
+                        const item = ev.target && ev.target.closest('a.list-group-item');
+                        if (!item) return;
+                        ev.preventDefault(); ev.stopPropagation();
+                        const id = item.getAttribute('data-mapbox-id');
+                        if (!id) return;
+                        try {
+                            const rurl = `https://api.mapbox.com/search/searchbox/v1/retrieve?mapbox_id=${encodeURIComponent(id)}&session_token=${sessionToken}&access_token=${mapboxgl.accessToken}`;
+                            const rres = await fetch(rurl);
+                            const rdata = await rres.json();
+                            const feat = (rdata && rdata.features && rdata.features[0]) ? rdata.features[0] : null;
+                            if (!feat) return;
+                            const coords = feat.geometry && feat.geometry.coordinates ? feat.geometry.coordinates : null;
+                            if (!coords) return;
+                            const lng = coords[0];
+                            const lat = coords[1];
+                            map.flyTo({center: [lng, lat], zoom: 17});
+                            marker.setLngLat([lng, lat]);
+                            updateLatLng(lat, lng, feat);
+                            input.value = item.textContent || '';
+                            hideSuggest();
+                            sessionToken = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now()+''+Math.random());
+                        } catch(_) {}
+                    };
+                    sugg.onmousedown = handlePick;
+                    sugg.onclick = handlePick;
                     sugg.style.display = 'block';
                 } catch(e) { /* noop */ }
             }, 400);
