@@ -338,7 +338,7 @@
                                     <label for="searchPlace" class="form-label">Search place</label>
                                     <div class="position-relative">
                                         <input type="text" id="searchPlace" class="form-control" placeholder="Type place or address..." autocomplete="off">
-                                        <div id="searchSuggestions" class="list-group position-absolute w-100" style="z-index: 1000; max-height: 240px; overflow:auto; display:none;"></div>
+                                        <div id="searchSuggestions" class="list-group position-absolute w-100" style="z-index: 3000; max-height: 260px; overflow:auto; display:none; box-shadow: 0 6px 12px rgba(0,0,0,0.15); background:#fff; border:1px solid #ddd;"></div>
                                     </div>
                                 </div>
                                 <div class="mb-3">
@@ -429,7 +429,7 @@
         const input = document.getElementById('searchPlace');
         const sugg = document.getElementById('searchSuggestions');
         function hideSuggest(){ if (sugg) { sugg.style.display='none'; sugg.innerHTML=''; } }
-        document.addEventListener('click', (e) => { if (!sugg.contains(e.target) && e.target!==input) hideSuggest(); });
+        document.addEventListener('click', (e) => { if (sugg && !sugg.contains(e.target) && e.target!==input) hideSuggest(); });
         input && input.addEventListener('input', () => {
             clearTimeout(typingTimer);
             const q = input.value.trim();
@@ -443,18 +443,19 @@
                     if (!sugg) return;
                     if (!suggestions.length) { hideSuggest(); return; }
                     sugg.innerHTML = '';
-                    suggestions.forEach(s => {
+                    suggestions.forEach((s, idx) => {
                         const a = document.createElement('a');
                         a.href = '#';
                         a.className = 'list-group-item list-group-item-action';
                         a.textContent = s.name || s.place_formatted || s.full_address || s.feature_name || (s.address?.street + ' ' + s.address?.name) || 'Result';
+                        a.dataset.mapboxId = s.mapbox_id;
                         a.onclick = async (ev) => {
                             ev.preventDefault();
                             hideSuggest();
-                            const rurl = `https://api.mapbox.com/search/searchbox/v1/retrieve?mapbox_id=${encodeURIComponent(s.mapbox_id)}&session_token=${sessionToken}&access_token=${mapboxgl.accessToken}`;
+                            const rurl = `https://api.mapbox.com/search/searchbox/v1/retrieve?mapbox_id=${encodeURIComponent(a.dataset.mapboxId)}&session_token=${sessionToken}&access_token=${mapboxgl.accessToken}`;
                             const rres = await fetch(rurl);
                             const rdata = await rres.json();
-                            const feat = rdata?.features?.[0];
+                            const feat = (rdata && rdata.features && rdata.features[0]) ? rdata.features[0] : null;
                             if (!feat) return;
                             const [lng, lat] = feat.geometry.coordinates;
                             map.flyTo({center: [lng, lat], zoom: 17});
