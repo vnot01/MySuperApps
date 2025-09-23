@@ -328,6 +328,14 @@
                             <small>Search and drop a pin to set latitude/longitude</small>
                         </div>
                     </div>
+                    <div class="d-flex gap-2">
+                        <button id="btnUseMyLocation" class="btn btn-light btn-sm">
+                            <i class="fas fa-location-arrow me-1"></i>Use My Location
+                        </button>
+                        <button id="btnRecenter" class="btn btn-outline-light btn-sm">
+                            <i class="fas fa-crosshairs me-1"></i>Recenter
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
@@ -424,6 +432,9 @@ function showAlert(type, message) {
         center: [defaultLng, defaultLat],
         zoom: {{ ($rvm->latitude && $rvm->longitude) ? 15 : 12 }}
     });
+    map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'top-right');
+    const geolocate = new mapboxgl.GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: false });
+    map.addControl(geolocate, 'top-right');
     const marker = new mapboxgl.Marker({ draggable: true })
         .setLngLat([defaultLng, defaultLat])
         .addTo(map);
@@ -489,15 +500,31 @@ function showAlert(type, message) {
                     body: JSON.stringify({ latitude: lat, longitude: lng })
                 });
                 const data = await res.json();
-                if(res.ok && data.success){
-                    alert('Location saved');
-                } else {
-                    alert('Failed to save location');
-                }
+                const ok = res.ok && data.success;
+                showToast(ok ? 'Location saved' : 'Failed to save location', ok ? 'success' : 'danger');
             }catch(err){
-                alert('Error saving location');
+                showToast('Error saving location', 'danger');
             }
         });
+    }
+
+    // Toolbar actions
+    const btnMy = document.getElementById('btnUseMyLocation');
+    if(btnMy){ btnMy.addEventListener('click', () => geolocate.trigger()); }
+    const btnRe = document.getElementById('btnRecenter');
+    if(btnRe){ btnRe.addEventListener('click', () => map.flyTo({ center: [defaultLng, defaultLat], zoom: 15 })); }
+
+    // Simple bootstrap toast
+    function showToast(message, type){
+        const container = document.body;
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-bg-${type} border-0 position-fixed top-0 end-0 m-3`;
+        toast.setAttribute('role','alert');
+        toast.innerHTML = `<div class=\"d-flex\"><div class=\"toast-body\">${message}</div><button type=\"button\" class=\"btn-close btn-close-white me-2 m-auto\" data-bs-dismiss=\"toast\"></button></div>`;
+        container.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast, { delay: 2000 });
+        bsToast.show();
+        toast.addEventListener('hidden.bs.toast', () => toast.remove());
     }
 })();
 </script>
