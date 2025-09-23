@@ -522,11 +522,11 @@
                             try { console.log('[Mapbox] chosen feature:', feat); } catch(_) {}
                             map.flyTo({center: [lng, lat], zoom: 17});
                             marker.setLngLat([lng, lat]);
-                            // Prefer full_address, then address + place_formatted, then place_formatted
+                            // Prefer full_address only; if not present, build from address + place_formatted
                             const addrEl = document.getElementById('address');
                             const paddr = feat.properties?.address;
                             const pformatted = feat.properties?.place_formatted;
-                            const fullAddr = feat.properties?.full_address || (paddr && pformatted ? `${paddr}, ${pformatted}` : '') || pformatted || '';
+                            const fullAddr = feat.properties?.full_address || (paddr && pformatted ? `${paddr}, ${pformatted}` : '');
                             if (addrEl && fullAddr) addrEl.value = fullAddr;
                             updateLatLng(lat, lng, feat);
                             sessionToken = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now()+''+Math.random());
