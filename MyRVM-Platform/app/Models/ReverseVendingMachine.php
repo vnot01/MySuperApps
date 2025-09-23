@@ -17,6 +17,8 @@ class ReverseVendingMachine extends Model
         'location_description',
         'location',
         'address',
+        'latitude',
+        'longitude',
         'status',
         'capacity',
         'special_status',
