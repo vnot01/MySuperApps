@@ -425,6 +425,7 @@
 
         // Lightweight suggest using Mapbox Search Box API
         let typingTimer;
+        let sessionToken = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now()+''+Math.random());
         const input = document.getElementById('searchPlace');
         const sugg = document.getElementById('searchSuggestions');
         function hideSuggest(){ if (sugg) { sugg.style.display='none'; sugg.innerHTML=''; } }
@@ -435,7 +436,7 @@
             if (!q) return;
             typingTimer = setTimeout(async () => {
                 try {
-                    const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(q)}&language=id&limit=5&access_token=${mapboxgl.accessToken}`;
+                    const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(q)}&language=id&limit=5&session_token=${sessionToken}&access_token=${mapboxgl.accessToken}`;
                     const res = await fetch(url);
                     const data = await res.json();
                     const suggestions = data?.suggestions || [];
@@ -446,11 +447,11 @@
                         const a = document.createElement('a');
                         a.href = '#';
                         a.className = 'list-group-item list-group-item-action';
-                        a.textContent = s.name || s.full_address || s.place_formatted || s.feature_name || 'Result';
+                        a.textContent = s.name || s.place_formatted || s.full_address || s.feature_name || (s.address?.street + ' ' + s.address?.name) || 'Result';
                         a.onclick = async (ev) => {
                             ev.preventDefault();
                             hideSuggest();
-                            const rurl = `https://api.mapbox.com/search/searchbox/v1/retrieve?mapbox_id=${encodeURIComponent(s.mapbox_id)}&access_token=${mapboxgl.accessToken}`;
+                            const rurl = `https://api.mapbox.com/search/searchbox/v1/retrieve?mapbox_id=${encodeURIComponent(s.mapbox_id)}&session_token=${sessionToken}&access_token=${mapboxgl.accessToken}`;
                             const rres = await fetch(rurl);
                             const rdata = await rres.json();
                             const feat = rdata?.features?.[0];
@@ -459,6 +460,9 @@
                             map.flyTo({center: [lng, lat], zoom: 17});
                             marker.setLngLat([lng, lat]);
                             updateLatLng(lat, lng, feat);
+                            input.value = a.textContent;
+                            // rotate session token to follow best practice
+                            sessionToken = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now()+''+Math.random());
                         };
                         sugg.appendChild(a);
                     });
