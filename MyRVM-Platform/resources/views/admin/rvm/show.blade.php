@@ -457,13 +457,15 @@ function showAlert(type, message) {
             const proximity = map.getCenter();
             sb.options = Object.assign({}, sb.options, {
                 bbox: [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()],
-                proximity: { longitude: proximity.lng, latitude: proximity.lat }
+                proximity: { lng: proximity.lng, lat: proximity.lat }
             });
         });
         sb.addEventListener('retrieve', (e) => {
-            const feat = e.detail && e.detail.features && e.detail.features[0];
-            if(!feat) return;
-            const [lng, lat] = feat.geometry.coordinates;
+            const feat = e.detail && (e.detail.feature || (e.detail.features && e.detail.features[0]));
+            if(!feat || !feat.geometry || !Array.isArray(feat.geometry.coordinates)) return;
+            const coords = feat.geometry.coordinates;
+            const lng = Number(coords[0]);
+            const lat = Number(coords[1]);
             map.flyTo({center:[lng,lat], zoom:17});
             marker.setLngLat([lng,lat]);
             updateLatLng(lat, lng);
