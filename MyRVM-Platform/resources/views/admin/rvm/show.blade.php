@@ -436,7 +436,8 @@
             if (!q) return;
             typingTimer = setTimeout(async () => {
                 try {
-                    const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(q)}&language=id&limit=5&session_token=${sessionToken}&access_token=${mapboxgl.accessToken}`;
+                    const center = map.getCenter();
+                    const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(q)}&language=id&limit=5&country=id&proximity=${center.lng},${center.lat}&session_token=${sessionToken}&access_token=${mapboxgl.accessToken}`;
                     const res = await fetch(url);
                     const data = await res.json();
                     const suggestions = data?.suggestions || [];
@@ -474,7 +475,8 @@
                             } catch(inner) { /* fallthrough to geocode */ }
                             if (!feat) {
                                 // Fallback to forward geocoding by query text if retrieve 404
-                                const gurl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(input.value)}.json?limit=1&language=id&access_token=${mapboxgl.accessToken}`;
+                                const center = map.getCenter();
+                                const gurl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(input.value)}.json?limit=1&language=id&country=ID&proximity=${center.lng},${center.lat}&access_token=${mapboxgl.accessToken}`;
                                 const gres = await fetch(gurl);
                                 if (gres.ok) {
                                     const gj = await gres.json();
