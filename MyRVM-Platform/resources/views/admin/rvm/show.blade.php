@@ -335,8 +335,9 @@
                                 @csrf
                                 @method('PUT')
                                 <div class="mb-3">
-                                    <label for="searchPlace" class="form-label">Search place</label>
-                                    <div class="position-relative">
+                                    <label class="form-label">Search place</label>
+                                    <div id="geocoder-container" class="mb-2"></div>
+                                    <div class="position-relative d-none">
                                         <input type="text" id="searchPlace" class="form-control" placeholder="Type place or address..." autocomplete="off">
                                         <div id="searchSuggestions" class="list-group position-absolute w-100" style="z-index: 3000; max-height: 260px; overflow:auto; display:none; box-shadow: 0 6px 12px rgba(0,0,0,0.15); background:#fff; border:1px solid #ddd;"></div>
                                     </div>
@@ -374,6 +375,7 @@
     @php($mapboxToken = env('MAPBOX_ACCESS_TOKEN'))
     <link href="{{ asset('assets/vendor/libs/mapbox-gl/mapbox-gl.css') }}" rel="stylesheet">
     <script src="{{ asset('assets/vendor/libs/mapbox-gl/mapbox-gl.js') }}"></script>
+    <script id="search-js" defer src="https://api.mapbox.com/search-js/v1.3.0/web.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         if (!window.mapboxgl) return;
@@ -423,7 +425,40 @@
             updateLatLng(e.lngLat.lat, e.lngLat.lng, null);
         });
 
-        // Lightweight suggest using Mapbox Search Box API
+        // Prefer Mapbox Search JS Geocoder if available
+        const searchJsScript = document.getElementById('search-js');
+        const initGeocoder = () => {
+            if (!window.mapboxsearch) return false;
+            try {
+                const geocoder = new mapboxsearch.MapboxGeocoder();
+                geocoder.accessToken = mapboxgl.accessToken;
+                geocoder.mapboxgl = mapboxgl;
+                geocoder.marker = false;
+                geocoder.options = { language: 'id', country: 'ID' };
+                geocoder.bindMap(map);
+                const container = document.getElementById('geocoder-container');
+                if (container) container.appendChild(geocoder);
+                geocoder.addEventListener('retrieve', (e) => {
+                    const f = e.detail;
+                    const p = f?.properties;
+                    const pc = p?.coordinates;
+                    const lat = (pc && typeof pc.latitude === 'number') ? pc.latitude : (f?.geometry?.coordinates?.[1]);
+                    const lng = (pc && typeof pc.longitude === 'number') ? pc.longitude : (f?.geometry?.coordinates?.[0]);
+                    if (lat == null || lng == null) return;
+                    map.flyTo({ center: [lng, lat], zoom: 17 });
+                    marker.setLngLat([lng, lat]);
+                    const fullAddr = p?.full_address || p?.place_formatted || '';
+                    if (document.getElementById('address') && fullAddr) document.getElementById('address').value = fullAddr;
+                    updateLatLng(lat, lng, f);
+                });
+                return true;
+            } catch(_) { return false; }
+        };
+        if (!initGeocoder()) {
+            if (searchJsScript) searchJsScript.addEventListener('load', initGeocoder);
+        }
+
+        // Lightweight suggest using Mapbox Search Box API (fallback if Search JS not available)
         let typingTimer;
         let sessionToken = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now()+''+Math.random());
         const input = document.getElementById('searchPlace');
