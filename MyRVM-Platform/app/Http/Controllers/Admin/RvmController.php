@@ -98,10 +98,10 @@ class RvmController extends Controller
             'name' => 'required|string|max:255',
             'location' => 'required|string|max:255',
             'address' => 'nullable|string',
-            'ip_address' => 'required|ip',
+            'ip_address' => 'nullable|ip',
             'port' => 'nullable|integer|min:1|max:65535',
-            'timezone' => 'required|string',
-            'status' => 'required|in:active,inactive,maintenance,error',
+            'timezone' => 'nullable|string',
+            'status' => 'nullable|in:active,inactive,maintenance,error',
             'capacity' => 'nullable|integer|min:0|max:100'
         ]);
 
@@ -114,15 +114,18 @@ class RvmController extends Controller
         }
 
         try {
+            $timezone = $request->timezone ?? 'Asia/Jakarta';
+            $status = $request->status ?? 'inactive';
+
             $rvm = ReverseVendingMachine::create([
                 'name' => $request->name,
                 'location' => $request->location,
                 'address' => $request->address,
                 'ip_address' => $request->ip_address,
-                'port' => $request->port ?? 8000,
-                'timezone' => $request->timezone,
-                'timezone_offset' => $this->getTimezoneOffset($request->timezone),
-                'status' => $request->status,
+                'port' => $request->port ?? 5000,
+                'timezone' => $timezone,
+                'timezone_offset' => $this->getTimezoneOffset($timezone),
+                'status' => $status,
                 'capacity' => $request->capacity ?? 0,
                 'api_key' => $this->generateApiKey(),
                 'created_at' => now(),

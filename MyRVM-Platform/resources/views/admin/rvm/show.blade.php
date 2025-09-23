@@ -306,7 +306,124 @@
     <!-- System Performance Chart -->
     @include('admin.rvm.chart-section')
     
+    <!-- Location Map (Mapbox) -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-gradient-info text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar avatar-sm me-3">
+                                <span class="avatar-initial rounded bg-label-info">
+                                    <i class="fas fa-map-marked-alt"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">Location Map</h5>
+                                <small>Search and pick precise coordinates</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <div id="mapbox-admin" style="height: 360px; border-radius: 8px; overflow: hidden;"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <form id="rvmLocationForm" method="POST" action="{{ route('admin.rvm.update', $rvm->id) }}">
+                                @csrf
+                                @method('PUT')
+                                <div class="mb-3">
+                                    <label for="searchPlace" class="form-label">Search place</label>
+                                    <input type="text" id="searchPlace" class="form-control" placeholder="Type place or address...">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Latitude</label>
+                                    <input type="text" id="latitude" name="latitude" class="form-control" value="{{ $rvm->latitude }}" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Longitude</label>
+                                    <input type="text" id="longitude" name="longitude" class="form-control" value="{{ $rvm->longitude }}" readonly>
+                                </div>
+                                <button type="submit" class="btn btn-info text-white">
+                                    <i class="fas fa-save me-2"></i>Save Coordinates
+                                </button>
+                                <a target="_blank" id="openInMaps" href="#" class="btn btn-outline-secondary ms-2">
+                                    <i class="fas fa-external-link-alt me-2"></i>Open in Maps
+                                </a>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    @php($mapboxToken = env('MAPBOX_ACCESS_TOKEN'))
+    <link href="{{ asset('assets/vendor/libs/mapbox-gl/mapbox-gl.css') }}" rel="stylesheet">
+    <script src="{{ asset('assets/vendor/libs/mapbox-gl/mapbox-gl.js') }}"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!window.mapboxgl) return;
+        mapboxgl.accessToken = '{{ $mapboxToken }}';
+        const centerLng = {{ $rvm->longitude ?? 110.366 }};
+        const centerLat = {{ $rvm->latitude ?? -7.795 }};
+        const map = new mapboxgl.Map({
+            container: 'mapbox-admin',
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: [centerLng, centerLat],
+            zoom: 12
+        });
+        const marker = new mapboxgl.Marker({draggable: true}).setLngLat([centerLng, centerLat]).addTo(map);
+        function updateLatLng(lat, lng){
+            const latEl = document.getElementById('latitude');
+            const lngEl = document.getElementById('longitude');
+            if (latEl) latEl.value = lat.toFixed(7);
+            if (lngEl) lngEl.value = lng.toFixed(7);
+            const link = document.getElementById('openInMaps');
+            if (link) link.href = `https://www.google.com/maps?q=${lat},${lng}`;
+        }
+        marker.on('dragend', () => {
+            const {lng, lat} = marker.getLngLat();
+            updateLatLng(lat, lng);
+        });
+        map.on('click', (e) => {
+            marker.setLngLat(e.lngLat);
+            updateLatLng(e.lngLat.lat, e.lngLat.lng);
+        });
+
+        // Lightweight suggest using Mapbox Search Box API
+        let typingTimer;
+        const input = document.getElementById('searchPlace');
+        input && input.addEventListener('input', () => {
+            clearTimeout(typingTimer);
+            const q = input.value.trim();
+            if (!q) return;
+            typingTimer = setTimeout(async () => {
+                try {
+                    const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(q)}&language=id&access_token=${mapboxgl.accessToken}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    const first = data?.suggestions?.[0];
+                    if (!first) return;
+                    const rurl = `https://api.mapbox.com/search/searchbox/v1/retrieve?mapbox_id=${encodeURIComponent(first.mapbox_id)}&access_token=${mapboxgl.accessToken}`;
+                    const rres = await fetch(rurl);
+                    const rdata = await rres.json();
+                    const feat = rdata?.features?.[0];
+                    if (!feat) return;
+                    const [lng, lat] = feat.geometry.coordinates;
+                    map.flyTo({center: [lng, lat], zoom: 17});
+                    marker.setLngLat([lng, lat]);
+                    updateLatLng(lat, lng);
+                } catch(e) { /* noop */ }
+            }, 400);
+        });
+
+        // Initialize link
+        updateLatLng(centerLat, centerLng);
+    });
+    </script>
 </div>
 
 <script>

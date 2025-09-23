@@ -51,6 +51,36 @@
         </div>
     </div>
 
+    <!-- RVM Created Modal -->
+    <div class="modal fade" id="rvmCreatedModal" tabindex="-1" aria-labelledby="rvmCreatedModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rvmCreatedModalLabel"><i class="fas fa-check-circle text-success me-2"></i>RVM Created</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2"><strong>Name:</strong> <span id="createdRvmName">-</span></div>
+                    <div class="mb-2"><strong>Status:</strong> <span id="createdRvmStatus">-</span></div>
+                    <div class="mb-2 d-flex align-items-center justify-content-between">
+                        <div class="me-2 w-100">
+                            <strong>API Key:</strong>
+                            <div class="input-group">
+                                <input type="text" readonly class="form-control" id="createdRvmApiKey" value="">
+                                <button class="btn btn-outline-secondary" type="button" id="copyApiKeyBtn"><i class="fas fa-copy"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <small class="text-muted">Simpan API key ini untuk integrasi RVM-Jetson.</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="rvmCreatedOkBtn">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Statistics Cards -->
     <div class="row g-4 mb-4">
         <div class="col-md-3">
@@ -298,6 +328,42 @@
             </div>
         </div>
         @endforeach
+    </div>
+
+    <!-- Add RVM Modal -->
+    <div class="modal fade" id="addRvmModal" tabindex="-1" aria-labelledby="addRvmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addRvmModalLabel">
+                        <i class="fas fa-plus me-2"></i>Add New RVM
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addRvmForm">
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Name</label>
+                                <input type="text" class="form-control" name="name" placeholder="RVM-001" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Location</label>
+                                <input type="text" class="form-control" name="location" placeholder="Lobby Building A" required>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="addRvmError" class="alert alert-danger d-none mt-3"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submitAddRvmBtn">
+                        <i class="fas fa-save me-2"></i>Save
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Remote Access Modal - Simplified -->
@@ -552,12 +618,83 @@
     }
 
     function showAddRVMModal() {
-        alert('Show add RVM modal');
+        const modal = new bootstrap.Modal(document.getElementById('addRvmModal'));
+        // reset previous state
+        document.getElementById('addRvmForm').reset();
+        const err = document.getElementById('addRvmError');
+        err.classList.add('d-none');
+        err.textContent = '';
+        modal.show();
     }
 
     // Auto refresh every 30 seconds
     setInterval(() => {
         loadSystemMetrics();
     }, 30000);
+
+    // Submit Add RVM
+    document.addEventListener('DOMContentLoaded', function() {
+        const btn = document.getElementById('submitAddRvmBtn');
+        if (btn) {
+            btn.addEventListener('click', async function() {
+                const form = document.getElementById('addRvmForm');
+                const errBox = document.getElementById('addRvmError');
+                errBox.classList.add('d-none');
+                errBox.textContent = '';
+
+                const formData = new FormData(form);
+                const payload = Object.fromEntries(formData.entries());
+                // Backend defaults: status=inactive, timezone=Asia/Jakarta, capacity=0, port=5000
+                payload.status = 'inactive';
+
+                try {
+                    const res = await fetch('{{ route('admin.rvm.store') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok || data.success === false) {
+                        const msg = data.message || 'Failed to create RVM';
+                        const details = data.errors ? JSON.stringify(data.errors) : '';
+                        errBox.textContent = `${msg} ${details}`;
+                        errBox.classList.remove('d-none');
+                        return;
+                    }
+
+                    // Close Add modal
+                    const addModal = bootstrap.Modal.getInstance(document.getElementById('addRvmModal'));
+                    if (addModal) addModal.hide();
+
+                    // Show created info with API key
+                    const rvm = (data && data.data) ? data.data : null;
+                    document.getElementById('createdRvmName').textContent = rvm?.name ?? '-';
+                    document.getElementById('createdRvmStatus').textContent = rvm?.status ?? '-';
+                    document.getElementById('createdRvmApiKey').value = rvm?.api_key ?? '';
+
+                    const createdModal = new bootstrap.Modal(document.getElementById('rvmCreatedModal'));
+                    createdModal.show();
+
+                    document.getElementById('copyApiKeyBtn').onclick = () => {
+                        const input = document.getElementById('createdRvmApiKey');
+                        input.select();
+                        input.setSelectionRange(0, 99999);
+                        try { document.execCommand('copy'); } catch(_) {}
+                    };
+                    document.getElementById('rvmCreatedOkBtn').onclick = () => {
+                        createdModal.hide();
+                        location.reload();
+                    };
+                } catch (e) {
+                    errBox.textContent = 'Network error while creating RVM';
+                    errBox.classList.remove('d-none');
+                }
+            });
+        }
+    });
     </script>
 @endsection
