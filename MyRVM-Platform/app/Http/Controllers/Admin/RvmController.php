@@ -397,7 +397,9 @@ class RvmController extends Controller
             'port' => 'nullable|integer|min:1|max:65535',
             'timezone' => 'sometimes|string',
             'status' => 'sometimes|in:active,inactive,maintenance,error',
-            'capacity' => 'nullable|integer|min:0|max:100'
+            'capacity' => 'nullable|integer|min:0|max:100',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180'
         ]);
 
         if ($validator->fails()) {
@@ -409,7 +411,7 @@ class RvmController extends Controller
         }
 
         try {
-            $updateData = $request->only(['name', 'location', 'address', 'ip_address', 'port', 'timezone', 'status', 'capacity']);
+            $updateData = $request->only(['name', 'location', 'address', 'ip_address', 'port', 'timezone', 'status', 'capacity', 'latitude', 'longitude']);
             
             if (isset($updateData['timezone'])) {
                 $updateData['timezone_offset'] = $this->getTimezoneOffset($updateData['timezone']);
