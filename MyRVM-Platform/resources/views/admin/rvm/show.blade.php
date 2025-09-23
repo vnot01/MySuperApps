@@ -476,11 +476,16 @@
                             hideSuggest();
                             input.value = item.textContent || '';
                             const rurl = `https://api.mapbox.com/search/searchbox/v1/retrieve?mapbox_id=${encodeURIComponent(id)}&session_token=${sessionToken}&access_token=${mapboxgl.accessToken}`;
+                            try { console.log('[Mapbox] retrieve URL:', rurl); } catch(_) {}
                             let feat = null;
                             try {
                                 const rres = await fetch(rurl);
-                                if (rres.ok) {
-                                    const rdata = await rres.json();
+                                try { console.log('[Mapbox] retrieve status:', rres.status); } catch(_) {}
+                                const rtext = await rres.text();
+                                try { console.log('[Mapbox] retrieve raw:', rtext); } catch(_) {}
+                                let rdata = null;
+                                try { rdata = JSON.parse(rtext); } catch(_) { rdata = null; }
+                                if (rres.ok && rdata) {
                                     feat = (rdata && rdata.features && rdata.features[0]) ? rdata.features[0] : null;
                                 }
                             } catch(inner) { /* fallthrough to geocode */ }
@@ -489,9 +494,12 @@
                                 const center = map.getCenter();
                                 const types = 'poi,place';
                                 const gurl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(fallbackQuery)}.json?limit=1&language=id&country=ID&types=${types}&proximity=${center.lng},${center.lat}&access_token=${mapboxgl.accessToken}`;
+                                try { console.log('[Mapbox] geocode URL:', gurl); } catch(_) {}
                                 const gres = await fetch(gurl);
                                 if (gres.ok) {
-                                    const gj = await gres.json();
+                                    const gtext = await gres.text();
+                                    try { console.log('[Mapbox] geocode raw:', gtext); } catch(_) {}
+                                    const gj = JSON.parse(gtext);
                                     const gf = gj && gj.features && gj.features[0] ? gj.features[0] : null;
                                     if (gf) {
                                         feat = { geometry: { coordinates: gf.center }, properties: { full_address: gf.place_name } };
@@ -511,6 +519,7 @@
                             } else {
                                 return;
                             }
+                            try { console.log('[Mapbox] chosen feature:', feat); } catch(_) {}
                             map.flyTo({center: [lng, lat], zoom: 17});
                             marker.setLngLat([lng, lat]);
                             // Prefer full_address/place_formatted
