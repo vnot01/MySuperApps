@@ -336,8 +336,8 @@
                                 @method('PUT')
                                 <div class="mb-3">
                                     <label class="form-label">Search place</label>
-                                    <div id="geocoder-container" class="mb-2"></div>
-                                    <div class="position-relative d-none">
+                                    <div id="geocoder-container" class="mb-2" style="display:none"></div>
+                                    <div class="position-relative">
                                         <input type="text" id="searchPlace" class="form-control" placeholder="Type place or address..." autocomplete="off">
                                         <div id="searchSuggestions" class="list-group position-absolute w-100" style="z-index: 3000; max-height: 260px; overflow:auto; display:none; box-shadow: 0 6px 12px rgba(0,0,0,0.15); background:#fff; border:1px solid #ddd;"></div>
                                     </div>
