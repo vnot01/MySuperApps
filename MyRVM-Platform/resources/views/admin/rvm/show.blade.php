@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="{{ asset('css/admin/remote-access.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/rvm-modern.css') }}">
     <link href="https://api.tiles.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+    <script id="search-js" defer src="https://api.mapbox.com/search-js/v1.3.0/web.js"></script>
 @endsection
 
 @section('breadcrumb')
@@ -329,9 +330,8 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3 position-relative">
-                        <input id="mapbox-search-input" class="form-control" type="text" placeholder="Search place or address..." />
-                        <div id="mapbox-suggest-dropdown" class="list-group position-absolute w-100" style="z-index:1000;"></div>
+                    <div class="mb-3">
+                        <mapbox-search-box id="mapbox-search-input" access-token="{{ env('MAPBOX_ACCESS_TOKEN') }}" options='{"language":"id","country":"ID"}'></mapbox-search-box>
                     </div>
                     <div id="mapbox-admin" style="width:100%; height:380px; border-radius: .5rem; overflow:hidden;"></div>
                     <div class="mt-3 row g-2">
@@ -447,47 +447,26 @@ function showAlert(type, message) {
     });
     updateLatLng(defaultLat, defaultLng);
 
-    // Suggest → Retrieve
-    const input = document.getElementById('mapbox-search-input');
-    const dropdown = document.getElementById('mapbox-suggest-dropdown');
-    if(input && dropdown){
-        let debounceTimer = null; let sessionToken = (crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now()+Math.random());
-        async function doSuggest(query){
-            const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(query)}&language=id&access_token=${accessToken}&session_token=${sessionToken}`;
-            const res = await fetch(url); return res.json();
-        }
-        async function doRetrieve(mapbox_id){
-            const url = `https://api.mapbox.com/search/searchbox/v1/retrieve?mapbox_id=${encodeURIComponent(mapbox_id)}&access_token=${accessToken}&session_token=${sessionToken}`;
-            const res = await fetch(url); return res.json();
-        }
-        input.addEventListener('input', () => {
-            const q = input.value.trim();
-            clearTimeout(debounceTimer);
-            if(!q){ dropdown.innerHTML=''; return; }
-            debounceTimer = setTimeout(async () => {
-                try {
-                    const data = await doSuggest(q);
-                    const suggestions = data.suggestions || [];
-                    dropdown.innerHTML = '';
-                    suggestions.slice(0,5).forEach(s => {
-                        const a = document.createElement('a');
-                        a.href = '#'; a.className = 'list-group-item list-group-item-action';
-                        a.textContent = s.name || s.place_formatted || 'Result';
-                        a.addEventListener('click', async (e) => {
-                            e.preventDefault();
-                            dropdown.innerHTML='';
-                            const detail = await doRetrieve(s.mapbox_id);
-                            const feat = (detail.features && detail.features[0]) || null;
-                            if(!feat) return;
-                            const [lng, lat] = feat.geometry.coordinates;
-                            map.flyTo({center:[lng,lat], zoom:17});
-                            marker.setLngLat([lng,lat]);
-                            updateLatLng(lat, lng);
-                        });
-                        dropdown.appendChild(a);
-                    });
-                } catch(err){ console.warn('suggest failed', err); }
-            }, 350);
+    // Built-in Search Box events (better ranking & retrieve)
+    const sb = document.getElementById('mapbox-search-input');
+    if(sb){
+        // Bias suggestions to current viewport
+        sb.setAttribute('value', '');
+        map.on('moveend', () => {
+            const b = map.getBounds();
+            const proximity = map.getCenter();
+            sb.options = Object.assign({}, sb.options, {
+                bbox: [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()],
+                proximity: { longitude: proximity.lng, latitude: proximity.lat }
+            });
+        });
+        sb.addEventListener('retrieve', (e) => {
+            const feat = e.detail && e.detail.features && e.detail.features[0];
+            if(!feat) return;
+            const [lng, lat] = feat.geometry.coordinates;
+            map.flyTo({center:[lng,lat], zoom:17});
+            marker.setLngLat([lng,lat]);
+            updateLatLng(lat, lng);
         });
     }
 
