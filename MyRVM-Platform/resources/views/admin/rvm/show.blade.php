@@ -427,36 +427,7 @@
 
         // Prefer Mapbox Search JS Geocoder if available
         const searchJsScript = document.getElementById('search-js');
-        const initGeocoder = () => {
-            if (!window.mapboxsearch) return false;
-            try {
-                const geocoder = new mapboxsearch.MapboxGeocoder();
-                geocoder.accessToken = mapboxgl.accessToken;
-                geocoder.mapboxgl = mapboxgl;
-                geocoder.marker = false;
-                geocoder.options = { language: 'id', country: 'ID' };
-                geocoder.bindMap(map);
-                const container = document.getElementById('geocoder-container');
-                if (container) container.appendChild(geocoder);
-                geocoder.addEventListener('retrieve', (e) => {
-                    const f = e.detail;
-                    const p = f?.properties;
-                    const pc = p?.coordinates;
-                    const lat = (pc && typeof pc.latitude === 'number') ? pc.latitude : (f?.geometry?.coordinates?.[1]);
-                    const lng = (pc && typeof pc.longitude === 'number') ? pc.longitude : (f?.geometry?.coordinates?.[0]);
-                    if (lat == null || lng == null) return;
-                    map.flyTo({ center: [lng, lat], zoom: 17 });
-                    marker.setLngLat([lng, lat]);
-                    const fullAddr = p?.full_address || p?.place_formatted || '';
-                    if (document.getElementById('address') && fullAddr) document.getElementById('address').value = fullAddr;
-                    updateLatLng(lat, lng, f);
-                });
-                return true;
-            } catch(_) { return false; }
-        };
-        if (!initGeocoder()) {
-            if (searchJsScript) searchJsScript.addEventListener('load', initGeocoder);
-        }
+        // Temporarily disable Search JS geocoder due to irrelevant suggestions; using manual suggest+retrieve which is tuned
 
         // Lightweight suggest using Mapbox Search Box API (fallback if Search JS not available)
         let typingTimer;
@@ -472,7 +443,8 @@
             typingTimer = setTimeout(async () => {
                 try {
                     const center = map.getCenter();
-                    const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(q)}&language=id&limit=5&country=id&proximity=${center.lng},${center.lat}&session_token=${sessionToken}&access_token=${mapboxgl.accessToken}`;
+                    const types = 'poi,place,locality';
+                    const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(q)}&language=id&limit=5&country=id&types=${types}&proximity=${center.lng},${center.lat}&session_token=${sessionToken}&access_token=${mapboxgl.accessToken}`;
                     const res = await fetch(url);
                     const data = await res.json();
                     const suggestions = data?.suggestions || [];
