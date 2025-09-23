@@ -21,3 +21,7 @@ Pull terbaru menambahkan controller self-registration untuk RVM, route API v2, s
 ## Penanggung Jawab
 - MyRVM-Platform: implement route/controller/migration.
 - RVM/Jetson: integrasi client.
+
+## Quick Links
+- API Reference (di repo RVM): `test-cv-yolo11-sam2-camera/myrvm-integration/docs/API_REFERENCE.md`
+- Network Configuration (di repo RVM): `test-cv-yolo11-sam2-camera/myrvm-integration/docs/NETWORK_CONFIGURATION.md`
