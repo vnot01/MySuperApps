@@ -312,9 +312,9 @@
 </div>
 
 <!-- Mapbox Location Picker -->
-<div class="container-fluid">
-    <div class="row mb-5">
-        <div class="col-12">
+<div>
+    <div class="row mb-5 mx-0">
+        <div class="col-12 px-0">
             <div class="card">
                 <div class="card-header bg-gradient-info text-white d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center">
