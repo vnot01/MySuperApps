@@ -464,19 +464,33 @@
                             hideSuggest();
                             input.value = item.textContent || '';
                             const rurl = `https://api.mapbox.com/search/searchbox/v1/retrieve?mapbox_id=${encodeURIComponent(id)}&session_token=${sessionToken}&access_token=${mapboxgl.accessToken}`;
-                            const rres = await fetch(rurl);
-                            const rdata = await rres.json();
-                            const feat = (rdata && rdata.features && rdata.features[0]) ? rdata.features[0] : null;
-                            if (!feat) return;
-                            const coords = feat.geometry && feat.geometry.coordinates ? feat.geometry.coordinates : null;
-                            if (!coords) return;
-                            const lng = coords[0];
-                            const lat = coords[1];
+                            let feat = null;
+                            try {
+                                const rres = await fetch(rurl);
+                                if (rres.ok) {
+                                    const rdata = await rres.json();
+                                    feat = (rdata && rdata.features && rdata.features[0]) ? rdata.features[0] : null;
+                                }
+                            } catch(inner) { /* fallthrough to geocode */ }
+                            if (!feat) {
+                                // Fallback to forward geocoding by query text if retrieve 404
+                                const gurl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(input.value)}.json?limit=1&language=id&access_token=${mapboxgl.accessToken}`;
+                                const gres = await fetch(gurl);
+                                if (gres.ok) {
+                                    const gj = await gres.json();
+                                    const gf = gj && gj.features && gj.features[0] ? gj.features[0] : null;
+                                    if (gf) {
+                                        feat = { geometry: { coordinates: gf.center }, properties: { full_address: gf.place_name } };
+                                    }
+                                }
+                            }
+                            if (!feat || !feat.geometry || !feat.geometry.coordinates) return;
+                            const [lng, lat] = feat.geometry.coordinates;
                             map.flyTo({center: [lng, lat], zoom: 17});
                             marker.setLngLat([lng, lat]);
                             updateLatLng(lat, lng, feat);
                             sessionToken = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now()+''+Math.random());
-                        } catch(err) { try { console.error('mapbox retrieve failed', err); } catch(_) {} }
+                        } catch(err) { try { console.error('mapbox retrieve/geocode failed', err); } catch(_) {} }
                     };
                     sugg.onmousedown = handlePick;
                     sugg.onclick = handlePick;
