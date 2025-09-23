@@ -315,8 +315,8 @@
 <div>
     <div class="row mb-5 mx-0">
         <div class="col-12 px-0">
-            <div class="card">
-                <div class="card-header bg-gradient-info text-white d-flex align-items-center justify-content-between">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-gradient-info text-white d-flex align-items-center justify-content-between" style="border-top-left-radius: .5rem; border-top-right-radius: .5rem;">
                     <div class="d-flex align-items-center">
                         <div class="avatar avatar-sm me-3">
                             <span class="avatar-initial rounded bg-label-info">
@@ -337,7 +337,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="card-body pt-4">
+                <div class="card-body pt-4" style="border-bottom-left-radius: .5rem; border-bottom-right-radius: .5rem;">
                     <div class="mt-2 mb-3">
                         <mapbox-search-box id="mapbox-search-input" access-token="{{ env('MAPBOX_ACCESS_TOKEN') }}" options='{"language":"id","country":"ID"}'></mapbox-search-box>
                     </div>
