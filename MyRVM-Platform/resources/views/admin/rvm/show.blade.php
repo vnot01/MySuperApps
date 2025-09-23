@@ -449,8 +449,11 @@
                         const a = document.createElement('a');
                         a.href = '#';
                         a.className = 'list-group-item list-group-item-action';
-                        a.textContent = s.name || s.place_formatted || s.full_address || s.feature_name || (s.address?.street + ' ' + s.address?.name) || 'Result';
+                        const label = s.name || s.feature_name || '';
+                        const formatted = s.place_formatted || s.full_address || '';
+                        a.textContent = label || formatted || 'Result';
                         a.setAttribute('data-mapbox-id', s.mapbox_id);
+                        a.setAttribute('data-fallback-query', `${label} ${formatted}`.trim());
                         sugg.appendChild(a);
                     });
                     // Delegate handler to parent to avoid event loss
@@ -459,6 +462,7 @@
                         if (!item) return;
                         ev.preventDefault(); ev.stopPropagation();
                         const id = item.getAttribute('data-mapbox-id');
+                        const fallbackQuery = item.getAttribute('data-fallback-query') || input.value;
                         if (!id) return;
                         try {
                             // Close suggestions immediately for better UX
@@ -476,7 +480,8 @@
                             if (!feat) {
                                 // Fallback to forward geocoding by query text if retrieve 404
                                 const center = map.getCenter();
-                                const gurl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(input.value)}.json?limit=1&language=id&country=ID&proximity=${center.lng},${center.lat}&access_token=${mapboxgl.accessToken}`;
+                                const types = 'poi,place';
+                                const gurl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(fallbackQuery)}.json?limit=1&language=id&country=ID&types=${types}&proximity=${center.lng},${center.lat}&access_token=${mapboxgl.accessToken}`;
                                 const gres = await fetch(gurl);
                                 if (gres.ok) {
                                     const gj = await gres.json();
