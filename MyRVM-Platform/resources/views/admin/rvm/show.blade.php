@@ -460,6 +460,9 @@
                         const id = item.getAttribute('data-mapbox-id');
                         if (!id) return;
                         try {
+                            // Close suggestions immediately for better UX
+                            hideSuggest();
+                            input.value = item.textContent || '';
                             const rurl = `https://api.mapbox.com/search/searchbox/v1/retrieve?mapbox_id=${encodeURIComponent(id)}&session_token=${sessionToken}&access_token=${mapboxgl.accessToken}`;
                             const rres = await fetch(rurl);
                             const rdata = await rres.json();
@@ -472,10 +475,8 @@
                             map.flyTo({center: [lng, lat], zoom: 17});
                             marker.setLngLat([lng, lat]);
                             updateLatLng(lat, lng, feat);
-                            input.value = item.textContent || '';
-                            hideSuggest();
                             sessionToken = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now()+''+Math.random());
-                        } catch(_) {}
+                        } catch(err) { try { console.error('mapbox retrieve failed', err); } catch(_) {} }
                     };
                     sugg.onmousedown = handlePick;
                     sugg.onclick = handlePick;
