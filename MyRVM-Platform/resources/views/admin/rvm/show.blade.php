@@ -336,7 +336,18 @@
                                 @method('PUT')
                                 <div class="mb-3">
                                     <label for="searchPlace" class="form-label">Search place</label>
-                                    <input type="text" id="searchPlace" class="form-control" placeholder="Type place or address...">
+                                    <div class="position-relative">
+                                        <input type="text" id="searchPlace" class="form-control" placeholder="Type place or address..." autocomplete="off">
+                                        <div id="searchSuggestions" class="list-group position-absolute w-100" style="z-index: 1000; max-height: 240px; overflow:auto; display:none;"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Address (auto from search/pin)</label>
+                                    <input type="text" id="address" name="address" class="form-control" value="{{ $rvm->address }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Location Details (notes)</label>
+                                    <input type="text" id="location_description" name="location_description" class="form-control" value="{{ $rvm->location_description }}" placeholder="e.g., Lobby Building A, near elevator">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Latitude</label>
@@ -376,52 +387,123 @@
             zoom: 12
         });
         const marker = new mapboxgl.Marker({draggable: true}).setLngLat([centerLng, centerLat]).addTo(map);
-        function updateLatLng(lat, lng){
+        async function fetchAddressFromRetrieveOrReverse(lat, lng, retrieveFeature){
+            try {
+                let address = '';
+                if (retrieveFeature?.properties?.full_address) {
+                    address = retrieveFeature.properties.full_address;
+                } else if (retrieveFeature?.place_formatted) {
+                    address = retrieveFeature.place_formatted;
+                }
+                if (!address) {
+                    const rev = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&limit=1&language=id`);
+                    const rj = await rev.json();
+                    address = rj?.features?.[0]?.place_name || '';
+                }
+                const addrEl = document.getElementById('address');
+                if (addrEl && address) addrEl.value = address;
+            } catch(_) {}
+        }
+
+        function updateLatLng(lat, lng, retrieveFeature){
             const latEl = document.getElementById('latitude');
             const lngEl = document.getElementById('longitude');
             if (latEl) latEl.value = lat.toFixed(7);
             if (lngEl) lngEl.value = lng.toFixed(7);
             const link = document.getElementById('openInMaps');
             if (link) link.href = `https://www.google.com/maps?q=${lat},${lng}`;
+            fetchAddressFromRetrieveOrReverse(lat, lng, retrieveFeature);
         }
         marker.on('dragend', () => {
             const {lng, lat} = marker.getLngLat();
-            updateLatLng(lat, lng);
+            updateLatLng(lat, lng, null);
         });
         map.on('click', (e) => {
             marker.setLngLat(e.lngLat);
-            updateLatLng(e.lngLat.lat, e.lngLat.lng);
+            updateLatLng(e.lngLat.lat, e.lngLat.lng, null);
         });
 
         // Lightweight suggest using Mapbox Search Box API
         let typingTimer;
         const input = document.getElementById('searchPlace');
+        const sugg = document.getElementById('searchSuggestions');
+        function hideSuggest(){ if (sugg) { sugg.style.display='none'; sugg.innerHTML=''; } }
+        document.addEventListener('click', (e) => { if (!sugg.contains(e.target) && e.target!==input) hideSuggest(); });
         input && input.addEventListener('input', () => {
             clearTimeout(typingTimer);
             const q = input.value.trim();
             if (!q) return;
             typingTimer = setTimeout(async () => {
                 try {
-                    const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(q)}&language=id&access_token=${mapboxgl.accessToken}`;
+                    const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(q)}&language=id&limit=5&access_token=${mapboxgl.accessToken}`;
                     const res = await fetch(url);
                     const data = await res.json();
-                    const first = data?.suggestions?.[0];
-                    if (!first) return;
-                    const rurl = `https://api.mapbox.com/search/searchbox/v1/retrieve?mapbox_id=${encodeURIComponent(first.mapbox_id)}&access_token=${mapboxgl.accessToken}`;
-                    const rres = await fetch(rurl);
-                    const rdata = await rres.json();
-                    const feat = rdata?.features?.[0];
-                    if (!feat) return;
-                    const [lng, lat] = feat.geometry.coordinates;
-                    map.flyTo({center: [lng, lat], zoom: 17});
-                    marker.setLngLat([lng, lat]);
-                    updateLatLng(lat, lng);
+                    const suggestions = data?.suggestions || [];
+                    if (!sugg) return;
+                    if (!suggestions.length) { hideSuggest(); return; }
+                    sugg.innerHTML = '';
+                    suggestions.forEach(s => {
+                        const a = document.createElement('a');
+                        a.href = '#';
+                        a.className = 'list-group-item list-group-item-action';
+                        a.textContent = s.name || s.full_address || s.place_formatted || s.feature_name || 'Result';
+                        a.onclick = async (ev) => {
+                            ev.preventDefault();
+                            hideSuggest();
+                            const rurl = `https://api.mapbox.com/search/searchbox/v1/retrieve?mapbox_id=${encodeURIComponent(s.mapbox_id)}&access_token=${mapboxgl.accessToken}`;
+                            const rres = await fetch(rurl);
+                            const rdata = await rres.json();
+                            const feat = rdata?.features?.[0];
+                            if (!feat) return;
+                            const [lng, lat] = feat.geometry.coordinates;
+                            map.flyTo({center: [lng, lat], zoom: 17});
+                            marker.setLngLat([lng, lat]);
+                            updateLatLng(lat, lng, feat);
+                        };
+                        sugg.appendChild(a);
+                    });
+                    sugg.style.display = 'block';
                 } catch(e) { /* noop */ }
             }, 400);
         });
 
         // Initialize link
-        updateLatLng(centerLat, centerLng);
+        updateLatLng(centerLat, centerLng, null);
+
+        // Handle AJAX submit to avoid raw JSON page
+        const form = document.getElementById('rvmLocationForm');
+        form && form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = form.querySelector('button[type="submit"]');
+            const original = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+            try {
+                const payload = {
+                    latitude: parseFloat(document.getElementById('latitude').value || '0') || null,
+                    longitude: parseFloat(document.getElementById('longitude').value || '0') || null,
+                    address: document.getElementById('address').value || null,
+                    location_description: document.getElementById('location_description').value || null
+                };
+                const res = await fetch(form.getAttribute('action'), {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || data.success === false) {
+                    showAlert('danger', data.message || 'Failed to update RVM location');
+                } else {
+                    showAlert('success', 'Location updated successfully');
+                }
+            } catch(_) {
+                showAlert('danger', 'Network error while saving');
+            } finally {
+                btn.disabled = false; btn.innerHTML = original;
+            }
+        });
     });
     </script>
 </div>
