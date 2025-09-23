@@ -2,6 +2,11 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+// RVM Self APIs (API Key auth via header X-API-Key)
+Route::prefix('v2/rvm/self')->group(function () {
+    Route::post('/claim', [\App\Http\Controllers\Api\V2\RvmSelfController::class, 'claim']);
+    Route::patch('/update', [\App\Http\Controllers\Api\V2\RvmSelfController::class, 'update']);
+});
 use App\Http\Controllers\Api\V2\RvmSessionController;
 use App\Http\Controllers\Api\V2\AuthController;
 use App\Http\Controllers\Api\V2\DepositController;
