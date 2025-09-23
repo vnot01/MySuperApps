@@ -81,10 +81,10 @@ Route::middleware(['auth', 'verified']) // Anda bisa tambahkan 'role:...' di sin
 // RVM UI Routes (Public access for RVM displays)
 Route::get('/rvm-ui/{rvm}', [RvmUIController::class, 'show'])->name('rvm.ui');
 
-// Admin RVM Control Routes (Protected with authentication)
+// Admin RVM API Routes (Protected with authentication)
 Route::middleware(['auth:sanctum'])->group(function () {
-    // Admin RVM Management
-    Route::prefix('admin/rvm')->name('admin.rvm.')->group(function () {
+    // Admin RVM API Management
+    Route::prefix('api/admin/rvm')->name('api.admin.rvm.')->group(function () {
         Route::get('/list', [AdminRvmController::class, 'getRvmList'])->name('list');
         Route::get('/monitoring', [AdminRvmController::class, 'getRvmMonitoring'])->name('monitoring');
         Route::get('/{rvmId}/details', [AdminRvmController::class, 'getRvmDetails'])->name('details');
@@ -347,7 +347,7 @@ Route::post('/admin/rvm/debug', function(Illuminate\Http\Request $request) {
 });
 
 // Dashboard Data Route (Public access for dashboard display)
-Route::get('/admin/rvm-dashboard/data', [AdminRvmController::class, 'getRvmMonitoring'])->name('admin.rvm.dashboard.data');
+Route::get('/api/admin/rvm-dashboard/data', [AdminRvmController::class, 'getRvmMonitoring'])->name('api.admin.rvm.dashboard.data');
 
 // Test route to check if middleware is the issue
 Route::get('/test-remote', function() {

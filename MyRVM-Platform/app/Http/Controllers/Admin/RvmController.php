@@ -339,10 +339,44 @@ class RvmController extends Controller
             $query->latest()->limit(10);
         }])->findOrFail($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $rvm
-        ]);
+        // Get recent metrics for the RVM
+        $recentMetrics = \App\Models\ApplicationMetric::where('rvm_id', $id)
+            ->latest()
+            ->limit(10)
+            ->get();
+
+        // Get system metrics for the chart
+        $systemMetrics = \Illuminate\Support\Facades\DB::table('system_metrics')
+            ->where('rvm_id', $id)
+            ->latest('created_at')
+            ->limit(20)
+            ->get(['cpu_usage', 'memory_usage', 'disk_usage', 'uptime', 'created_at']);
+
+        // Get recent commands for the RVM
+        $recentCommands = \App\Models\RemoteCommand::where('rvm_id', $id)
+            ->latest()
+            ->limit(10)
+            ->get();
+
+        // Get last transactions with user information
+        $lastTransactions = \Illuminate\Support\Facades\DB::table('transactions')
+            ->join('users', 'transactions.user_id', '=', 'users.id')
+            ->select(
+                'transactions.id',
+                'transactions.user_id',
+                'transactions.type',
+                'transactions.amount',
+                'transactions.description',
+                'transactions.created_at',
+                'users.name as user_name',
+                'users.email as user_email',
+                'users.avatar as user_avatar'
+            )
+            ->latest('transactions.created_at')
+            ->limit(5)
+            ->get();
+
+        return view('admin.rvm.show', compact('rvm', 'recentMetrics', 'recentCommands', 'systemMetrics', 'lastTransactions'));
     }
 
     /**
