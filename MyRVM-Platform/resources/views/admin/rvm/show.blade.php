@@ -337,8 +337,8 @@
                         </button>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="mb-3">
+                <div class="card-body pt-4">
+                    <div class="mt-2 mb-3">
                         <mapbox-search-box id="mapbox-search-input" access-token="{{ env('MAPBOX_ACCESS_TOKEN') }}" options='{"language":"id","country":"ID"}'></mapbox-search-box>
                     </div>
                     <div id="mapbox-admin" style="width:100%; height:380px; border-radius: .5rem; overflow:hidden;"></div>
