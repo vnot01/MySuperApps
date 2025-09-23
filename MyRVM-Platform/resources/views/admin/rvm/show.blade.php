@@ -140,7 +140,7 @@
     </div>
 
     <!-- RVM Status and Last Transaction -->
-    <div class="row mb-5">
+    <div class="row mb-5" id="location-map">
         <!-- RVM Status Card -->
         <div class="col-md-6 mb-4">
             <div class="card shadow-sm border-0 h-100">

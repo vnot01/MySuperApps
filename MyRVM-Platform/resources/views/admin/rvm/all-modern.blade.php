@@ -221,8 +221,16 @@
                                 <i class="fas fa-ellipsis-v"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#" onclick="viewRVMDetails({{ $rvm->id }})"><i class="fas fa-eye"></i> View Details</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="editRVM({{ $rvm->id }})"><i class="fas fa-edit"></i> Edit RVM</a></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('admin.rvm.show', $rvm->id) }}">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('admin.rvm.show', $rvm->id) }}#location-map">
+                                        <i class="fas fa-edit"></i> Edit RVM
+                                    </a>
+                                </li>
                                 <li><a class="dropdown-item" href="#" onclick="pingRVM({{ $rvm->id }})"><i class="fas fa-wifi"></i> Ping RVM</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="syncTimezone({{ $rvm->id }})"><i class="fas fa-clock"></i> Sync Timezone</a></li>
                                 <li><a class="dropdown-item text-primary" href="#" onclick="showRemoteAccessModal({{ $rvm->id }})">
