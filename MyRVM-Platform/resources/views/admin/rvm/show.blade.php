@@ -394,8 +394,8 @@
                 let address = '';
                 if (retrieveFeature?.properties?.full_address) {
                     address = retrieveFeature.properties.full_address;
-                } else if (retrieveFeature?.place_formatted) {
-                    address = retrieveFeature.place_formatted;
+                } else if (retrieveFeature?.properties?.place_formatted) {
+                    address = retrieveFeature.properties.place_formatted;
                 }
                 if (!address) {
                     const rev = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&limit=1&language=id`);
