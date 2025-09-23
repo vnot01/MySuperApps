@@ -343,15 +343,13 @@
                     </div>
                     <div id="mapbox-admin" style="width:100%; height:380px; border-radius: .5rem; overflow:hidden;"></div>
                     <div class="mt-3 row g-2">
-                        <div class="col-sm-3">
-                            <label class="form-label">Latitude</label>
-                            <input id="latitude" class="form-control" type="text" value="{{ $rvm->latitude }}" readonly />
+                        <input id="latitude" name="latitude" type="hidden" value="{{ $rvm->latitude }}" />
+                        <input id="longitude" name="longitude" type="hidden" value="{{ $rvm->longitude }}" />
+                        <div class="col-md-8">
+                            <label class="form-label">Address</label>
+                            <input id="address" class="form-control" type="text" placeholder="Selected address will appear here" value="{{ $rvm->address }}" />
                         </div>
-                        <div class="col-sm-3">
-                            <label class="form-label">Longitude</label>
-                            <input id="longitude" class="form-control" type="text" value="{{ $rvm->longitude }}" readonly />
-                        </div>
-                        <div class="col-sm-6 d-flex align-items-end justify-content-end">
+                        <div class="col-md-4 d-flex align-items-end justify-content-end">
                             <button id="saveLocationBtn" class="btn btn-primary me-2">
                                 <i class="fas fa-save me-1"></i>Save Location
                             </button>
@@ -433,8 +431,14 @@ function showAlert(type, message) {
         zoom: {{ ($rvm->latitude && $rvm->longitude) ? 15 : 12 }}
     });
     map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'top-right');
-    const geolocate = new mapboxgl.GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: false });
+    const geolocate = new mapboxgl.GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: false, showUserLocation: true });
     map.addControl(geolocate, 'top-right');
+    geolocate.on('geolocate', (e) => {
+        const lat = e.coords.latitude; const lng = e.coords.longitude;
+        map.flyTo({ center: [lng, lat], zoom: 16 });
+        marker.setLngLat([lng, lat]);
+        updateLatLng(lat, lng);
+    });
     const marker = new mapboxgl.Marker({ draggable: true })
         .setLngLat([defaultLng, defaultLat])
         .addTo(map);
@@ -480,6 +484,9 @@ function showAlert(type, message) {
             map.flyTo({center:[lng,lat], zoom:17});
             marker.setLngLat([lng,lat]);
             updateLatLng(lat, lng);
+            const addr = (feat.properties && (feat.properties.full_address || feat.properties.name || feat.properties.place_formatted)) || '';
+            const addrEl = document.getElementById('address');
+            if(addrEl){ addrEl.value = addr; }
         });
     }
 
@@ -490,6 +497,7 @@ function showAlert(type, message) {
             const lngEl = document.getElementById('longitude');
             if(!latEl || !lngEl) return;
             const lat = latEl.value; const lng = lngEl.value;
+            const address = (document.getElementById('address') || {}).value || null;
             try{
                 const res = await fetch('{{ route('admin.rvm.update', $rvm->id) }}', {
                     method: 'PUT',
@@ -497,7 +505,7 @@ function showAlert(type, message) {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
-                    body: JSON.stringify({ latitude: lat, longitude: lng })
+                    body: JSON.stringify({ latitude: lat, longitude: lng, address: address })
                 });
                 const data = await res.json();
                 const ok = res.ok && data.success;
