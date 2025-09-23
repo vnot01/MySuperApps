@@ -20,15 +20,13 @@ class RvmSelfController extends Controller
         }
 
         $validated = $request->validate([
-            'rvm_id' => 'required|integer|exists:reverse_vending_machines,id',
             'device_name' => 'nullable|string|max:255',
             'software_version' => 'nullable|string|max:255',
             'timezone' => 'nullable|string|max:100',
         ]);
 
-        $rvm = ReverseVendingMachine::where('id', $validated['rvm_id'])
-            ->where('api_key', $apiKey)
-            ->first();
+        // Find RVM by API key only (pre-registered by admin)
+        $rvm = ReverseVendingMachine::where('api_key', $apiKey)->first();
 
         if (!$rvm) {
             return response()->json(['success' => false, 'message' => 'Invalid API key or RVM not found'], 401);
