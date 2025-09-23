@@ -491,10 +491,25 @@
                                     }
                                 }
                             }
-                            if (!feat || !feat.geometry || !feat.geometry.coordinates) return;
-                            const [lng, lat] = feat.geometry.coordinates;
+                            if (!feat) return;
+                            let lat, lng;
+                            const propCoords = feat.properties && feat.properties.coordinates;
+                            if (propCoords && typeof propCoords.latitude === 'number' && typeof propCoords.longitude === 'number') {
+                                lat = propCoords.latitude;
+                                lng = propCoords.longitude;
+                            } else if (feat.geometry && Array.isArray(feat.geometry.coordinates)) {
+                                const arr = feat.geometry.coordinates;
+                                lng = arr[0];
+                                lat = arr[1];
+                            } else {
+                                return;
+                            }
                             map.flyTo({center: [lng, lat], zoom: 17});
                             marker.setLngLat([lng, lat]);
+                            // Prefer full_address/place_formatted
+                            const addrEl = document.getElementById('address');
+                            const fullAddr = feat.properties?.full_address || feat.properties?.place_formatted || '';
+                            if (addrEl && fullAddr) addrEl.value = fullAddr;
                             updateLatLng(lat, lng, feat);
                             sessionToken = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now()+''+Math.random());
                         } catch(err) { try { console.error('mapbox retrieve/geocode failed', err); } catch(_) {} }
