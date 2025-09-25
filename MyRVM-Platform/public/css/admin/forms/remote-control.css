@@ -78,12 +78,22 @@
 
 .status-indicator.connected {
     background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
+    color: #28a745;
 }
 
 .status-indicator.disconnected {
     background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
+    color: #dc3545;
+}
+
+.status-badge.active {
+    background-color: #28a745;
+}
+.status-badge.maintenance {
+    background-color: #ffc107;
+}
+.status-badge.error {
+    background-color: #dc3545;
 }
 
 .connection-info {
@@ -111,7 +121,7 @@
 }
 
 .info-value {
-    color: #6b7280;
+    color: #6c757d;
     font-family: monospace;
 }
 

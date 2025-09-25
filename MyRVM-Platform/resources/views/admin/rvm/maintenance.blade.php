@@ -429,7 +429,13 @@ function pingRVM(rvmId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            updateMaintenanceConnectionStatus(rvmId, 'success', 'Connected');
+            const pingResult = data.data.ping_result;
+            // Check if it's a local connection
+            if (pingResult && (pingResult.is_local || pingResult.connection_status === 'local')) {
+                updateMaintenanceConnectionStatus(rvmId, 'warning', 'Local');
+            } else {
+                updateMaintenanceConnectionStatus(rvmId, 'success', 'Connected');
+            }
         } else {
             updateMaintenanceConnectionStatus(rvmId, 'danger', 'Disconnected');
         }
@@ -572,8 +578,33 @@ function setMaintenanceMode(rvmId, isMaintenance) {
 
     const action = isMaintenance ? 'enter' : 'exit';
     if (confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} maintenance mode for ${rvm.name}?`)) {
-        alert(`${action.charAt(0).toUpperCase() + action.slice(1)}ing maintenance mode for ${rvm.name}...`);
-        // Implementation for setting maintenance mode
+        // Show loading notification
+        showNotification(`${action.charAt(0).toUpperCase() + action.slice(1)}ing maintenance mode for ${rvm.name}...`, 'info');
+        
+        // Call API to toggle maintenance mode
+        fetch(`/admin/rvm/${rvmId}/toggle-maintenance`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                // Refresh the page to show updated status
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                showNotification(data.message || `Gagal ${action} maintenance mode`, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification(`Terjadi kesalahan saat ${action} maintenance mode`, 'error');
+        });
     }
 }
 
@@ -646,5 +677,26 @@ document.getElementById('globalTimezoneForm').addEventListener('submit', functio
         });
     }
 });
+
+// Show notification function
+function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'success' ? 'success' : type === 'info' ? 'info' : 'danger'} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
 </script>
 @endsection

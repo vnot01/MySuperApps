@@ -96,7 +96,7 @@
                         </div>
                         <div>
                             <h6 class="mb-0">Total RVMs</h6>
-                            <h4 class="mb-0 text-primary" id="total-rvm">{{ $rvms->count() }}</h4>
+                            <h4 class="mb-0 text-primary" id="total-rvm">{{ $statistics['total'] }}</h4>
                         </div>
                     </div>
                 </div>
@@ -115,7 +115,7 @@
                         </div>
                         <div>
                             <h6 class="mb-0">Active</h6>
-                            <h4 class="mb-0 text-success" id="active-rvm">{{ $rvms->where('status', 'active')->count() }}</h4>
+                            <h4 class="mb-0 text-success" id="active-rvm">{{ $statistics['active'] }}</h4>
                         </div>
                     </div>
                 </div>
@@ -134,7 +134,7 @@
                         </div>
                         <div>
                             <h6 class="mb-0">Timezone Synced</h6>
-                            <h4 class="mb-0 text-info" id="timezone-synced">{{ $rvms->whereNotNull('last_timezone_sync')->count() }}</h4>
+                            <h4 class="mb-0 text-info" id="timezone-synced">{{ $statistics['timezone_synced'] }}</h4>
                         </div>
                     </div>
                 </div>
@@ -153,7 +153,7 @@
                         </div>
                         <div>
                             <h6 class="mb-0">Needs Attention</h6>
-                            <h4 class="mb-0 text-warning" id="needs-attention">{{ $rvms->whereIn('status', ['error', 'maintenance'])->count() }}</h4>
+                            <h4 class="mb-0 text-warning" id="needs-attention">{{ $statistics['needs_attention'] }}</h4>
                         </div>
                     </div>
                 </div>
@@ -199,7 +199,7 @@
     <div class="row g-4 mb-4" id="rvm-cards-container">
         @foreach($rvms as $rvm)
         <div class="col-md-6 col-lg-4 col-xl-3">
-            <div class="card rvm-card border-0 shadow-sm h-100" data-rvm-id="{{ $rvm->id }}" data-status="{{ $rvm->status }}">
+            <div class="card rvm-card border-0 shadow-sm h-100" data-rvm-id="{{ $rvm->id }}" data-status="{{ $rvm->status_data['status'] }}">
                 <div class="card-body d-flex flex-column">
                     <!-- Card Header -->
                     <div class="d-flex justify-content-between align-items-start mb-3">
@@ -222,7 +222,6 @@
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="#" onclick="viewRVMDetails({{ $rvm->id }})"><i class="fas fa-eye"></i> View Details</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="editRVM({{ $rvm->id }})"><i class="fas fa-edit"></i> Edit RVM</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="pingRVM({{ $rvm->id }})"><i class="fas fa-wifi"></i> Ping RVM</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="syncTimezone({{ $rvm->id }})"><i class="fas fa-clock"></i> Sync Timezone</a></li>
                                 <li><a class="dropdown-item text-primary" href="#" onclick="showRemoteAccessModal({{ $rvm->id }})">
@@ -236,18 +235,8 @@
 
                     <!-- Status Indicator -->
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        @php
-                            $statusConfig = [
-                                'active' => ['class' => 'success', 'icon' => 'check-circle', 'text' => 'Active'],
-                                'inactive' => ['class' => 'secondary', 'icon' => 'pause-circle', 'text' => 'Inactive'],
-                                'maintenance' => ['class' => 'warning', 'icon' => 'wrench', 'text' => 'Maintenance'],
-                                'error' => ['class' => 'danger', 'icon' => 'exclamation-triangle', 'text' => 'Error'],
-                                'full' => ['class' => 'danger', 'icon' => 'exclamation-triangle', 'text' => 'Full']
-                            ];
-                            $config = $statusConfig[$rvm->status] ?? ['class' => 'secondary', 'icon' => 'question-circle', 'text' => 'Unknown'];
-                        @endphp
-                        <span class="text-capitalize text-{{ $config['class'] }}">
-                            <i class="fas fa-{{ $config['icon'] }} me-1"></i>{{ $config['text'] }}
+                        <span class="text-capitalize text-{{ $rvm->status_data['class'] }}">
+                            <i class="fas fa-{{ $rvm->status_data['icon'] }} me-1"></i>{{ $rvm->status_data['label'] }}
                         </span>
                         <div class="connection-indicator" id="connection-indicator-{{ $rvm->id }}">
                             <span class="connection-pulse unknown"></span>
@@ -510,24 +499,33 @@
         document.getElementById(`uptime-${rvmId}`).textContent = formatDuration(uptime);
 
         // Update connection status
-        updateConnectionStatus(rvmId, Math.random() > 0.2); // 80% chance connected
+        updateConnectionStatus(rvmId, Math.random() > 0.2 ? 'connected' : 'disconnected'); // 80% chance connected
     }
 
     // Update connection status
-    function updateConnectionStatus(rvmId, isConnected) {
+    function updateConnectionStatus(rvmId, status) {
         const indicator = document.getElementById(`connection-indicator-${rvmId}`);
         if (indicator) {
             const pulse = indicator.querySelector('.connection-pulse');
             const badge = indicator.querySelector('.badge');
             
-            if (isConnected) {
-                pulse.className = 'connection-pulse connected';
-                badge.className = 'badge bg-success';
-                badge.innerHTML = '<i class="fas fa-circle me-1"></i>Connected';
-            } else {
-                pulse.className = 'connection-pulse disconnected';
-                badge.className = 'badge bg-danger';
-                badge.innerHTML = '<i class="fas fa-circle me-1"></i>Disconnected';
+            switch (status) {
+                case 'connected':
+                    pulse.className = 'connection-pulse connected';
+                    badge.className = 'badge bg-success';
+                    badge.innerHTML = '<i class="fas fa-circle me-1"></i>Connected';
+                    break;
+                case 'local':
+                    pulse.className = 'connection-pulse local';
+                    badge.className = 'badge bg-warning';
+                    badge.innerHTML = '<i class="fas fa-home me-1"></i>Local';
+                    break;
+                case 'disconnected':
+                default:
+                    pulse.className = 'connection-pulse disconnected';
+                    badge.className = 'badge bg-danger';
+                    badge.innerHTML = '<i class="fas fa-circle me-1"></i>Disconnected';
+                    break;
             }
         }
     }
@@ -580,7 +578,7 @@
         modal.show();
     }
 
-    // Enter Maintenance Mode - Redirect to full page
+    // Enter Maintenance Mode - Redirect to full page (same as dashboard)
     function enterMaintenanceMode(rvmId) {
         // Close modal
         const modal = bootstrap.Modal.getInstance(document.getElementById('remoteAccessModal'));
@@ -592,11 +590,8 @@
 
     // Other RVM functions (placeholder implementations)
     function viewRVMDetails(rvmId) {
-        alert(`View details for RVM ${rvmId}`);
-    }
-
-    function editRVM(rvmId) {
-        alert(`Edit RVM ${rvmId}`);
+        // Navigate to RVM details page
+        window.location.href = `/admin/rvm/${rvmId}`;
     }
 
     function pingRVM(rvmId) {
@@ -696,5 +691,24 @@
             });
         }
     });
+
+    // Show notification function
+    function showNotification(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.parentNode.removeChild(alertDiv);
+            }
+        }, 5000);
+    }
     </script>
 @endsection

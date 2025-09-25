@@ -30,21 +30,25 @@ function createRvmCard(rvm) {
     col.className = 'col-md-6 col-lg-4';
     col.style.opacity = 0; // for animation
     
-    const statusInfo = {
-        active: { text: 'text-success', icon: 'fas fa-check-circle' },
-        inactive: { text: 'text-secondary', icon: 'fas fa-pause-circle' },
-        maintenance: { text: 'text-warning', icon: 'fas fa-tools' },
-        full: { text: 'text-danger', icon: 'fas fa-exclamation-triangle' },
-        error: { text: 'text-danger', icon: 'fas fa-times-circle' },
-        unknown: { text: 'text-muted', icon: 'fas fa-question-circle' }
-    }[rvm.calculated_status] || { text: 'text-muted', icon: 'fas fa-question-circle' };
+    const statusInfo = rvm.status_info && rvm.status_info.class ? rvm.status_info : {
+        class: 'secondary',
+        icon: 'fas fa-question-circle',
+        label: rvm.status || 'unknown',
+        color: '#6c757d'
+    };
+
+    const iconClass = (statusInfo.icon && statusInfo.icon.includes('fa-')) ? statusInfo.icon : `fas fa-${statusInfo.icon}`;
     
+    const connectionStatus = rvm.is_connected ? 
+        { color: '#10b981', pulseClass: 'pulse-green', icon: 'fas fa-wifi' } : 
+        { color: '#ef4444', pulseClass: 'pulse-red', icon: 'fas fa-wifi-slash' };
+
     col.innerHTML = `
-        <div class="card rvm-card ${rvm.calculated_status} border-0 shadow-sm h-100" data-rvm-id="${rvm.id}">
+        <div class="card rvm-card border-0 shadow-sm h-100" data-rvm-id="${rvm.id}">
             <div class="card-body p-4 d-flex flex-column">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div class="d-flex align-items-center">
-                        <div class="status-dot ${rvm.calculated_status} me-3"></div>
+                        <div class="status-dot me-3 ${connectionStatus.pulseClass}" style="background-color: ${connectionStatus.color};"></div>
                         <div>
                             <h6 class="card-title mb-1 fw-bold">${rvm.name}</h6>
                             <small class="text-muted">${rvm.location}</small>
@@ -62,13 +66,16 @@ function createRvmCard(rvm) {
                 </div>
                 <div class="mt-auto">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-capitalize ${statusInfo.text}"><i class="${statusInfo.icon} me-1"></i>${rvm.calculated_status}</span>
+                        <span class="text-capitalize fw-bold" style="color: ${statusInfo.color};"><i class="${iconClass} me-1"></i>${statusInfo.label || rvm.status}</span>
                         <span class="fw-bold">${rvm.capacity}% Full</span>
                     </div>
                     <div class="progress" style="height: 6px;">
-                        <div class="progress-bar ${rvm.capacity > 80 ? 'bg-danger' : rvm.capacity > 60 ? 'bg-warning' : 'bg-success'}" style="width: ${rvm.capacity}%"></div>
+                        <div class="progress-bar ${getCapacityProgressClass(rvm.capacity)}" style="width: ${rvm.capacity}%"></div>
                     </div>
-                    <small class="text-muted d-block mt-2"><i class="fas fa-clock me-1"></i>${rvm.last_seen}</small>
+                    <small class="text-muted d-block mt-2">
+                        <i class="${connectionStatus.icon} me-1"></i>
+                        <i class="fas fa-clock me-1"></i>${rvm.last_seen}
+                    </small>
                 </div>
             </div>
         </div>`;
@@ -593,40 +600,27 @@ function checkPortFromModal(rvmId) {
 }
 
 function openStatusModal(rvmId, rvmName) {
-    // Create modal HTML with dropdown
-    const modalHtml = `
-        <div class="modal fade" id="updateStatusModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">
-                            <i class="fas fa-edit me-2"></i>
-                            Update Status - ${rvmName}
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Select New Status:</label>
-                            <select class="form-select" id="statusSelect">
-                                <option value="">Choose status...</option>
-                                <option value="active">
-                                    <i class="fas fa-check-circle text-success"></i> Active
-                                </option>
-                                <option value="inactive">
-                                    <i class="fas fa-pause-circle text-secondary"></i> Inactive
-                                </option>
-                                <option value="maintenance">
-                                    <i class="fas fa-tools text-warning"></i> Maintenance
-                                </option>
-                                <option value="error">
-                                    <i class="fas fa-exclamation-triangle text-danger"></i> Error
-                                </option>
-                                <option value="full">
-                                    <i class="fas fa-exclamation-circle text-danger"></i> Full
-                                </option>
-                            </select>
+    // Load status configuration from backend
+    loadStatusConfiguration().then(statusConfig => {
+        // Create modal HTML with dynamic dropdown
+        const modalHtml = `
+            <div class="modal fade" id="updateStatusModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="fas fa-edit me-2"></i>
+                                Update Status - ${rvmName}
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Select New Status:</label>
+                                <select class="form-select" id="statusSelect">
+                                    ${generateStatusOptions(statusConfig)}
+                                </select>
+                            </div>
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle me-2"></i>
                             <strong>RVM ID:</strong> ${rvmId}<br>
@@ -733,4 +727,183 @@ function openStatusModal(rvmId, rvmName) {
     document.getElementById('updateStatusModal').addEventListener('hidden.bs.modal', function() {
         this.remove();
     });
+    
+    }).catch(error => {
+        console.error('Error loading status configuration:', error);
+        // Fallback to basic modal without dynamic options
+        createBasicStatusModal(rvmId, rvmName);
+    });
+}
+
+/**
+ * Load status configuration from backend
+ * @returns {Promise} Promise that resolves with status configuration
+ */
+function loadStatusConfiguration() {
+    return fetch('/admin/dashboard/status-config')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                return data.data;
+            } else {
+                throw new Error('Failed to load status configuration');
+            }
+        });
+}
+
+/**
+ * Generate status options HTML from configuration
+ * @param {Object} statusConfig - Status configuration object
+ * @returns {string} HTML string for status options
+ */
+function generateStatusOptions(statusConfig) {
+    let optionsHtml = '<option value="">Choose status...</option>';
+    
+    for (const [statusKey, statusInfo] of Object.entries(statusConfig.statuses)) {
+        optionsHtml += `
+            <option value="${statusKey}">
+                ${statusInfo.label}
+            </option>
+        `;
+    }
+    
+    return optionsHtml;
+}
+
+/**
+ * Create basic status modal as fallback
+ * @param {string} rvmId - RVM ID
+ * @param {string} rvmName - RVM name
+ */
+function createBasicStatusModal(rvmId, rvmName) {
+    const modalHtml = `
+        <div class="modal fade" id="updateStatusModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Status - ${rvmName}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="statusSelect" class="form-label">Select New Status:</label>
+                            <select class="form-select" id="statusSelect">
+                                <option value="">Choose status...</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="error">Error</option>
+                            </select>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>RVM ID:</strong> ${rvmId}<br>
+                            <strong>Current Status:</strong> <span id="currentStatus">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="updateStatusBtn" disabled>
+                            <i class="fas fa-save me-1"></i>Update Status
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('updateStatusModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to body and show
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('updateStatusModal'));
+    modal.show();
+    
+    // Set up basic event handlers (reuse existing logic)
+    setupBasicModalHandlers(rvmId, rvmName, modal);
+}
+
+/**
+ * Set up basic modal event handlers
+ * @param {string} rvmId - RVM ID
+ * @param {string} rvmName - RVM name
+ * @param {Object} modal - Bootstrap modal instance
+ */
+function setupBasicModalHandlers(rvmId, rvmName, modal) {
+    // Get current status
+    fetch(`/admin/rvm/${rvmId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const currentStatus = data.data.status;
+                document.getElementById('currentStatus').textContent = currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1);
+                document.getElementById('statusSelect').value = currentStatus;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching current status:', error);
+            document.getElementById('currentStatus').textContent = 'Unknown';
+        });
+    
+    // Handle dropdown change
+    document.getElementById('statusSelect').addEventListener('change', function() {
+        document.getElementById('updateStatusBtn').disabled = !this.value;
+    });
+    
+    // Handle update button click
+    document.getElementById('updateStatusBtn').addEventListener('click', function() {
+        const newStatus = document.getElementById('statusSelect').value;
+        if (!newStatus) {
+            alert('Please select a status');
+            return;
+        }
+        
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Updating...';
+        
+        fetch(`/admin/rvm/${rvmId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`✅ Status updated successfully!\n\n${rvmName} is now ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`);
+                modal.hide();
+                location.reload();
+            } else {
+                alert(`❌ Error updating status: ${data.message}`);
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-save me-1"></i>Update Status';
+            }
+        })
+        .catch(error => {
+            alert(`❌ Error: ${error.message}`);
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-save me-1"></i>Update Status';
+        });
+    });
+}
+
+/**
+ * Get Bootstrap progress bar class based on capacity percentage
+ * @param {number} capacity - Capacity percentage (0-100)
+ * @returns {string} Bootstrap progress bar class
+ */
+function getCapacityProgressClass(capacity) {
+    if (capacity > 80) {
+        return 'bg-danger';   // Red for high capacity
+    } else if (capacity > 60) {
+        return 'bg-warning';  // Yellow for medium capacity
+    } else {
+        return 'bg-success';  // Green for low capacity
+    }
 }

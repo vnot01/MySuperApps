@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\ReverseVendingMachine;
 use App\Models\TimezoneSyncLog;
 use App\Models\DeviceTimezone;
+use App\Helpers\RvmStatusHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
 
 class RvmController extends Controller
 {
@@ -22,29 +24,26 @@ class RvmController extends Controller
             $query->latest()->limit(1);
         }])->get();
 
-        // Calculate calculated_status for each RVM (consistent with Dashboard)
+        // Process RVM data with correct status logic using RvmStatusHelper
         $rvms = $rvms->map(function($rvm) {
-            $rvm->calculated_status = $this->calculateRvmStatus($rvm->capacity, $rvm->status);
+            $rvm->status_data = RvmStatusHelper::getStatusData($rvm);
             return $rvm;
         });
 
-        // Calculate statistics - consistent with Dashboard
-        $activeCount = $rvms->where('calculated_status', 'active')->count();
+        // Calculate statistics - consistent with Dashboard using RvmStatusHelper
+        $activeStatuses = RvmStatusHelper::getStatisticsConfig('active_statuses');
+        $activeCount = ReverseVendingMachine::whereIn('status', $activeStatuses)->count();
         
-        $timezoneSyncedCount = $rvms->filter(function($rvm) {
-            return $rvm->last_timezone_sync && 
-                   Carbon::parse($rvm->last_timezone_sync)->diffInHours(now()) < 24;
-        })->count();
+        $timezoneSyncedCount = ReverseVendingMachine::whereNotNull('last_timezone_sync')
+            ->where('last_timezone_sync', '>=', now()->subHours(24))
+            ->count();
 
-        $needsAttentionCount = $rvms->filter(function($rvm) {
-            return $rvm->calculated_status === 'error' || 
-                   $rvm->calculated_status === 'maintenance' ||
-                   $rvm->calculated_status === 'inactive' ||
-                   $rvm->calculated_status === 'full' ||
-                   !$rvm->timezone ||
-                   !$rvm->ip_address ||
-                   $rvm->ip_address === '0.0.0.0';
-        })->count();
+        $attentionStatuses = RvmStatusHelper::getStatisticsConfig('attention_statuses');
+        $needsAttentionCount = ReverseVendingMachine::whereIn('status', $attentionStatuses)
+            ->orWhereNull('timezone')
+            ->orWhereNull('ip_address')
+            ->orWhere('ip_address', '0.0.0.0')
+            ->count();
 
         // Prepare statistics data
         $statistics = [
@@ -63,7 +62,7 @@ class RvmController extends Controller
             ]);
         }
 
-        return view('admin.rvm.all-modern', compact('rvms', 'activeCount', 'timezoneSyncedCount', 'needsAttentionCount'));
+        return view('admin.rvm.all-modern', compact('rvms', 'statistics', 'activeCount', 'timezoneSyncedCount', 'needsAttentionCount'));
     }
 
     /**
@@ -75,18 +74,32 @@ class RvmController extends Controller
             $query->latest()->limit(1);
         }])->get();
 
-        // Calculate maintenance statistics
-        $timezoneIssuesCount = $rvms->filter(function($rvm) {
-            return !$rvm->timezone || 
-                   ($rvm->last_timezone_sync && 
-                    Carbon::parse($rvm->last_timezone_sync)->diffInHours(now()) > 24);
-        })->count();
+        // Process RVM data with correct status logic using RvmStatusHelper
+        $rvms = $rvms->map(function($rvm) {
+            $rvm->status_data = RvmStatusHelper::getStatusData($rvm);
+            return $rvm;
+        });
 
-        $connectionIssuesCount = $rvms->filter(function($rvm) {
-            return !$rvm->ip_address;
-        })->count();
+        // Calculate maintenance statistics using RvmStatusHelper for consistency
+        $attentionStatuses = RvmStatusHelper::getStatisticsConfig('attention_statuses');
+        $needsAttentionCount = ReverseVendingMachine::whereIn('status', $attentionStatuses)
+            ->orWhereNull('timezone')
+            ->orWhereNull('ip_address')
+            ->orWhere('ip_address', '0.0.0.0')
+            ->count();
 
-        return view('admin.rvm.maintenance', compact('rvms', 'timezoneIssuesCount', 'connectionIssuesCount'));
+        $timezoneIssuesCount = ReverseVendingMachine::whereNull('timezone')
+            ->orWhere(function($query) {
+                $query->whereNotNull('last_timezone_sync')
+                      ->where('last_timezone_sync', '<=', now()->subHours(24));
+            })
+            ->count();
+
+        $connectionIssuesCount = ReverseVendingMachine::whereNull('ip_address')
+            ->orWhere('ip_address', '0.0.0.0')
+            ->count();
+
+        return view('admin.rvm.maintenance', compact('rvms', 'needsAttentionCount', 'timezoneIssuesCount', 'connectionIssuesCount'));
     }
 
     /**
@@ -122,7 +135,7 @@ class RvmController extends Controller
                 'location' => $request->location,
                 'address' => $request->address,
                 'ip_address' => $request->ip_address,
-                'port' => $request->port ?? 5000,
+                'port' => $request->port ?? 5001,
                 'timezone' => $timezone,
                 'timezone_offset' => $this->getTimezoneOffset($timezone),
                 'status' => $status,
@@ -132,11 +145,7 @@ class RvmController extends Controller
                 'updated_at' => now()
             ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'RVM created successfully',
-                'data' => $rvm
-            ]);
+            return redirect()->route('admin.rvm.index')->with('success', 'RVM berhasil dibuat.');
 
         } catch (\Exception $e) {
             return response()->json([
@@ -164,10 +173,15 @@ class RvmController extends Controller
             // Use network health check (IP ping only, no port testing)
             $pingResult = $this->performNetworkHealthCheck($rvm->ip_address);
             
-            // Update last ping time
+            // Update last ping time and connection status
+            $connectionStatus = 'disconnected';
+            if ($pingResult['success']) {
+                $connectionStatus = isset($pingResult['connection_status']) ? $pingResult['connection_status'] : 'connected';
+            }
+            
             $rvm->update([
                 'last_ping' => now(),
-                'connection_status' => $pingResult['success'] ? 'connected' : 'disconnected'
+                'connection_status' => $connectionStatus
             ]);
 
             return response()->json([
@@ -342,6 +356,13 @@ class RvmController extends Controller
             $query->latest()->limit(10);
         }])->findOrFail($id);
 
+        // Get status data using the helper
+        $statusData = RvmStatusHelper::getStatusData($rvm);
+
+        // Calculate items needing attention for this specific RVM using the helper
+        $statusData['needs_attention'] = RvmStatusHelper::getAttentionItemsCount($rvm);
+        $rvm->status_data = $statusData;
+
         // Get recent metrics for the RVM
         $recentMetrics = \App\Models\ApplicationMetric::where('rvm_id', $id)
             ->latest()
@@ -419,11 +440,7 @@ class RvmController extends Controller
 
             $rvm->update($updateData);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'RVM updated successfully',
-                'data' => $rvm
-            ]);
+            return redirect()->route('admin.rvm.index')->with('success', 'RVM berhasil diperbarui.');
 
         } catch (\Exception $e) {
             return response()->json([
@@ -443,10 +460,7 @@ class RvmController extends Controller
         try {
             $rvm->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'RVM deleted successfully'
-            ]);
+            return redirect()->route('admin.rvm.index')->with('success', 'RVM berhasil dihapus.');
 
         } catch (\Exception $e) {
             return response()->json([
@@ -471,9 +485,11 @@ class RvmController extends Controller
             $responseTime = round((microtime(true) - $startTime) * 1000, 2);
             return [
                 'success' => true,
-                'message' => 'Dummy data - No actual connection test',
+                'message' => 'Local/Dummy IP - No actual connection test',
                 'response_time' => $responseTime,
                 'is_dummy' => true,
+                'is_local' => true,
+                'connection_status' => 'local',
                 'type' => 'network_health'
             ];
         }
@@ -559,9 +575,11 @@ class RvmController extends Controller
             $responseTime = round((microtime(true) - $startTime) * 1000, 2);
             return [
                 'success' => true,
-                'message' => 'Dummy data - No actual connection test',
+                'message' => 'Local/Dummy IP - No actual connection test',
                 'response_time' => $responseTime,
                 'is_dummy' => true,
+                'is_local' => true,
+                'connection_status' => 'local',
                 'type' => 'service_port'
             ];
         }
@@ -697,7 +715,7 @@ class RvmController extends Controller
         }
 
         $ipAddress = $request->ip_address;
-        $port = $request->port ?? 8000;
+        $port = $request->port ?? 8001;
 
         // Use network health check for connection testing
         $pingResult = $this->performNetworkHealthCheck($ipAddress);
@@ -726,14 +744,14 @@ class RvmController extends Controller
         }
 
         try {
-            $pingResult = $this->performPing($rvm->ip_address, $rvm->port ?? 8000);
+            $pingResult = $this->performPing($rvm->ip_address, $rvm->port ?? 8001);
 
             return response()->json([
                 'success' => $pingResult['success'],
                 'message' => $pingResult['message'],
                 'data' => [
                     'ip_address' => $rvm->ip_address,
-                    'port' => $rvm->port ?? 8000,
+                    'port' => $rvm->port ?? 8001,
                     'response_time' => $pingResult['response_time'] ?? null,
                     'ping_result' => $pingResult,
                     'type' => 'service_port'
@@ -748,25 +766,7 @@ class RvmController extends Controller
         }
     }
 
-    /**
-     * Calculate RVM status based on capacity and status (consistent with Dashboard)
-     */
-    private function calculateRvmStatus($capacity, $status)
-    {
-        // Jika ada status khusus (maintenance, inactive, error), gunakan itu
-        if (in_array($status, ['maintenance', 'inactive', 'error', 'unknown'])) {
-            return $status;
-        }
-        
-        // Hitung status berdasarkan kapasitas
-        if ($capacity >= 100) {
-            return 'full';
-        } elseif ($capacity >= 0) {
-            return 'active';
-        } else {
-            return 'unknown';
-        }
-    }
+
 
     /**
      * Generate API key for RVM
@@ -787,7 +787,7 @@ class RvmController extends Controller
             // Test connection to RVM-Jetson
             $rvmApiUrl = "http://{$rvm->ip_address}:5000/health";
             
-            $response = \Http::timeout(5)->get($rvmApiUrl);
+            $response = Http::timeout(5)->get($rvmApiUrl);
             
             if ($response->successful()) {
                 return response()->json([
@@ -854,5 +854,39 @@ class RvmController extends Controller
             'latestSoftwareUpdate',
             'activeAiModel'
         ));
+    }
+
+    /**
+     * Toggle maintenance mode for RVM
+     */
+    public function toggleMaintenanceMode(Request $request, $id)
+    {
+        $rvm = ReverseVendingMachine::findOrFail($id);
+
+        try {
+            // Toggle maintenance mode
+            $isCurrentlyInMaintenance = $rvm->special_status === 'maintenance';
+            
+            if ($isCurrentlyInMaintenance) {
+                // Exit maintenance mode - set special_status to null so calculated_status uses capacity
+                $rvm->update([
+                    'special_status' => null,
+                    'last_status_change' => now()
+                ]);
+                $message = 'RVM berhasil keluar dari Maintenance Mode';
+            } else {
+                // Enter maintenance mode
+                $rvm->update([
+                    'special_status' => 'maintenance',
+                    'last_status_change' => now()
+                ]);
+                $message = 'RVM berhasil masuk ke Maintenance Mode';
+            }
+
+            return response()->json(['success' => true, 'message' => $message]);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Gagal mengubah status maintenance: ' . $e->getMessage()], 500);
+        }
     }
 }

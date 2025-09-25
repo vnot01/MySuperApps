@@ -10,6 +10,8 @@ use App\Models\NetworkInformation;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class EnhancedMetricsController extends Controller
 {
@@ -253,9 +255,9 @@ class EnhancedMetricsController extends Controller
             }
             
             // Try to get metrics from RVM API
-            $rvmApiUrl = "http://{$rvm->ip_address}:8000/api/metrics";
+            $rvmApiUrl = "http://{$rvm->ip_address}:8001/api/metrics";
             
-            $response = \Http::timeout(10)->get($rvmApiUrl);
+            $response = Http::timeout(10)->get($rvmApiUrl);
             
             if ($response->successful()) {
                 $data = $response->json();

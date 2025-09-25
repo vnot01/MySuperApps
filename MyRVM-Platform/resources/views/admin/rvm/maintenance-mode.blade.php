@@ -246,14 +246,20 @@
                 <p class="subtitle mb-0">
                     Advanced monitoring and control for <strong>{{ $rvm->name }}</strong>
                 </p>
-                <div class="maintenance-status-badge">
+                <div class="maintenance-status-badge" id="maintenance-status-badge">
                     <i class="fas fa-circle me-2"></i>
                     <span class="real-time-indicator"></span>
-                    MAINTENANCE MODE ACTIVE
+                    <span id="maintenance-status-text">
+                        @if($rvm->special_status === 'maintenance')
+                            MAINTENANCE MODE ACTIVE
+                        @else
+                            MAINTENANCE MODE INACTIVE
+                        @endif
+                    </span>
                 </div>
             </div>
             <div class="col-md-4 text-end">
-                <div class="text-white">
+                <div class="text-white mb-3">
                     <h5>RVM ID: {{ $rvm->id }}</h5>
                     <p class="mb-0">Location: {{ $rvm->location ?? 'Not Set' }}</p>
                     <p class="mb-0">IP: {{ $rvm->ip_address ?? 'Not Set' }}</p>
@@ -489,23 +495,40 @@
         <div class="col-md-6">
             <div class="card ota-card">
                 <div class="card-header">
-                    <h5 class="mb-0">
+                    <h5 class="mb-0 text-white">
                         <i class="fas fa-info-circle me-2"></i>
                         Current Status
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="update-item">
-                        <h6>Software Version</h6>
-                        <p class="mb-0">{{ $latestSoftwareUpdate ? $latestSoftwareUpdate->current_version : 'Unknown' }}</p>
+                        <h6 class="text-white">Software Version</h6>
+                        <p class="mb-0 text-white" id="ota-software-version">
+                            <span class="text-white">Loading...</span>
+                            <i class="fas fa-spinner fa-spin ms-2"></i>
+                        </p>
                     </div>
                     <div class="update-item">
-                        <h6>Active AI Model</h6>
-                        <p class="mb-0">{{ $activeAiModel ? $activeAiModel->model_name : 'None' }} (v{{ $activeAiModel ? $activeAiModel->model_version : 'N/A' }})</p>
+                        <h6 class="text-white">Active AI Model</h6>
+                        <p class="mb-0 text-white" id="ota-ai-model">
+                            <span class="text-white">Loading...</span>
+                            <i class="fas fa-spinner fa-spin ms-2"></i>
+                        </p>
                     </div>
                     <div class="update-item">
-                        <h6>Last Update</h6>
-                        <p class="mb-0">{{ $latestSoftwareUpdate && $latestSoftwareUpdate->completed_at ? $latestSoftwareUpdate->completed_at->format('Y-m-d H:i:s') : 'Never' }}</p>
+                        <h6 class="text-white">Last Update</h6>
+                        <p class="mb-0 text-white" id="ota-last-update">
+                            <span class="text-white">Loading...</span>
+                            <i class="fas fa-spinner fa-spin ms-2"></i>
+                        </p>
+                    </div>
+                    <div class="update-item">
+                        <h6 class="text-white">Data Source</h6>
+                        <p class="mb-0">
+                            <span class="badge bg-success" id="ota-data-source">
+                                <i class="fas fa-wifi me-1"></i>Real-time API
+                            </span>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -515,22 +538,40 @@
         <div class="col-md-6">
             <div class="card ota-card">
                 <div class="card-header">
-                    <h5 class="mb-0">
+                    <h5 class="mb-0 text-white">
                         <i class="fab fa-github me-2"></i>
                         GitHub Update
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="update-item">
-                        <h6>Pull Latest Changes</h6>
-                        <p class="mb-3">Execute git pull to get latest software updates, AI models, and configurations from GitHub repository.</p>
+                        <h6 class="text-white">Pull Latest Changes</h6>
+                        <p class="mb-3 text-white">Execute git pull to get latest software updates, AI models, and configurations from GitHub repository.</p>
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle me-2"></i>
                             <strong>Note:</strong> This will pull the latest changes from the main branch and restart services if needed.
                         </div>
-                        <button class="btn btn-light btn-lg w-100" onclick="executeGitPull()">
+                        <button class="btn btn-light btn-lg w-100" id="git-pull-btn" onclick="executeGitPull()">
                             <i class="fab fa-github me-2"></i>Execute Git Pull
                         </button>
+                        
+                        <!-- Progress Bar (Hidden by default) -->
+                        <div class="mt-3" id="git-pull-progress" style="display: none;">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="small text-white">Git Pull Progress</span>
+                                <span class="small text-white" id="git-pull-status">Initializing...</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     role="progressbar" 
+                                     id="git-pull-progress-bar"
+                                     style="width: 0%">
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-white" id="git-pull-details">Preparing to pull latest changes...</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -564,13 +605,20 @@
     let metricsRefreshInterval;
     let terminalHistory = [];
     let terminalHistoryIndex = -1;
+    let otaPollingInterval = null;
 
     // Initialize Maintenance Mode
     document.addEventListener('DOMContentLoaded', function() {
         console.log('Maintenance Mode initialized for RVM:', window.maintenanceModeData.rvmId);
         
+        // Auto-activate maintenance mode if not already active
+        autoActivateMaintenanceMode();
+        
         // Start real-time metrics refresh
         startMetricsRefresh();
+        
+        // Load OTA data from metrics API
+        loadOTAData();
         
         // Initialize terminal
         initializeTerminal();
@@ -589,6 +637,53 @@
         }
     });
 
+    // Auto-activate maintenance mode if not already active
+    function autoActivateMaintenanceMode() {
+        const currentStatus = '{{ $rvm->special_status }}';
+        
+        if (currentStatus !== 'maintenance') {
+            console.log('Auto-activating maintenance mode for RVM:', window.maintenanceModeData.rvmId);
+            
+            // Call API to activate maintenance mode
+            fetch(`/admin/rvm/${window.maintenanceModeData.rvmId}/toggle-maintenance`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': window.maintenanceModeData.csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Maintenance mode activated successfully');
+                    // Update status display
+                    updateMaintenanceStatusDisplay(true);
+                } else {
+                    console.error('Failed to activate maintenance mode:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error activating maintenance mode:', error);
+            });
+        }
+    }
+
+    // Update maintenance status display
+    function updateMaintenanceStatusDisplay(isActive) {
+        const statusText = document.getElementById('maintenance-status-text');
+        const statusBadge = document.getElementById('maintenance-status-badge');
+        
+        if (isActive) {
+            statusText.textContent = 'MAINTENANCE MODE ACTIVE';
+            statusBadge.style.background = 'rgba(255, 255, 255, 0.2)';
+            statusBadge.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+        } else {
+            statusText.textContent = 'MAINTENANCE MODE INACTIVE';
+            statusBadge.style.background = 'rgba(255, 255, 255, 0.1)';
+            statusBadge.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+        }
+    }
+
     // Start real-time metrics refresh
     function startMetricsRefresh() {
         // Initial load
@@ -602,7 +697,7 @@
     
     // Refresh metrics using Enhanced Metrics Controller
     function refreshMetrics() {
-        fetch(`/admin/rvm/${window.maintenanceModeData.rvmId}/metrics`, {
+        fetch(`/admin/rvm/${window.maintenanceModeData.rvmId}/enhanced-metrics`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -646,7 +741,11 @@
         // Update Application Status metrics
         if (metrics.application) {
             document.getElementById('software-version').textContent = metrics.application.software_version;
-            document.getElementById('ai-model-version').textContent = metrics.application.ai_model_version;
+            
+            // Handle AI Model Version with consistent translation
+            const aiModelVersion = metrics.application.ai_model_version === 'not_found' ? 'Model tidak ditemukan' : metrics.application.ai_model_version;
+            document.getElementById('ai-model-version').textContent = aiModelVersion;
+            
             document.getElementById('uptime').textContent = formatUptime(metrics.application.uptime_seconds);
             document.getElementById('deposits-today').textContent = metrics.application.deposit_count_since_restart;
             document.getElementById('error-count').textContent = metrics.application.error_count;
@@ -1021,16 +1120,282 @@
         });
     }
 
+    // Show notification
+    function showNotification(message, type) {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 5000);
+    }
+
     // Exit maintenance mode
     function exitMaintenanceMode() {
         if (confirm('Are you sure you want to exit Maintenance Mode? This will restore normal RVM operations.')) {
-            // Stop metrics refresh
-            if (metricsRefreshInterval) {
-                clearInterval(metricsRefreshInterval);
-            }
+            // Show loading state
+            showNotification('Keluar dari Maintenance Mode...', 'info');
             
-            // Redirect back to RVM management
-            window.location.href = '/admin/rvm';
+            // Call API to toggle maintenance mode
+            fetch(`/admin/rvm/{{ $rvm->id }}/toggle-maintenance`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    
+                    // Stop metrics refresh
+                    if (metricsRefreshInterval) {
+                        clearInterval(metricsRefreshInterval);
+                    }
+                    
+                    // Redirect back to RVM management after successful API call
+                    setTimeout(() => {
+                        window.location.href = '/admin/rvm';
+                    }, 1000);
+                } else {
+                    showNotification(data.message || 'Gagal keluar dari Maintenance Mode', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Terjadi kesalahan saat keluar dari Maintenance Mode', 'error');
+            });
+        }
+    }
+
+    // Load OTA data from metrics API
+    function loadOTAData() {
+        fetch(`/api/v2/rvms/{{ $rvm->id }}/metrics/latest`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data) {
+                    const metrics = data.data;
+                    
+                    // Update Software Version
+                    const softwareVersionElement = document.getElementById('ota-software-version');
+                    if (softwareVersionElement && metrics.application && metrics.application.software_version) {
+                        softwareVersionElement.innerHTML = `<span class="text-white fw-bold">${metrics.application.software_version}</span>`;
+                    }
+                    
+                    // Update Active AI Model
+                    const aiModelElement = document.getElementById('ota-ai-model');
+                    if (aiModelElement && metrics.application && metrics.application.ai_model_version) {
+                        const aiModel = metrics.application.ai_model_version === 'not_found' ? 'Model tidak ditemukan' : metrics.application.ai_model_version;
+                        aiModelElement.innerHTML = `<span class="text-white fw-bold">${aiModel}</span>`;
+                    }
+                    
+                    // Update Last Update (using application recorded_at or system timestamp)
+                    const lastUpdateElement = document.getElementById('ota-last-update');
+                    if (lastUpdateElement) {
+                        const updateTime = metrics.application?.recorded_at || metrics.system?.created_at || metrics.timestamp;
+                        if (updateTime) {
+                            const updateDate = new Date(updateTime);
+                            lastUpdateElement.innerHTML = `<span class="text-white fw-bold">${updateDate.toLocaleString('id-ID')}</span>`;
+                        }
+                    }
+                    
+                    // Update data source badge
+                    const dataBadge = document.getElementById('ota-data-source');
+                    if (dataBadge) {
+                        dataBadge.innerHTML = '<i class="fas fa-wifi me-1"></i>Real-time API';
+                        dataBadge.className = 'badge bg-success';
+                    }
+                } else {
+                    console.warn('No metrics data available, keeping loading state');
+                    // Show error state
+                    updateOTAErrorState();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading OTA data:', error);
+                updateOTAErrorState();
+            });
+    }
+
+    // Update OTA elements to show error state
+    function updateOTAErrorState() {
+        const elements = ['ota-software-version', 'ota-ai-model', 'ota-last-update'];
+        elements.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.innerHTML = '<span class="text-warning">Data tidak tersedia</span>';
+            }
+        });
+        
+        const dataBadge = document.getElementById('ota-data-source');
+        if (dataBadge) {
+            dataBadge.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>API Error';
+            dataBadge.className = 'badge bg-warning';
+        }
+    }
+
+    // Execute Git Pull with progress tracking
+    function executeGitPull() {
+        const button = document.getElementById('git-pull-btn');
+        const progressContainer = document.getElementById('git-pull-progress');
+        const progressBar = document.getElementById('git-pull-progress-bar');
+        const statusText = document.getElementById('git-pull-status');
+        const detailsText = document.getElementById('git-pull-details');
+        
+        // Disable button and show progress
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Executing...';
+        progressContainer.style.display = 'block';
+        
+        // Reset progress
+        progressBar.style.width = '10%';
+        statusText.textContent = 'Initializing...';
+        detailsText.textContent = 'Connecting to GitHub repository...';
+        
+        // Execute Git Pull
+        fetch('http://100.117.234.2:5001/ota/github/pull', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            progressBar.style.width = '30%';
+            statusText.textContent = 'Pull Initiated';
+            detailsText.textContent = 'Git pull command sent, monitoring status...';
+            
+            if (response.ok) {
+                // Start polling for status
+                startOTAPolling();
+            } else {
+                throw new Error('Failed to initiate git pull');
+            }
+        })
+        .catch(error => {
+            console.error('Git pull error:', error);
+            statusText.textContent = 'Error';
+            detailsText.textContent = 'Failed to execute git pull: ' + error.message;
+            progressBar.className = 'progress-bar bg-danger';
+            
+            // Re-enable button
+            setTimeout(() => {
+                resetGitPullUI();
+            }, 3000);
+        });
+    }
+
+    // Start polling OTA status
+    function startOTAPolling() {
+        const progressBar = document.getElementById('git-pull-progress-bar');
+        const statusText = document.getElementById('git-pull-status');
+        const detailsText = document.getElementById('git-pull-details');
+        
+        let pollCount = 0;
+        const maxPolls = 30; // Maximum 30 polls (30 seconds)
+        
+        otaPollingInterval = setInterval(() => {
+            pollCount++;
+            
+            fetch('http://100.117.234.2:5001/ota/status')
+                .then(response => response.json())
+                .then(data => {
+                    const progress = Math.min(30 + (pollCount * 2), 90);
+                    progressBar.style.width = progress + '%';
+                    
+                    if (data.status === 'completed') {
+                        // Success
+                        progressBar.style.width = '100%';
+                        progressBar.className = 'progress-bar bg-success';
+                        statusText.textContent = 'Completed';
+                        detailsText.textContent = 'Git pull completed successfully!';
+                        
+                        clearInterval(otaPollingInterval);
+                        
+                        // Show success notification
+                        showNotification('Git pull berhasil dijalankan!', 'success');
+                        
+                        // Reset UI after delay
+                        setTimeout(() => {
+                            resetGitPullUI();
+                            // Refresh OTA data
+                            loadOTAData();
+                        }, 3000);
+                        
+                    } else if (data.status === 'failed') {
+                        // Failed
+                        progressBar.className = 'progress-bar bg-danger';
+                        statusText.textContent = 'Failed';
+                        detailsText.textContent = data.message || 'Git pull failed';
+                        
+                        clearInterval(otaPollingInterval);
+                        
+                        setTimeout(() => {
+                            resetGitPullUI();
+                        }, 3000);
+                        
+                    } else if (data.status === 'running') {
+                        // Still running
+                        statusText.textContent = 'In Progress';
+                        detailsText.textContent = data.message || 'Git pull in progress...';
+                    }
+                    
+                    // Timeout after max polls
+                    if (pollCount >= maxPolls) {
+                        clearInterval(otaPollingInterval);
+                        statusText.textContent = 'Timeout';
+                        detailsText.textContent = 'Status check timed out';
+                        progressBar.className = 'progress-bar bg-warning';
+                        
+                        setTimeout(() => {
+                            resetGitPullUI();
+                        }, 3000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Polling error:', error);
+                    clearInterval(otaPollingInterval);
+                    
+                    statusText.textContent = 'Connection Error';
+                    detailsText.textContent = 'Unable to check status';
+                    progressBar.className = 'progress-bar bg-warning';
+                    
+                    setTimeout(() => {
+                        resetGitPullUI();
+                    }, 3000);
+                });
+        }, 1000); // Poll every second
+    }
+
+    // Reset Git Pull UI
+    function resetGitPullUI() {
+        const button = document.getElementById('git-pull-btn');
+        const progressContainer = document.getElementById('git-pull-progress');
+        const progressBar = document.getElementById('git-pull-progress-bar');
+        
+        button.disabled = false;
+        button.innerHTML = '<i class="fab fa-github me-2"></i>Execute Git Pull';
+        progressContainer.style.display = 'none';
+        
+        // Reset progress bar
+        progressBar.style.width = '0%';
+        progressBar.className = 'progress-bar progress-bar-striped progress-bar-animated';
+        
+        // Clear polling interval if exists
+        if (otaPollingInterval) {
+            clearInterval(otaPollingInterval);
+            otaPollingInterval = null;
         }
     }
 
@@ -1038,6 +1403,9 @@
     window.addEventListener('beforeunload', function() {
         if (metricsRefreshInterval) {
             clearInterval(metricsRefreshInterval);
+        }
+        if (otaPollingInterval) {
+            clearInterval(otaPollingInterval);
         }
     });
     </script>

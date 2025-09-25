@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ReverseVendingMachine;
+use App\Helpers\RvmStatusHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -12,12 +13,12 @@ class DashboardController extends Controller
     public function index()
     {
         // Mengambil data RVM dari database (sesuai dengan seeder)
-        $rvms = ReverseVendingMachine::select('id', 'name', 'location', 'location_description', 'capacity', 'status', 'updated_at', 'ip_address', 'port', 'timezone', 'last_timezone_sync', 'connection_status')
+        $rvms = ReverseVendingMachine::select('id', 'name', 'location', 'location_description', 'capacity', 'special_status', 'updated_at', 'ip_address', 'port', 'timezone', 'last_timezone_sync', 'connection_status', 'status')
             ->get()
             ->map(function ($rvm) {
-                // Hitung status berdasarkan kapasitas dan status khusus
-                $calculatedStatus = $this->calculateRvmStatus($rvm->capacity, $rvm->status);
-                
+                $rvm->status_data = RvmStatusHelper::getStatusData($rvm);
+                $rvm->calculated_status = $rvm->status_data['status']; // for backward compatibility if needed
+
                 // Use location if available, otherwise fallback to location_description
                 $location = $rvm->location ?? $rvm->location_description ?? 'Not Set';
                 
@@ -26,18 +27,22 @@ class DashboardController extends Controller
                     'name' => $rvm->name,
                     'location' => $location,
                     'capacity' => $rvm->capacity ?? 0,
-                    'calculated_status' => $calculatedStatus,
+                    'special_status' => $rvm->special_status,
+                    'status' => $rvm->status,
+                    'calculated_status' => $rvm->calculated_status,
                     'last_seen' => $rvm->updated_at ? $rvm->updated_at->format('H:i A') : 'Never',
                     'ip_address' => $rvm->ip_address ?? 'Not Set',
-                    'port' => $rvm->port ?? 8000,
+                    'port' => $rvm->port ?? 8001,
                     'timezone' => $rvm->timezone ?? 'Not Set',
                     'last_timezone_sync' => $rvm->last_timezone_sync,
                     'connection_status' => $rvm->connection_status ?? 'unknown',
-                    'processing_engines' => [] // Sementara kosong, bisa ditambahkan nanti
+                    'processing_engines' => [], // Sementara kosong, bisa ditambahkan nanti
+                    'status_info' => $rvm->status_data,
+                    'connection_config' => RvmStatusHelper::getConnectionStatusConfig($rvm->connection_status ?? 'unknown')
                 ];
             });
 
-        // Hitung statistik dari database
+        // Hitung statistik dari database menggunakan RvmStatusHelper
         $statistics = [
             'total_rvm' => ReverseVendingMachine::count(),
             'active_sessions' => $this->getActiveSessionsCount(),
@@ -73,27 +78,21 @@ class DashboardController extends Controller
             'display_timezone' => 'WIB'
         ];
 
-        return view('admin.dashboard.index', compact('rvms', 'statistics', 'trends', 'timezoneConfig', 'timezoneData'));
-    }
+        // Add status configurations for JavaScript
+        $statusConfigs = [
+            'statuses' => RvmStatusHelper::getAllStatusesForJs(),
+            'connection_statuses' => RvmStatusHelper::getAllConnectionStatusesForJs()
+        ];
 
-    private function calculateRvmStatus($capacity, $status)
-    {
-        // Prioritize database status over capacity-based calculation
-        // Only override if status is 'active' and capacity is 100%
-        if ($status === 'active' && $capacity >= 100) {
-            return 'full';
-        }
-        
-        // Use database status as primary source
-        return $status;
+        return view('admin.dashboard.index', compact('rvms', 'statistics', 'trends', 'timezoneConfig', 'timezoneData', 'statusConfigs'));
     }
 
     private function getActiveSessionsCount()
     {
-        // Hitung RVM yang aktif (status active dan kapasitas < 100)
-        return ReverseVendingMachine::where('status', 'active')
-            ->where('capacity', '<', 100)
-            ->count();
+        // Hitung RVM yang aktif menggunakan RvmStatusHelper
+        $activeStatuses = RvmStatusHelper::getStatisticsConfig('active_statuses');
+        
+        return ReverseVendingMachine::whereIn('status', $activeStatuses)->count();
     }
 
     private function getDepositsTodayCount()
@@ -106,9 +105,10 @@ class DashboardController extends Controller
 
     private function getTotalIssuesCount()
     {
-        // Hitung total issues berdasarkan status dari seeder
-        return ReverseVendingMachine::whereIn('status', ['error', 'maintenance', 'inactive'])
-            ->count();
+        // Hitung total issues menggunakan RvmStatusHelper
+        $attentionStatuses = RvmStatusHelper::getStatisticsConfig('attention_statuses');
+
+        return ReverseVendingMachine::whereIn('status', $attentionStatuses)->count();
     }
 
     /**
@@ -161,9 +161,9 @@ class DashboardController extends Controller
      */
     private function getActiveSessionsCount30DaysAgo()
     {
-        // Use RVM active count 30 days ago instead of sessions
-        return ReverseVendingMachine::where('status', 'active')
-            ->where('capacity', '<', 100)
+        $activeStatuses = RvmStatusHelper::getStatisticsConfig('active_statuses');
+
+        return ReverseVendingMachine::whereIn('status', $activeStatuses)
             ->where('updated_at', '<=', now()->subDays(30))
             ->count();
     }
@@ -184,7 +184,9 @@ class DashboardController extends Controller
      */
     private function getTotalIssuesCount30DaysAgo()
     {
-        return ReverseVendingMachine::whereIn('status', ['error', 'maintenance', 'inactive'])
+        $attentionStatuses = RvmStatusHelper::getStatisticsConfig('attention_statuses');
+
+        return ReverseVendingMachine::whereIn('status', $attentionStatuses)
             ->where('updated_at', '<=', now()->subDays(30))
             ->count();
     }
@@ -235,5 +237,20 @@ class DashboardController extends Controller
                 'recent_syncs' => collect()
             ];
         }
+    }
+
+    /**
+     * Get status configuration for JavaScript
+     */
+    public function getStatusConfig()
+    {
+        return response()->json([
+            'statuses' => RvmStatusHelper::getAllStatusConfigs(),
+            'connection_statuses' => RvmStatusHelper::getAllConnectionStatusConfigs(),
+            'capacity_thresholds' => config('rvm_status.capacity_thresholds', [
+                'warning' => 60,
+                'danger' => 80
+            ])
+        ]);
     }
 }

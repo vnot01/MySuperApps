@@ -45,9 +45,7 @@ Route::get('/', function () {
 // -------------------------
 
 // Rute dasbor user biasa (dari Breeze)
-Route::get('/dashboard', function () {
-    return view('admin.dashboard.index');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [AdminDashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 // Rute profil (dari Breeze)
 Route::middleware('auth')->group(function () {
@@ -248,6 +246,7 @@ Route::get('/admin/rvm-dashboard', function () {
 // New Dashboard Routes (Template Inheritance) - Protected with authentication
 Route::middleware(['auth', 'verified'])->prefix('admin/dashboard')->name('admin.dashboard.')->group(function () {
     Route::get('/', [AdminDashboardController::class, 'index'])->name('index');
+    Route::get('/status-config', [AdminDashboardController::class, 'getStatusConfig'])->name('status-config');
     Route::get('/live-camera', function () {
         return view('admin.dashboard.live-camera');
     })->name('live-camera');
@@ -306,22 +305,19 @@ Route::middleware(['auth', 'verified'])->prefix('admin/rvm')->name('admin.rvm.')
     Route::get('/{id}/command/{commandId}/status', [RemoteCommandsController::class, 'getCommandStatus'])->name('command-status');
     Route::put('/{id}/command/{commandId}/status', [RemoteCommandsController::class, 'updateCommandStatus'])->name('update-command-status');
     
-        // OTA Management Routes
-        Route::get('/{id}/ota-info', [OTAManagementController::class, 'index'])->name('ota-info');
-        Route::get('/{id}/check-updates', [OTAManagementController::class, 'checkForUpdates'])->name('check-updates');
-        
-        // Maintenance Mode Routes
-        Route::get('/{id}/maintenance-mode', [RvmController::class, 'maintenanceMode'])->name('maintenance-mode');
-        Route::get('/{id}/test-connection', [RvmController::class, 'testRvmConnection'])->name('test-connection');
-        
-        // Enhanced Metrics Routes
-        Route::get('/{id}/metrics', [EnhancedMetricsController::class, 'getComprehensiveMetrics'])->name('metrics');
-        Route::post('/{id}/metrics', [EnhancedMetricsController::class, 'storeMetrics'])->name('store-metrics');
-        
-        // Enhanced Remote Commands Routes
-        Route::post('/{id}/execute-command', [EnhancedRemoteCommandsController::class, 'executeCommand'])->name('execute-command');
-        Route::get('/{id}/command/{commandId}/status', [EnhancedRemoteCommandsController::class, 'getCommandStatus'])->name('command-status');
-        Route::get('/{id}/recent-commands', [EnhancedRemoteCommandsController::class, 'getRecentCommands'])->name('recent-commands');
+    // OTA Management Routes
+    Route::get('/{id}/ota-info', [OTAManagementController::class, 'index'])->name('ota-info');
+    Route::get('/{id}/check-updates', [OTAManagementController::class, 'checkForUpdates'])->name('check-updates');
+    
+    // Maintenance Mode Routes
+    Route::get('/{id}/maintenance-mode', [RvmController::class, 'maintenanceMode'])->name('maintenance-mode');
+    Route::post('/{id}/toggle-maintenance', [RvmController::class, 'toggleMaintenanceMode'])->name('toggle-maintenance');
+    Route::get('/{id}/test-connection', [RvmController::class, 'testRvmConnection'])->name('test-rvm-connection');
+    
+    // Enhanced Remote Commands Routes
+    Route::post('/{id}/enhanced-execute-command', [EnhancedRemoteCommandsController::class, 'executeCommand'])->name('enhanced-execute-command');
+    Route::get('/{id}/enhanced-command/{commandId}/status', [EnhancedRemoteCommandsController::class, 'getCommandStatus'])->name('enhanced-command-status');
+    Route::get('/{id}/recent-commands', [EnhancedRemoteCommandsController::class, 'getRecentCommands'])->name('recent-commands');
     
     // Backup Operations Routes
     Route::get('/{id}/backups', [BackupController::class, 'index'])->name('backups.index');

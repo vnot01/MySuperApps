@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use App\Helpers\RvmStatusHelper;
 
 class RemoteCommandsController extends Controller
 {
@@ -81,6 +82,21 @@ class RemoteCommandsController extends Controller
                 'command_name' => $request->command_name,
                 'executed_by' => $user->id
             ]);
+
+            // Update RVM status immediately for maintenance commands
+            if ($request->command_name === 'enter_maintenance') {
+                $statusData = RvmStatusHelper::getStatusData('maintenance');
+                $rvm->update([
+                    'status' => $statusData['status'],
+                    'status_updated_at' => now(),
+                ]);
+            } elseif ($request->command_name === 'exit_maintenance') {
+                $statusData = RvmStatusHelper::getStatusData('active');
+                $rvm->update([
+                    'status' => $statusData['status'],
+                    'status_updated_at' => now(),
+                ]);
+            }
             
             return response()->json([
                 'success' => true,

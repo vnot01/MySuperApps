@@ -646,9 +646,7 @@ function createRVMTableRow(rvm) {
         </td>
         <td>
             <div id="connection-${rvm.id}" class="connection-status">
-                <span class="badge bg-warning">
-                    <i class="fas fa-wifi"></i> Testing...
-                </span>
+                ${getConnectionStatusBadge(rvm.connection_status)}
             </div>
         </td>
         <td>
@@ -658,7 +656,6 @@ function createRVMTableRow(rvm) {
                 </button>
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="#" onclick="viewRVMDetails(${rvm.id})"><i class="fas fa-eye"></i> View Details</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="editRVM(${rvm.id})"><i class="fas fa-edit"></i> Edit RVM</a></li>
                     <li><a class="dropdown-item" href="#" onclick="pingRVM(${rvm.id})"><i class="fas fa-wifi"></i> Ping RVM</a></li>
                     <li><a class="dropdown-item" href="#" onclick="syncTimezone(${rvm.id})"><i class="fas fa-clock"></i> Sync Timezone</a></li>
                     <li><a class="dropdown-item" href="#" onclick="remoteAccess(${rvm.id})"><i class="fas fa-wrench"></i> Enter Maintenance Mode</a></li>
@@ -686,6 +683,19 @@ function getStatusClass(status) {
 function formatDate(dateString) {
     const date = new Date(dateString);
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+}
+
+function getConnectionStatusBadge(connectionStatus) {
+    switch(connectionStatus) {
+        case 'local':
+            return '<span class="badge bg-warning"><i class="fas fa-home"></i> Local</span>';
+        case 'connected':
+            return '<span class="badge bg-success"><i class="fas fa-wifi"></i> Connected</span>';
+        case 'disconnected':
+            return '<span class="badge bg-danger"><i class="fas fa-wifi-slash"></i> Disconnected</span>';
+        default:
+            return '<span class="badge bg-secondary"><i class="fas fa-question"></i> Unknown</span>';
+    }
 }
 
 // Test connection in modal
@@ -813,8 +823,13 @@ function pingRVM(rvmId) {
             const pingResult = data.data.ping_result;
             
             if (pingResult && pingResult.success) {
-                // Show successful connection
-                updateConnectionStatus(rvmId, 'success', 'Connected');
+                // Check if it's a local connection
+                if (pingResult.is_local || pingResult.connection_status === 'local') {
+                    updateConnectionStatus(rvmId, 'warning', 'Local');
+                } else {
+                    // Show successful connection
+                    updateConnectionStatus(rvmId, 'success', 'Connected');
+                }
                 
                 // Show detailed port information
                 if (pingResult.ports) {
@@ -843,16 +858,20 @@ function pingRVM(rvmId) {
 // Update connection status
 function updateConnectionStatus(rvmId, status, text) {
     const connectionElement = document.getElementById(`connection-${rvmId}`);
-    const statusConfig = {
-        'success': { class: 'success', icon: 'check-circle' },
-        'danger': { class: 'danger', icon: 'times-circle' },
-        'warning': { class: 'warning', icon: 'exclamation-triangle' },
-        'error': { class: 'secondary', icon: 'question-circle' }
-    };
     
-    const config = statusConfig[status] || statusConfig['error'];
-    connectionElement.innerHTML = `<i class="fas fa-${config.icon} me-1"></i>${text}`;
-    connectionElement.className = `badge bg-${config.class} me-2`;
+    // Use the same badge format as getConnectionStatusBadge
+    let badgeHtml;
+    if (text === 'Local') {
+        badgeHtml = '<span class="badge bg-warning"><i class="fas fa-home"></i> Local</span>';
+    } else if (text === 'Connected') {
+        badgeHtml = '<span class="badge bg-success"><i class="fas fa-wifi"></i> Connected</span>';
+    } else if (text === 'Disconnected' || text === 'Error') {
+        badgeHtml = '<span class="badge bg-danger"><i class="fas fa-wifi-slash"></i> Disconnected</span>';
+    } else {
+        badgeHtml = '<span class="badge bg-secondary"><i class="fas fa-question"></i> Unknown</span>';
+    }
+    
+    connectionElement.innerHTML = badgeHtml;
 }
 
 
@@ -1042,63 +1061,8 @@ document.getElementById('addRvmForm').addEventListener('submit', function(e) {
 
 // RVM Action Functions
 function viewRVMDetails(rvmId) {
-    // Fetch RVM details and show in modal
-    fetch(`/admin/rvm/${rvmId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const rvm = data.data;
-                const modalHtml = `
-                    <div class="modal fade" id="viewRvmModal" tabindex="-1">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">
-                                        <i class="fas fa-eye me-2"></i>
-                                        RVM Details - ${rvm.name}
-                                    </h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <h6>Basic Information</h6>
-                                            <p><strong>ID:</strong> ${rvm.id}</p>
-                                            <p><strong>Name:</strong> ${rvm.name}</p>
-                                            <p><strong>Location:</strong> ${rvm.location || 'Not Set'}</p>
-                                            <p><strong>Address:</strong> ${rvm.address || 'Not Set'}</p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <h6>Network & Status</h6>
-                                            <p><strong>IP Address:</strong> ${rvm.ip_address || 'Not Set'}</p>
-                                            <p><strong>Port:</strong> ${rvm.port || 8000}</p>
-                                            <p><strong>Status:</strong> <span class="badge bg-success">${rvm.status}</span></p>
-                                            <p><strong>Timezone:</strong> ${rvm.timezone || 'Not Set'}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                document.body.insertAdjacentHTML('beforeend', modalHtml);
-                const modal = new bootstrap.Modal(document.getElementById('viewRvmModal'));
-                modal.show();
-                
-                // Clean up modal after hiding
-                document.getElementById('viewRvmModal').addEventListener('hidden.bs.modal', function() {
-                    this.remove();
-                });
-            } else {
-                alert('Error loading RVM details: ' + data.message);
-            }
-        })
-        .catch(error => {
-            alert('Error: ' + error.message);
-        });
+    // Navigate to RVM details page
+    window.location.href = `/admin/rvm/${rvmId}`;
 }
 
 function editRVM(rvmId) {
@@ -1211,14 +1175,44 @@ function showRemoteAccessModal(rvmId) {
     modal.show();
 }
 
-// Enter Maintenance Mode - Redirect to full page
+// Enter Maintenance Mode - Call API to update special_status
 function enterMaintenanceMode(rvmId) {
+    // Show confirmation dialog
+    if (!confirm('Masuk ke Maintenance Mode? RVM akan tidak dapat digunakan sementara.')) {
+        return;
+    }
+    
     // Close modal
     const modal = bootstrap.Modal.getInstance(document.getElementById('remoteAccessModal'));
     modal.hide();
     
-    // Redirect to maintenance mode page
-    window.location.href = `/admin/rvm/${rvmId}/maintenance-mode`;
+    // Show loading state
+    showNotification('Memasuki Maintenance Mode...', 'info');
+    
+    // Call API to toggle maintenance mode
+    fetch(`/admin/rvm/${rvmId}/toggle-maintenance`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            // Redirect to maintenance mode page after successful API call
+            setTimeout(() => {
+                window.location.href = `/admin/rvm/${rvmId}/maintenance-mode`;
+            }, 1000);
+        } else {
+            showNotification(data.message || 'Gagal masuk ke Maintenance Mode', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Terjadi kesalahan saat masuk ke Maintenance Mode', 'error');
+    });
 }
 
 function startRemoteAccessFromModal(rvmId) {
@@ -1504,6 +1498,26 @@ function updateStatus(rvmId) {
     document.getElementById('updateStatusModal').addEventListener('hidden.bs.modal', function() {
         this.remove();
     });
+}
+
+// Show notification function
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
 }
 
 </script>

@@ -24,7 +24,7 @@ class ReverseVendingMachineSeeder extends Seeder
                 'location' => 'Jakarta Airport Terminal 1',
                 'address' => 'Soekarno-Hatta International Airport, Tangerang, Banten',
                 'ip_address' => '0.0.0.0', // Dummy data
-                'port' => 8000,
+                'port' => 8001,
                 'timezone' => 'Asia/Jakarta',
                 'timezone_offset' => '+07:00',
                 'status' => 'active',
@@ -40,7 +40,7 @@ class ReverseVendingMachineSeeder extends Seeder
                 'location' => 'Bandung City Center',
                 'address' => 'Jl. Asia Afrika, Bandung, Jawa Barat',
                 'ip_address' => '0.0.0.0', // Dummy data
-                'port' => 8000,
+                'port' => 8001,
                 'timezone' => 'Asia/Jakarta',
                 'timezone_offset' => '+07:00',
                 'status' => 'active',
@@ -56,7 +56,7 @@ class ReverseVendingMachineSeeder extends Seeder
                 'location' => 'Surabaya Mall',
                 'address' => 'Jl. Raya Darmo, Surabaya, Jawa Timur',
                 'ip_address' => '0.0.0.0', // Dummy data
-                'port' => 8000,
+                'port' => 8001,
                 'timezone' => 'Asia/Jakarta',
                 'timezone_offset' => '+07:00',
                 'status' => 'active',

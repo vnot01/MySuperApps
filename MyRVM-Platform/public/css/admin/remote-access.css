@@ -19,7 +19,7 @@
 }
 
 .remote-access-indicator.inactive {
-    color: #6c757d !important;
+    color: #dc3545 !important;
 }
 
 .connection-status {
@@ -126,7 +126,7 @@
 }
 
 .status-indicator.inactive {
-    background-color: #6c757d;
+    background-color: #dc3545;
 }
 
 .status-indicator.maintenance {
@@ -348,19 +348,19 @@
 
 .remote-access-status-badge.active {
     background-color: #d4edda;
-    color: #155724;
+    color: #28a745;
     border: 1px solid #c3e6cb;
 }
 
 .remote-access-status-badge.inactive {
-    background-color: #f8f9fa;
-    color: #6c757d;
-    border: 1px solid #e9ecef;
+    background-color: #f8d7da;
+    color: #dc3545;
+    border: 1px solid #f5c6cb;
 }
 
 .remote-access-status-badge.maintenance {
     background-color: #fff3cd;
-    color: #856404;
+    color: #ffc107;
     border: 1px solid #ffeaa7;
 }
 
@@ -521,6 +521,18 @@
 }
 
 .remote-access-text-warning {
+    color: #856404 !important;
+}
+
+.status-text.connected {
+    color: #28a745 !important;
+}
+
+.status-text.disconnected {
+    color: #dc3545 !important;
+}
+
+.status-text.maintenance {
     color: #ffc107 !important;
 }
 

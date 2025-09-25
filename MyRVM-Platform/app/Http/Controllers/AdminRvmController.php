@@ -7,6 +7,7 @@ use App\Models\RvmSession;
 use App\Events\RvmStatusUpdated;
 use App\Events\DashboardDataUpdated;
 use App\Helpers\TimezoneHelper;
+use App\Helpers\RvmStatusHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -28,16 +29,19 @@ class AdminRvmController extends Controller
      */
     public function dashboard()
     {
-        // Get all RVMs with their calculated status
+        // Get all RVMs with their calculated status using RvmStatusHelper
         $rvms = ReverseVendingMachine::all()->map(function ($rvm) {
+            // Calculate status using RvmStatusHelper for consistency
+            $calculatedStatus = RvmStatusHelper::calculateStatus($rvm->capacity, $rvm->special_status, $rvm->status);
+            
             return [
                 'id' => $rvm->id,
                 'name' => $rvm->name,
                 'location' => $rvm->location_description ?? 'Unknown Location',
                 'capacity' => $rvm->capacity ?? 0,
                 'special_status' => $rvm->special_status,
-                'calculated_status' => $rvm->calculated_status,
-                'status_info' => $rvm->status_info,
+                'calculated_status' => $calculatedStatus,
+                'status_info' => RvmStatusHelper::getStatusForJs($calculatedStatus),
                 'last_seen' => $rvm->last_capacity_update ? 
                     TimezoneHelper::formatTime($rvm->last_capacity_update) : 
                     TimezoneHelper::formatTime($rvm->updated_at),
@@ -48,7 +52,7 @@ class AdminRvmController extends Controller
             ];
         });
 
-        // Calculate statistics
+        // Calculate statistics using consistent status calculation
         $statistics = [
             'total_rvm' => $rvms->count(),
             'active_sessions' => $rvms->where('calculated_status', 'active')->count(),
@@ -365,16 +369,18 @@ class AdminRvmController extends Controller
             'last_status_change', 'last_capacity_update', 'created_at', 'updated_at'
         ])->get();
 
-        // Process RVM data with correct status logic
+        // Process RVM data with correct status logic using RvmStatusHelper
         $processedRvms = $rvms->map(function($rvm) {
+            $statusData = RvmStatusHelper::getStatusData($rvm);
+            
             return [
                 'id' => $rvm->id,
                 'name' => $rvm->name,
                 'location' => $rvm->location_description,
                 'capacity' => $rvm->capacity ?? 0,
-                'status' => $rvm->calculated_status,
+                'status' => $statusData['status'],
                 'special_status' => $rvm->special_status,
-                'status_info' => $rvm->status_info,
+                'status_info' => $statusData,
                 'last_seen' => $rvm->last_capacity_update ? 
                     TimezoneHelper::formatTime($rvm->last_capacity_update) : 
                     TimezoneHelper::formatTime($rvm->updated_at)

@@ -219,7 +219,7 @@
                     </div>
 
                     <!-- Timezone Sync Status -->
-                    <hr class="my-4">
+                    <!-- <hr class="my-4">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="d-flex align-items-center">
@@ -247,9 +247,9 @@
                                 @endif
                             </div>
                         </div>
-                    </div>
+                    </div> -->
 
-                    @if(isset($timezoneData) && $timezoneData['recent_syncs']->count() > 0)
+                    <!-- @if(isset($timezoneData) && $timezoneData['recent_syncs']->count() > 0)
                         <div class="mt-3">
                             <small class="text-muted d-block mb-2">Recent timezone syncs:</small>
                             <div class="row">
@@ -272,7 +272,7 @@
                                 </div>
                             </div>
                         </div>
-                    @endif
+                    @endif -->
                 </div>
             </div>
         </div>

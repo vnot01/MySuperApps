@@ -114,11 +114,11 @@ services:
     image: myrvm-platform-app:latest # Menggunakan image yang sama dengan 'app'
     container_name: myrvm_reverb_dev
     restart: unless-stopped
-    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    command: php artisan reverb:start --host=0.0.0.0 --port=81
     volumes:
       - ./:/var/www/html # Mount kode agar bisa membaca perubahan .env dan config
     ports:
-      - "8080:8080" # Map port Reverb ke host untuk debugging/koneksi langsung
+      - "81:81" # Map port Reverb ke host untuk debugging/koneksi langsung
     networks:
       - myrvm_network
     depends_on:

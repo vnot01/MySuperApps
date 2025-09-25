@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Helpers\RvmStatusHelper;
 use App\Http\Controllers\Controller;
 use App\Models\RemoteAccessSession;
 use App\Models\ReverseVendingMachine;
@@ -72,9 +73,10 @@ class RemoteAccessController extends Controller
                 'reason' => $request->reason ?? 'Remote access session started'
             ]);
 
-            // Update RVM status to maintenance
+            // Update RVM status to maintenance using the helper
+            $maintenanceStatusData = RvmStatusHelper::getStatusData($rvm, 'maintenance');
             $rvm->update([
-                'status' => 'maintenance',
+                'status' => $maintenanceStatusData['status'],
                 'updated_at' => now()
             ]);
 
@@ -149,9 +151,12 @@ class RemoteAccessController extends Controller
                 'reason' => $request->reason ?? 'Session completed'
             ]);
 
-            // Update RVM status back to active
+            // Determine the next status after maintenance
+            $activeStatusData = RvmStatusHelper::getStatusData($rvm, 'active');
+
+            // Update RVM status back to its calculated status
             $rvm->update([
-                'status' => 'active',
+                'status' => $activeStatusData['status'],
                 'updated_at' => now()
             ]);
 
@@ -184,6 +189,7 @@ class RemoteAccessController extends Controller
     {
         try {
             $rvm = ReverseVendingMachine::findOrFail($id);
+            $statusData = RvmStatusHelper::getStatusData($rvm);
             
             // Get active session
             $activeSession = RemoteAccessSession::where('rvm_id', $id)
@@ -204,7 +210,7 @@ class RemoteAccessController extends Controller
                 'data' => [
                     'rvm_id' => $rvm->id,
                     'rvm_name' => $rvm->name,
-                    'current_status' => $rvm->status,
+                    'current_status' => $statusData,
                     'active_session' => $activeSession ? [
                         'session_id' => $activeSession->id,
                         'admin_id' => $activeSession->admin_id,

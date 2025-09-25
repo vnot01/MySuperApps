@@ -142,7 +142,8 @@ class EnhancedMetricsManager {
         // AI Model Version
         const modelElement = document.getElementById('ai-model-version');
         if (modelElement) {
-            modelElement.textContent = appMetrics.ai_model_version || 'Unknown';
+            const aiModelVersion = appMetrics.ai_model_version === 'not_found' ? 'Model tidak ditemukan' : (appMetrics.ai_model_version || 'Unknown');
+            modelElement.textContent = aiModelVersion;
         }
         
         // AI Model Path
