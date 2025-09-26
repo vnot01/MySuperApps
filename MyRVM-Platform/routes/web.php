@@ -74,7 +74,7 @@ Route::middleware(['auth', 'verified']) // Anda bisa tambahkan 'role:...' di sin
         
         // ... (rute admin lainnya: users, tenants, dll.)
         Route::get('rvm/pulse-check/{rvm?}', [RvmController::class, 'manualPulseCheck'])->name('rvm.pulse-check.get');
-        Route::get('rvm/health-check/{rvm?}', [RvmController::class, 'manualHealthCheck'])->name('rvm.health-check');
+        Route::get('rvm/health-check/{rvm?}', [RvmController::class, 'manualHealthCheck'])->name('rvm.health-check.get');
     });
 
 
