@@ -14,7 +14,7 @@ class GeminiVisionService
 
     public function __construct()
     {
-        $this->apiKey = config('services.gemini.api_key', env('GOOGLE_API_KEY'));
+        $this->apiKey = config('services.gemini.api_key', env('GOOGLE_API_KEY')) ?? '';
         $this->config = GeminiConfig::getDefault();
     }
 

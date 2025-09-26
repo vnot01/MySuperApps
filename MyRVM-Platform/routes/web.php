@@ -270,7 +270,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin/dashboard')->name('admin.
     Route::get('/', [AdminDashboardController::class, 'index'])->name('index');
     Route::get('/status-config', [AdminDashboardController::class, 'getStatusConfig'])->name('status-config');
     Route::get('/live-camera', function () {
-        return view('admin.dashboard.live-camera');
+        return view('admin.dashboard.embedded-dashboard');
     })->name('live-camera');
     Route::get('/image-upload', function () {
         return view('admin.dashboard.image-upload');
