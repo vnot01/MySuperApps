@@ -205,24 +205,23 @@
 
             async loadRvmDevices() {
                 try {
-                    // Fetch RVM devices from API
-                    const response = await fetch('/api/v2/rvms');
-                    const result = await response.json();
+                    // Use hardcoded RVM data for now (since API requires authentication)
+                    const rvmDevices = [
+                        { id: 1, name: 'RVM-Jetson-Orin', ip: '100.117.234.2', port: '5000' },
+                        { id: 3, name: 'RVM-Test-Maintenance', ip: '192.168.1.100', port: '8001' }
+                    ];
                     
                     // Populate dropdown
                     this.rvmSelect.innerHTML = '<option value="">Choose RVM...</option>';
                     
-                    if (result.success && result.data && result.data.data) {
-                        result.data.data.forEach(rvm => {
-                            const option = document.createElement('option');
-                            option.value = rvm.id;
-                            option.textContent = `${rvm.name} (${rvm.ip_address}:${rvm.port})`;
-                            this.rvmSelect.appendChild(option);
-                        });
-                    } else {
-                        // If no devices found, show a message
-                        this.rvmSelect.innerHTML = '<option value="">No RVM devices available</option>';
-                    }
+                    rvmDevices.forEach(rvm => {
+                        const option = document.createElement('option');
+                        option.value = rvm.id;
+                        option.textContent = `${rvm.name} (${rvm.ip}:${rvm.port})`;
+                        option.dataset.ip = rvm.ip;
+                        option.dataset.port = rvm.port;
+                        this.rvmSelect.appendChild(option);
+                    });
                     
                 } catch (error) {
                     console.error('Error loading RVM devices:', error);
@@ -238,11 +237,11 @@
 
                 // Get RVM data from dropdown
                 const selectedOption = this.rvmSelect.options[this.rvmSelect.selectedIndex];
-                const rvmText = selectedOption.textContent;
-                const match = rvmText.match(/^(.+?)\s+\((.+?):(\d+)\)$/);
+                const name = selectedOption.textContent.split(' (')[0];
+                const ip = selectedOption.dataset.ip;
+                const port = selectedOption.dataset.port;
                 
-                if (match) {
-                    const [, name, ip, port] = match;
+                if (ip && port) {
                     this.currentRvm = { id: rvmId, name, ip, port };
                     this.updateDeviceInfo();
                     this.loadDashboard();
@@ -295,16 +294,18 @@
 
             async testConnection(url) {
                 try {
-                    const response = await fetch(url, { 
-                        method: 'HEAD',
-                        mode: 'no-cors',
-                        timeout: 5000
+                    // Create a simple image request to test connection
+                    return new Promise((resolve) => {
+                        const img = new Image();
+                        img.onload = () => resolve(true);
+                        img.onerror = () => resolve(false);
+                        img.src = url + '/favicon.ico?' + Date.now();
+                        
+                        // Timeout after 3 seconds
+                        setTimeout(() => resolve(false), 3000);
                     });
-                    return true;
                 } catch (error) {
-                    // For no-cors requests, we can't check the response
-                    // So we'll assume it's working and let the iframe handle it
-                    return true;
+                    return false;
                 }
             }
 
