@@ -236,7 +236,7 @@ class NotificationAutoRefresh {
                                 ${categoryBadge}
                             </div>
                             <div class="notification-actions">
-                                ${!notification.is_read ? '<span class="badge bg-primary">New</span>' : ''}
+                                ${!notification.is_read ? '<span class="ms-2 notification-dot" style="display: inline-block !important; width: 8px !important; height: 8px !important; background-color: #696cff !important; border-radius: 50% !important; position: absolute !important; right: 8px !important; top: 8px !important; z-index: 999 !important;"></span>' : ''}
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-text-secondary" type="button" data-bs-toggle="dropdown">
                                         <i class="fas fa-ellipsis-v"></i>

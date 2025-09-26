@@ -143,7 +143,7 @@
                                     </div>
                                     <div class="notification-actions">
                                         @if(!$notification->isRead())
-                                            <span class="badge bg-primary">New</span>
+                                            <span class="ms-2 notification-dot" style="display: inline-block !important; width: 8px !important; height: 8px !important; background-color: #696cff !important; border-radius: 50% !important; position: absolute !important; right: 8px !important; top: 8px !important; z-index: 999 !important;"></span>
                                         @endif
                                         <div class="dropdown">
                                             <button class="btn btn-sm btn-text-secondary" type="button" data-bs-toggle="dropdown">
