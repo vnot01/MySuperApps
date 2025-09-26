@@ -126,7 +126,9 @@
                                                         {{ $notification->title }}
                                                     </h6>
                                                     @if(!$notification->isRead())
-                                                        <span class="badge bg-primary rounded-pill ms-2" style="font-size: 0.45rem; padding: 0.15rem 0.35rem; line-height: 1; min-width: auto;">New</span>
+                                                        <span class="badge bg-primary rounded-pill ms-2 d-flex align-items-center justify-content-center" style="width: 12px; height: 12px; padding: 0; min-width: auto;">
+                                                            <i class="fas fa-circle" style="font-size: 0.3rem;"></i>
+                                                        </span>
                                                     @endif
                                                 </div>
                                                 <p class="mb-1 text-muted text-truncate" style="font-size: 0.6rem; line-height: 1.2;">
