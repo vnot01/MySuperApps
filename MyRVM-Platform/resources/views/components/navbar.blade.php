@@ -97,7 +97,7 @@
                         <li class="dropdown-notifications-list scrollable-container">
                             <ul class="list-group list-group-flush">
                                 @forelse($recentNotifications as $notification)
-                                    <li class="list-group-item list-group-item-action dropdown-notifications-item {{ !$notification->isRead() ? 'bg-light border-start border-primary border-3' : '' }} py-2">
+                                    <li class="list-group-item list-group-item-action dropdown-notifications-item {{ !$notification->isRead() ? 'bg-light border-start border-primary border-3' : '' }} py-2" style="position: relative;">
                                         <div class="d-flex align-items-start">
                                             <div class="flex-shrink-0 me-2">
                                                 <div class="avatar avatar-sm">
@@ -126,7 +126,7 @@
                                                         {{ $notification->title }}
                                                     </h6>
                                                     @if(!$notification->isRead())
-                                                        <span class="ms-2 notification-dot" style="display: inline-block !important; width: 8px !important; height: 8px !important; background-color: #696cff !important; border-radius: 50% !important; position: relative !important; z-index: 10 !important;"></span>
+                                                        <span class="ms-2 notification-dot" style="display: inline-block !important; width: 8px !important; height: 8px !important; background-color: #696cff !important; border-radius: 50% !important; position: absolute !important; right: 8px !important; top: 8px !important; z-index: 999 !important;"></span>
                                                     @endif
                                                 </div>
                                                 <p class="mb-1 text-muted text-truncate" style="font-size: 0.6rem; line-height: 1.2;">
