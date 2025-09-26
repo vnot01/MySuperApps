@@ -122,17 +122,17 @@
                                             </div>
                                             <div class="flex-grow-1 min-w-0">
                                                 <div class="d-flex justify-content-between align-items-start mb-1">
-                                                    <h6 class="mb-0 text-truncate {{ !$notification->isRead() ? 'fw-semibold' : 'fw-normal' }}" style="font-size: 0.7rem;">
+                                                    <h6 class="mb-0 text-truncate {{ !$notification->isRead() ? 'fw-semibold' : 'fw-normal' }}" style="font-size: 0.9rem;">
                                                         {{ $notification->title }}
                                                     </h6>
                                                     @if(!$notification->isRead())
                                                         <span class="ms-2 notification-dot" style="display: inline-block !important; width: 8px !important; height: 8px !important; background-color: #696cff !important; border-radius: 50% !important; position: absolute !important; right: 8px !important; top: 8px !important; z-index: 999 !important;"></span>
                                                     @endif
                                                 </div>
-                                                <p class="mb-1 text-muted text-truncate" style="font-size: 0.6rem; line-height: 1.2;">
+                                                <p class="mb-1 text-muted text-truncate" style="font-size: 0.8rem; line-height: 1.3;">
                                                     {{ Str::limit($notification->message, 50) }}
                                                 </p>
-                                                <small class="text-muted" style="font-size: 0.55rem;">
+                                                <small class="text-muted" style="font-size: 0.75rem;">
                                                     {{ $notification->created_at->diffForHumans() }}
                                                 </small>
                                             </div>

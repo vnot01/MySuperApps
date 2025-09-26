@@ -295,7 +295,7 @@
 
 /* Notification dropdown specific styling */
 .dropdown-notifications .dropdown-menu {
-    border: 1px solid #e9ecef;
+    border: 0px solid #e9ecef;
     border-radius: 8px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     padding: 0;

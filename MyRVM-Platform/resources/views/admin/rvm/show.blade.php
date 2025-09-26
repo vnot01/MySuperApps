@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard/animations.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard/responsive.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/remote-access.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/admin/rvm-modern.css') }}">
+    <!-- <link rel="stylesheet" href="{{ asset('css/admin/rvm-modern.css') }}"> -->
     <link href="https://api.tiles.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
     <script id="search-js" defer src="https://api.mapbox.com/search-js/v1.3.0/web.js">function copyToClipboard(text) {
     if (navigator.clipboard && window.isSecureContext) {

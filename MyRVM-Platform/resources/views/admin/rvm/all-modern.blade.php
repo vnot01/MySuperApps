@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard/animations.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard/responsive.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/remote-access.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/admin/rvm-modern.css') }}">
+    <!-- <link rel="stylesheet" href="{{ asset('css/admin/rvm-modern.css') }}"> -->
 @endsection
 
 @section('breadcrumb')
