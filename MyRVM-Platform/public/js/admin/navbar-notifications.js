@@ -112,7 +112,7 @@ class NavbarNotifications {
             const bgClass = notification.type === 'error' ? 'danger' : notification.type;
             
             return `
-                <li class="list-group-item list-group-item-action dropdown-notifications-item ${!notification.is_read ? 'bg-light' : ''}">
+                <li class="list-group-item list-group-item-action dropdown-notifications-item ${!notification.is_read ? 'bg-light' : ''}" style="position: relative;">
                     <div class="d-flex">
                         <div class="flex-shrink-0 me-3">
                             <div class="avatar">
@@ -126,7 +126,7 @@ class NavbarNotifications {
                             <p class="mb-0 text-muted small">${this.truncateText(notification.message, 60)}</p>
                             <small class="text-muted">${notification.created_at}</small>
                         </div>
-                        ${!notification.is_read ? '<span class="badge bg-primary badge-sm">New</span>' : ''}
+                        ${!notification.is_read ? '<span class="ms-2 notification-dot" style="display: inline-block !important; width: 8px !important; height: 8px !important; background-color: #696cff !important; border-radius: 50% !important; position: absolute !important; right: 8px !important; top: 8px !important; z-index: 999 !important;"></span>' : ''}
                     </div>
                 </li>
             `;
