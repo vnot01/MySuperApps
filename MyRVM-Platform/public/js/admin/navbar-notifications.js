@@ -99,44 +99,49 @@ class NavbarNotifications {
             dropdownList.innerHTML = `
                 <li class="list-group-item text-center py-4">
                     <div class="text-muted">
-                        <i class="fas fa-bell-slash fs-4 mb-2"></i>
-                        <p class="mb-0">No new notifications</p>
+                        <i class="fas fa-bell-slash fs-4 mb-2 opacity-50"></i>
+                        <p class="mb-0 small">No new notifications</p>
                     </div>
                 </li>
             `;
             return;
         }
 
+        // Use same structure as Blade template
         dropdownList.innerHTML = notifications.map(notification => {
             const iconClass = this.getNotificationIcon(notification.type);
             const bgClass = notification.type === 'error' ? 'danger' : notification.type;
             
             return `
-                <li class="list-group-item list-group-item-action dropdown-notifications-item ${!notification.is_read ? 'bg-light' : ''}" style="position: relative;">
-                    <div class="d-flex">
-                        <div class="flex-shrink-0 me-3">
-                            <div class="avatar">
-                                <span class="avatar-initial rounded-circle bg-label-${bgClass}">
-                                    <i class="${iconClass}"></i>
+                <li class="list-group-item list-group-item-action dropdown-notifications-item ${!notification.is_read ? 'bg-light border-start border-primary border-3' : ''} py-2" style="position: relative;">
+                    <div class="d-flex align-items-start">
+                        <div class="flex-shrink-0 me-2">
+                            <div class="avatar avatar-sm">
+                                <span class="avatar-initial rounded-circle bg-${bgClass} text-white">
+                                    <i class="${iconClass} fs-6"></i>
                                 </span>
                             </div>
                         </div>
-                        <div class="flex-grow-1">
-                            <h6 class="mb-1 ${!notification.is_read ? 'fw-bold' : ''}">${notification.title}</h6>
-                            <p class="mb-0 text-muted small">${this.truncateText(notification.message, 60)}</p>
-                            <small class="text-muted">${notification.created_at}</small>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h6 class="mb-0 text-truncate ${!notification.is_read ? 'fw-semibold' : 'fw-normal'}" style="font-size: 0.7rem;">
+                                    ${notification.title}
+                                </h6>
+                                ${!notification.is_read ? '<span class="ms-2 notification-dot" style="display: inline-block !important; width: 8px !important; height: 8px !important; background-color: #696cff !important; border-radius: 50% !important; position: absolute !important; right: 8px !important; top: 8px !important; z-index: 999 !important;"></span>' : ''}
+                            </div>
+                            <p class="mb-1 text-muted text-truncate" style="font-size: 0.6rem; line-height: 1.2;">
+                                ${this.truncateText(notification.message, 50)}
+                            </p>
+                            <small class="text-muted" style="font-size: 0.55rem;">
+                                ${notification.created_at}
+                            </small>
                         </div>
-                        ${!notification.is_read ? '<span class="ms-2 notification-dot" style="display: inline-block !important; width: 8px !important; height: 8px !important; background-color: #696cff !important; border-radius: 50% !important; position: absolute !important; right: 8px !important; top: 8px !important; z-index: 999 !important;"></span>' : ''}
                     </div>
                 </li>
             `;
         }).join('');
 
-        // Update "View all notifications" link
-        const viewAllLink = document.querySelector('.dropdown-menu-footer a');
-        if (viewAllLink) {
-            viewAllLink.href = '/admin/notifications';
-        }
+        // Footer "View all notifications" will remain because we only update the list content
     }
 
     getNotificationIcon(type) {

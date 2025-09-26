@@ -275,8 +275,8 @@
     border-radius: 6px;
 }
 
-/* Dropdown Styling */
-.dropdown-menu {
+/* Dropdown Styling - ONLY for general dropdowns, NOT notification dropdown */
+.dropdown-menu:not(.dropdown-notifications .dropdown-menu) {
     border: 1px solid #e9ecef;
     border-radius: 8px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
@@ -290,6 +290,37 @@
     max-height: 300px;
     overflow-y: auto;
     transform: translateY(5px) !important;
+}
+
+/* Notification dropdown specific styling */
+.dropdown-notifications .dropdown-menu {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 0;
+    z-index: 9999 !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: auto !important;
+    right: 0 !important;
+    min-width: 280px;
+    max-height: 450px;
+    transform: translateY(5px) !important;
+}
+
+/* Notification dropdown list with scroll */
+.dropdown-notifications .dropdown-notifications-list {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+/* Ensure footer is always visible */
+.dropdown-notifications .dropdown-menu-footer {
+    position: sticky;
+    bottom: 0;
+    background-color: white;
+    border-top: 1px solid #e9ecef;
+    z-index: 10;
 }
 
 .dropdown-item {
