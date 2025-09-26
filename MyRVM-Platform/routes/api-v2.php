@@ -73,6 +73,11 @@ Route::prefix('v2')->group(function () {
         Route::post('/compare-models', [GeminiVisionController::class, 'compareModels']);
     });
     
+    // Processing Engines Routes (Public for Testing)
+    Route::prefix('processing-engines')->group(function () {
+        Route::get('/', [ProcessingEngineController::class, 'index']);
+    });
+    
 });
 
 // Protected routes (authentication required)

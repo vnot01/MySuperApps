@@ -5,6 +5,10 @@
 
 @section('page-css')
     <link rel="stylesheet" href="{{ asset('css/admin/forms/live-camera.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/dashboard/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/dashboard/components.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/dashboard/animations.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/dashboard/responsive.css') }}">
 @endsection
 
 @section('breadcrumb')
@@ -68,13 +72,13 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
-                    <h6 class="mb-0">Jetson Selection</h6>
+                    <h6 class="mb-0">Selection Device</h6>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label class="form-label">Select Jetson Device</label>
+                        <label class="form-label">Select Device</label>
                         <select class="form-select" id="jetsonSelect">
-                            <option value="">Choose Jetson...</option>
+                            <option value="">Choose Device...</option>
                             <!-- Options will be populated dynamically -->
                         </select>
                     </div>

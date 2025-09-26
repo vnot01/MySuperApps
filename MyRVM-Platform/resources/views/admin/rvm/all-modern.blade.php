@@ -13,16 +13,16 @@
 @endsection
 
 @section('breadcrumb')
-    <li class="breadcrumb-item">
+    <!-- <li class="breadcrumb-item">
         <a href="{{ url('/admin/dashboard') }}">
             <i class="fas fa-home me-2"></i>Dashboard
         </a>
-    </li>
-    <li class="breadcrumb-item">
+    </li> -->
+    <!-- <li class="breadcrumb-item">
         <a href="javascript:void(0);">
             <i class="fas fa-recycle me-2"></i>RVM Management
         </a>
-    </li>
+    </li> -->
     <li class="breadcrumb-item active" aria-current="page">
         <i class="fas fa-list me-2"></i>All RVMs
     </li>

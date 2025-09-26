@@ -3,12 +3,14 @@
 @section('title', 'Notifications - MyRVM Platform')
 @section('description', 'Manage your notifications and alerts')
 
+@section('page-css')
+    <link rel="stylesheet" href="{{ asset('css/admin/dashboard/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/dashboard/components.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/dashboard/animations.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/dashboard/responsive.css') }}">
+@endsection
+
 @section('breadcrumb')
-    <li class="breadcrumb-item">
-        <a href="{{ url('/admin/dashboard') }}">
-            <i class="fas fa-home me-2"></i>Dashboard
-        </a>
-    </li>
     <li class="breadcrumb-item active" aria-current="page">
         <i class="fas fa-bell me-2"></i>Notifications
     </li>

@@ -34,25 +34,31 @@ class LiveCameraManager {
 
     async loadJetsonDevices() {
         try {
-            showLoading('Loading Jetson devices...');
+            showLoading('Loading devices...');
             
-            // Fetch Jetson devices from API
-            const response = await fetch('/api/v2/processing-engines/jetson-edge');
-            const engines = await response.json();
+            // Fetch processing engines from API (filter for jetson_edge type)
+            const response = await fetch('/api/v2/processing-engines?type=jetson_edge');
+            const result = await response.json();
             
             // Populate dropdown
-            this.jetsonSelect.innerHTML = '<option value="">Choose Jetson...</option>';
+            this.jetsonSelect.innerHTML = '<option value="">Choose Device...</option>';
             
-            engines.forEach(engine => {
-                const option = document.createElement('option');
-                option.value = engine.id;
-                option.textContent = `${engine.name} (${engine.server_address})`;
-                this.jetsonSelect.appendChild(option);
-            });
+            if (result.success && result.data && result.data.data) {
+                result.data.data.forEach(engine => {
+                    const option = document.createElement('option');
+                    option.value = engine.id;
+                    option.textContent = `${engine.name} (${engine.server_address}:${engine.port})`;
+                    this.jetsonSelect.appendChild(option);
+                });
+            } else {
+                // If no devices found, show a message
+                this.jetsonSelect.innerHTML = '<option value="">No devices available</option>';
+            }
             
         } catch (error) {
-            console.error('Error loading Jetson devices:', error);
-            showError('Failed to load Jetson devices');
+            console.error('Error loading devices:', error);
+            showError('Failed to load devices');
+            this.jetsonSelect.innerHTML = '<option value="">Error loading devices</option>';
         } finally {
             hideLoading();
         }
