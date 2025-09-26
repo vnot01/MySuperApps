@@ -25,6 +25,7 @@ let refreshIntervalTimer = null;
 let rvmStatusChanges = {}; // Store RVM status changes
 let currentPage = 1;
 let itemsPerPage = 12;
+let realTimeNotifications = null; // Real-time notification handler
 
 // --- Core UI Functions ---
 
@@ -88,6 +89,7 @@ async function initializeDashboard() {
         await Promise.all([
             initializeStatusChart(),
             setupEventListeners(),
+            initializeRealTimeNotifications(),
         ]);
         
         await loadMonitoringData();
@@ -107,13 +109,23 @@ async function loadMonitoringData() {
         
         console.log('Loading monitoring data from server...');
         
-        // Use server data instead of mock data
-        const serverMonitoringData = {
-            rvms: serverData.rvms,
-            statistics: serverData.statistics
-        };
+        // Fetch fresh data from server via AJAX
+        const response = await fetch(window.location.pathname, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': config.csrfToken
+            }
+        });
         
-        console.log('Server data loaded:', serverMonitoringData);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const serverMonitoringData = await response.json();
+        
+        console.log('Fresh server data loaded:', serverMonitoringData);
         
         // Apply saved status changes to server data
         if (serverMonitoringData.rvms && Object.keys(rvmStatusChanges).length > 0) {
@@ -439,3 +451,266 @@ function initializeStickyNavbar() {
         lastScrollTop = scrollTop;
     });
 }
+
+// --- Real-time Notification Integration ---
+
+async function initializeRealTimeNotifications() {
+    try {
+        // Wait for real-time notification handler to be available
+        if (typeof window.RealTimeNotificationHandler !== 'undefined') {
+            realTimeNotifications = new window.RealTimeNotificationHandler();
+            
+            // Override notification handlers for dashboard-specific behavior
+            setupDashboardNotificationHandlers();
+            
+            console.log('Real-time notifications initialized for dashboard');
+        } else {
+            console.warn('RealTimeNotificationHandler not available, using fallback');
+            setupNotificationFallback();
+        }
+    } catch (error) {
+        console.error('Failed to initialize real-time notifications:', error);
+    }
+}
+
+function setupDashboardNotificationHandlers() {
+    if (!realTimeNotifications) return;
+    
+    // Override RVM status update handler
+    const originalHandleRvmStatus = realTimeNotifications.handleRvmStatusNotification;
+    realTimeNotifications.handleRvmStatusNotification = function(data) {
+        // Call original handler
+        originalHandleRvmStatus.call(this, data);
+        
+        // Dashboard-specific handling
+        handleRvmStatusUpdate(data);
+    };
+    
+    // Override system notification handler for dashboard
+    const originalHandleSystem = realTimeNotifications.handleSystemNotification;
+    realTimeNotifications.handleSystemNotification = function(data) {
+        // Call original handler
+        originalHandleSystem.call(this, data);
+        
+        // Dashboard-specific handling
+        handleDashboardSystemNotification(data);
+    };
+}
+
+function handleRvmStatusUpdate(data) {
+    try {
+        console.log('Dashboard handling RVM status update:', data);
+        
+        // Update local status changes
+        rvmStatusChanges[data.rvm_id] = {
+            status: data.status,
+            last_seen: new Date().toISOString(),
+            timestamp: Date.now()
+        };
+        
+        // Save to localStorage
+        saveRvmStatusChanges();
+        
+        // Update RVM card immediately
+        updateRvmCardStatus(data.rvm_id, data.status);
+        
+        // Update statistics
+        updateStatisticsForStatusChange(data.rvm_id, data.status, data.previous_status);
+        
+        // Update status chart
+        updateStatusChart();
+        
+        // Show notification with RVM-specific styling
+        showRvmStatusNotification(data);
+        
+    } catch (error) {
+        console.error('Error handling RVM status update:', error);
+    }
+}
+
+function updateRvmCardStatus(rvmId, newStatus) {
+    const rvmCard = document.querySelector(`[data-rvm-id="${rvmId}"]`);
+    if (!rvmCard) return;
+    
+    // Update status badge
+    const statusBadge = rvmCard.querySelector('.status-badge');
+    if (statusBadge) {
+        statusBadge.className = `status-badge status-${newStatus}`;
+        statusBadge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+    }
+    
+    // Update status indicator
+    const statusIndicator = rvmCard.querySelector('.status-indicator');
+    if (statusIndicator) {
+        statusIndicator.className = `status-indicator status-${newStatus}`;
+    }
+    
+    // Update last seen time
+    const lastSeenElement = rvmCard.querySelector('.last-seen');
+    if (lastSeenElement) {
+        lastSeenElement.textContent = formatDateTime(new Date());
+    }
+    
+    // Add visual feedback
+    rvmCard.classList.add('status-updated');
+    setTimeout(() => {
+        rvmCard.classList.remove('status-updated');
+    }, 2000);
+}
+
+function updateStatisticsForStatusChange(rvmId, newStatus, previousStatus) {
+    if (!monitoringData || !monitoringData.statistics) return;
+    
+    const stats = monitoringData.statistics;
+    
+    // Update status counts
+    if (previousStatus && stats[previousStatus] > 0) {
+        stats[previousStatus]--;
+    }
+    
+    if (stats[newStatus] !== undefined) {
+        stats[newStatus]++;
+    } else {
+        stats[newStatus] = 1;
+    }
+    
+    // Update total if needed
+    stats.total = Object.values(stats).reduce((sum, count) => {
+        return typeof count === 'number' ? sum + count : sum;
+    }, 0);
+    
+    // Update statistics display
+    updateStatistics(stats);
+}
+
+function showRvmStatusNotification(data) {
+    const statusColors = {
+        active: 'success',
+        inactive: 'warning',
+        maintenance: 'info',
+        error: 'error',
+        full: 'warning',
+        unknown: 'info'
+    };
+    
+    const notificationType = statusColors[data.status] || 'info';
+    const message = `${data.rvm_name} status changed to ${data.status.toUpperCase()}`;
+    
+    showNotification(message, notificationType);
+}
+
+function handleDashboardSystemNotification(data) {
+    try {
+        console.log('Dashboard handling system notification:', data);
+        
+        // Show system notification with special styling
+        showSystemNotification(data);
+        
+        // If it's a maintenance notification, update dashboard accordingly
+        if (data.data && data.data.priority === 'urgent') {
+            handleUrgentSystemNotification(data);
+        }
+        
+    } catch (error) {
+        console.error('Error handling system notification:', error);
+    }
+}
+
+function showSystemNotification(data) {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-system notification-${data.type}`;
+    notification.innerHTML = `
+        <div class="notification-header">
+            <i class="fas fa-broadcast-tower me-2"></i>
+            <strong>System Notification</strong>
+            <span class="notification-time">${formatTime(data.timestamp)}</span>
+        </div>
+        <div class="notification-content">
+            <h6>${data.title}</h6>
+            <p>${data.message}</p>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => notification.classList.add('show'), 10);
+    setTimeout(() => {
+        notification.classList.remove('show');
+        notification.addEventListener('transitionend', () => notification.remove());
+    }, 8000); // Longer display time for system notifications
+}
+
+function handleUrgentSystemNotification(data) {
+    // Show modal for urgent notifications
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.innerHTML = `
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Urgent System Notification
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <h6>${data.title}</h6>
+                    <p>${data.message}</p>
+                    <small class="text-muted">Received: ${formatDateTime(data.timestamp)}</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        Acknowledged
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Show modal using Bootstrap
+    if (typeof bootstrap !== 'undefined') {
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+        
+        modal.addEventListener('hidden.bs.modal', () => {
+            modal.remove();
+        });
+    }
+}
+
+function setupNotificationFallback() {
+    // Fallback polling for notifications when WebSocket is not available
+    setInterval(async () => {
+        try {
+            const response = await fetch('/api/notifications/recent', {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': config.csrfToken
+                }
+            });
+            
+            if (response.ok) {
+                const notifications = await response.json();
+                notifications.forEach(notification => {
+                    if (notification.category === 'rvm_status') {
+                        handleRvmStatusUpdate(notification.data);
+                    } else if (notification.category === 'system') {
+                        handleDashboardSystemNotification(notification);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Notification polling error:', error);
+        }
+    }, 30000); // Poll every 30 seconds
+}
+
+// Expose functions for external use
+window.dashboardNotifications = {
+    handleRvmStatusUpdate,
+    handleDashboardSystemNotification,
+    updateRvmCardStatus,
+    showRvmStatusNotification
+};

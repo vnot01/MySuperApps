@@ -2,11 +2,6 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-// RVM Self APIs (API Key auth via header X-API-Key)
-Route::prefix('v2/rvm/self')->group(function () {
-    Route::post('/claim', [\App\Http\Controllers\Api\V2\RvmSelfController::class, 'claim']);
-    Route::patch('/update', [\App\Http\Controllers\Api\V2\RvmSelfController::class, 'update']);
-});
 use App\Http\Controllers\Api\V2\RvmSessionController;
 use App\Http\Controllers\Api\V2\AuthController;
 use App\Http\Controllers\Api\V2\DepositController;
@@ -21,6 +16,14 @@ use App\Http\Controllers\Api\V2\ProcessingEngineController;
 use App\Http\Controllers\Api\V2\DetectionResultController;
 use App\Http\Controllers\AdminRvmController;
 use App\Http\Controllers\GeminiVisionController;
+use App\Http\Controllers\Api\V2\RvmSelfController;
+use App\Http\Controllers\Api\V2\TimezoneController;
+
+// RVM Self APIs (API Key auth via header X-API-Key)
+Route::prefix('v2/rvm/self')->group(function () {
+    Route::post('/claim', [RvmSelfController::class, 'claim']);
+    Route::patch('/update', [RvmSelfController::class, 'update']);
+});
 
 /*
 |--------------------------------------------------------------------------

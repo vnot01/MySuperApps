@@ -84,6 +84,17 @@ class DashboardController extends Controller
             'connection_statuses' => RvmStatusHelper::getAllConnectionStatusesForJs()
         ];
 
+        // Check if this is an AJAX request
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'rvms' => $rvms,
+                'statistics' => $statistics,
+                'trends' => $trends,
+                'statusConfigs' => $statusConfigs
+            ]);
+        }
+
         return view('admin.dashboard.index', compact('rvms', 'statistics', 'trends', 'timezoneConfig', 'timezoneData', 'statusConfigs'));
     }
 

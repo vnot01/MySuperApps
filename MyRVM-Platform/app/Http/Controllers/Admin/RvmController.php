@@ -6,12 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\ReverseVendingMachine;
 use App\Models\TimezoneSyncLog;
 use App\Models\DeviceTimezone;
+use App\Models\Notification;
 use App\Helpers\RvmStatusHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Artisan;
+use App\Models\ReverseVendingMachine as Rvm;
+use App\Jobs\CheckRvmPulse;
+use App\Jobs\CheckRvmHealth;
 
 class RvmController extends Controller
 {
@@ -170,33 +175,76 @@ class RvmController extends Controller
         }
 
         try {
-            // Use network health check (IP ping only, no port testing)
-            $pingResult = $this->performNetworkHealthCheck($rvm->ip_address);
-            
-            // Update last ping time and connection status
+            $healthCheckUrl = "http://{$rvm->ip_address}:5002/rvm-health";
+            $response = Http::timeout(5)->get($healthCheckUrl);
+
             $connectionStatus = 'disconnected';
-            if ($pingResult['success']) {
-                $connectionStatus = isset($pingResult['connection_status']) ? $pingResult['connection_status'] : 'connected';
+            $success = false;
+            $message = 'Connection failed';
+            $responseTime = null;
+
+            if ($response->successful()) {
+                $data = $response->json();
+                if (isset($data['status']) && $data['status'] === 'ok') {
+                    $connectionStatus = 'connected';
+                    $success = true;
+                    $message = 'RVM is connected and healthy.';
+                } else {
+                    $message = 'RVM is reachable but reporting an unhealthy status.';
+                }
+                $responseTime = $response->transferStats->getHandlerStat('total_time') ?? null;
+            } else {
+                // If the first attempt fails, try the /health endpoint as a fallback
+                $fallbackUrl = "http://{$rvm->ip_address}:5002/health";
+                $response = Http::timeout(5)->get($fallbackUrl);
+
+                if ($response->successful()) {
+                    $data = $response->json();
+                    if (isset($data['status']) && $data['status'] === 'healthy') {
+                        $connectionStatus = 'connected';
+                        $success = true;
+                        $message = 'RVM is connected and healthy (fallback).';
+                    } else {
+                        $message = 'RVM is reachable but reporting an unhealthy status (fallback).';
+                    }
+                    $responseTime = $response->transferStats->getHandlerStat('total_time') ?? null;
+                } else {
+                    $message = 'RVM is unreachable. Status: ' . $response->status();
+                }
             }
-            
+
+            $newStatus = RvmStatusHelper::calculateStatus($rvm->capacity, $rvm->special_status, $connectionStatus);
+
             $rvm->update([
                 'last_ping' => now(),
-                'connection_status' => $connectionStatus
+                'connection_status' => $connectionStatus,
+                'status' => $newStatus
             ]);
 
             return response()->json([
-                'success' => $pingResult['success'],
-                'message' => $pingResult['message'],
+                'success' => $success,
+                'message' => $message,
                 'data' => [
                     'ip_address' => $rvm->ip_address,
-                    'response_time' => $pingResult['response_time'] ?? null,
+                    'response_time' => $responseTime,
                     'last_ping' => $rvm->last_ping,
-                    'ping_result' => $pingResult,
-                    'type' => 'network_health'
+                    'ping_result' => [
+                        'success' => $success,
+                        'message' => $message,
+                        'response_time' => $responseTime,
+                    ],
+                    'type' => 'http_health_check'
                 ]
             ]);
 
         } catch (\Exception $e) {
+            $newStatus = RvmStatusHelper::calculateStatus($rvm->capacity, $rvm->special_status, 'disconnected');
+
+            $rvm->update([
+                'last_ping' => now(),
+                'connection_status' => 'disconnected',
+                'status' => $newStatus
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Ping failed: ' . $e->getMessage()
@@ -399,6 +447,18 @@ class RvmController extends Controller
             ->latest('transactions.created_at')
             ->limit(5)
             ->get();
+
+        // Check if this is an AJAX request
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'rvm' => $rvm,
+                'recentMetrics' => $recentMetrics,
+                'recentCommands' => $recentCommands,
+                'systemMetrics' => $systemMetrics,
+                'lastTransactions' => $lastTransactions
+            ]);
+        }
 
         return view('admin.rvm.show', compact('rvm', 'recentMetrics', 'recentCommands', 'systemMetrics', 'lastTransactions'));
     }
@@ -874,6 +934,26 @@ class RvmController extends Controller
                     'last_status_change' => now()
                 ]);
                 $message = 'RVM berhasil keluar dari Maintenance Mode';
+                
+                // Create notification for exiting maintenance mode
+                try {
+                    Notification::createNotification([
+                        'notification_id' => 'rvm_maintenance_exit_' . $rvm->id . '_' . microtime(true),
+                        'title' => 'RVM Maintenance Mode Ended',
+                        'message' => "RVM {$rvm->name} has exited maintenance mode and is now operational.",
+                        'type' => 'success',
+                        'category' => 'rvm_status',
+                        'data' => [
+                            'rvm_id' => $rvm->id,
+                            'rvm_name' => $rvm->name,
+                            'action' => 'maintenance_mode_disabled'
+                        ],
+                        'is_system_wide' => true
+                    ]);
+                } catch (\Exception $e) {
+                    // Log error but don't fail the maintenance mode operation
+                    \Log::error('Failed to create maintenance mode exit notification: ' . $e->getMessage());
+                }
             } else {
                 // Enter maintenance mode
                 $rvm->update([
@@ -881,6 +961,26 @@ class RvmController extends Controller
                     'last_status_change' => now()
                 ]);
                 $message = 'RVM berhasil masuk ke Maintenance Mode';
+                
+                // Create notification for maintenance mode
+                try {
+                    Notification::createNotification([
+                        'notification_id' => 'rvm_maintenance_' . $rvm->id . '_' . microtime(true),
+                        'title' => 'RVM Maintenance Mode',
+                        'message' => "RVM {$rvm->name} has entered maintenance mode.",
+                        'type' => 'warning',
+                        'category' => 'rvm_status',
+                        'data' => [
+                            'rvm_id' => $rvm->id,
+                            'rvm_name' => $rvm->name,
+                            'action' => 'maintenance_mode_enabled'
+                        ],
+                        'is_system_wide' => true
+                    ]);
+                } catch (\Exception $e) {
+                    // Log error but don't fail the maintenance mode operation
+                    \Log::error('Failed to create maintenance mode notification: ' . $e->getMessage());
+                }
             }
 
             return response()->json(['success' => true, 'message' => $message]);
@@ -888,5 +988,30 @@ class RvmController extends Controller
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Gagal mengubah status maintenance: ' . $e->getMessage()], 500);
         }
+    }
+    public function manualPulseCheck(Request $request, Rvm $rvm = null)
+    {
+        if ($rvm) {
+            CheckRvmPulse::dispatch($rvm);
+        } else {
+            $rvms = ReverseVendingMachine::all();
+            foreach ($rvms as $rvm) {
+                CheckRvmPulse::dispatch($rvm);
+            }
+        }
+        return response()->json(['message' => 'Pulse check initiated.']);
+    }
+
+    public function manualHealthCheck(Request $request, Rvm $rvm = null)
+    {
+        if ($rvm) {
+            CheckRvmHealth::dispatch($rvm);
+        } else {
+            $rvms = ReverseVendingMachine::all();
+            foreach ($rvms as $rvm) {
+                CheckRvmHealth::dispatch($rvm);
+            }
+        }
+        return response()->json(['message' => 'Health check initiated.']);
     }
 }

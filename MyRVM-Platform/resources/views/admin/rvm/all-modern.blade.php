@@ -239,9 +239,16 @@
                             <i class="fas fa-{{ $rvm->status_data['icon'] }} me-1"></i>{{ $rvm->status_data['label'] }}
                         </span>
                         <div class="connection-indicator" id="connection-indicator-{{ $rvm->id }}">
-                            <span class="connection-pulse unknown"></span>
-                            <span class="badge bg-secondary">
-                                Unknown
+                            @php
+                                $connectionStatus = $rvm->connection_status ?? 'unknown';
+                                $connectionConfig = \App\Helpers\RvmStatusHelper::getConnectionStatusConfig($connectionStatus);
+                                $pulseClass = $connectionConfig['pulse_class'] ?? 'unknown';
+                                $badgeClass = $connectionConfig['class'] ?? 'secondary';
+                                $label = $connectionConfig['label'] ?? 'Unknown';
+                            @endphp
+                            <span class="connection-pulse {{ $pulseClass }}"></span>
+                            <span class="badge bg-{{ $badgeClass }}">
+                                {{ $label }}
                             </span>
                         </div>
                     </div>

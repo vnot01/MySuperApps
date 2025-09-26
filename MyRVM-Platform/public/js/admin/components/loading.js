@@ -7,7 +7,12 @@ class LoadingManager {
     }
 
     createGlobalOverlay() {
-        // Create global loading overlay if it doesn't exist
+        // Only create overlay when explicitly needed, not on page load
+        // This method will be called when show() is called
+    }
+
+    ensureOverlayExists() {
+        // Create global loading overlay if it doesn't exist and is needed
         if (!document.getElementById('loadingOverlay')) {
             const overlay = document.createElement('div');
             overlay.id = 'loadingOverlay';
@@ -23,6 +28,7 @@ class LoadingManager {
     }
 
     show(text = 'Loading...', id = 'default') {
+        this.ensureOverlayExists();
         const overlay = document.getElementById('loadingOverlay');
         if (!overlay) return;
 
@@ -32,11 +38,8 @@ class LoadingManager {
             loadingText.textContent = text;
         }
 
-        // Show overlay
-        overlay.style.display = 'flex';
-        overlay.offsetHeight; // Trigger reflow
-        overlay.style.opacity = '1';
-        overlay.style.visibility = 'visible';
+        // Show overlay using class
+        overlay.classList.add('show');
         
         this.activeLoaders.add(id);
     }
@@ -49,14 +52,7 @@ class LoadingManager {
 
         // Only hide if no other loaders are active
         if (this.activeLoaders.size === 0) {
-            overlay.style.opacity = '0';
-            overlay.style.visibility = 'hidden';
-            
-            setTimeout(() => {
-                if (overlay.style.opacity === '0') {
-                    overlay.style.display = 'none';
-                }
-            }, 300);
+            overlay.classList.remove('show');
         }
     }
 
@@ -65,14 +61,7 @@ class LoadingManager {
         if (!overlay) return;
 
         this.activeLoaders.clear();
-        overlay.style.opacity = '0';
-        overlay.style.visibility = 'hidden';
-        
-        setTimeout(() => {
-            if (overlay.style.opacity === '0') {
-                overlay.style.display = 'none';
-            }
-        }, 300);
+        overlay.classList.remove('show');
     }
 
     isLoading(id = 'default') {
@@ -102,6 +91,19 @@ class LoadingManager {
 
 // Global loading manager instance
 const loadingManager = new LoadingManager();
+
+// Auto-hide loading on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Hide any loading overlay that might be showing
+    setTimeout(() => {
+        loadingManager.hideAll();
+    }, 100);
+});
+
+// Also hide on window load
+window.addEventListener('load', function() {
+    loadingManager.hideAll();
+});
 
 // Convenience functions
 function showLoading(text = 'Loading...', id = 'default') {

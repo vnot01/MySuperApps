@@ -39,9 +39,16 @@ function createRvmCard(rvm) {
 
     const iconClass = (statusInfo.icon && statusInfo.icon.includes('fa-')) ? statusInfo.icon : `fas fa-${statusInfo.icon}`;
     
-    const connectionStatus = rvm.is_connected ? 
-        { color: '#10b981', pulseClass: 'pulse-green', icon: 'fas fa-wifi' } : 
-        { color: '#ef4444', pulseClass: 'pulse-red', icon: 'fas fa-wifi-slash' };
+    // Use real connection status from database
+    const connectionStatusValue = rvm.connection_status || 'unknown';
+    const connectionConfig = rvm.connection_config || {};
+    
+    const connectionStatus = {
+        color: connectionConfig.color || '#6c757d',
+        pulseClass: connectionConfig.pulse_class || 'unknown',
+        icon: connectionConfig.icon ? `fas fa-${connectionConfig.icon}` : 'fas fa-question',
+        label: connectionConfig.label || 'Unknown'
+    };
 
     col.innerHTML = `
         <div class="card rvm-card border-0 shadow-sm h-100" data-rvm-id="${rvm.id}">

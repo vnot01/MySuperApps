@@ -73,6 +73,8 @@ Route::middleware(['auth', 'verified']) // Anda bisa tambahkan 'role:...' di sin
         });
         
         // ... (rute admin lainnya: users, tenants, dll.)
+        Route::get('rvm/pulse-check/{rvm?}', [RvmController::class, 'manualPulseCheck'])->name('rvm.pulse-check.get');
+        Route::get('rvm/health-check/{rvm?}', [RvmController::class, 'manualHealthCheck'])->name('rvm.health-check');
     });
 
 
@@ -243,6 +245,26 @@ Route::get('/admin/rvm-dashboard', function () {
     return redirect()->route('admin.dashboard.index');
 })->name('admin.rvm.dashboard');
 
+// Admin User Management Routes
+Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'adminProfile'])->name('profile');
+    Route::get('/notifications', [ProfileController::class, 'notifications'])->name('notifications');
+    Route::get('/notifications/refresh', [ProfileController::class, 'getNotificationsForRefresh'])->name('notifications.refresh');
+    Route::post('/notifications/{notificationId}/read', [ProfileController::class, 'markNotificationAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [ProfileController::class, 'markAllNotificationsAsRead'])->name('notifications.read-all');
+    Route::get('/connections', [ProfileController::class, 'connections'])->name('connections');
+    
+    // System Notification Management Routes
+    Route::prefix('system-notifications')->name('system-notifications.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\SystemNotificationController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\SystemNotificationController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Admin\SystemNotificationController::class, 'store'])->name('store');
+        Route::get('/{notification}', [App\Http\Controllers\Admin\SystemNotificationController::class, 'show'])->name('show');
+        Route::delete('/{notification}', [App\Http\Controllers\Admin\SystemNotificationController::class, 'destroy'])->name('destroy');
+        Route::get('/statistics/overview', [App\Http\Controllers\Admin\SystemNotificationController::class, 'statistics'])->name('statistics');
+    });
+});
+
 // New Dashboard Routes (Template Inheritance) - Protected with authentication
 Route::middleware(['auth', 'verified'])->prefix('admin/dashboard')->name('admin.dashboard.')->group(function () {
     Route::get('/', [AdminDashboardController::class, 'index'])->name('index');
@@ -396,6 +418,10 @@ Route::middleware(['auth', 'verified'])->prefix('admin/processing-engines')->nam
     Route::post('/ping-all', [ProcessingEngineController::class, 'pingAll'])->name('ping-all');
     Route::post('/assign-rvm', [ProcessingEngineController::class, 'assignToRvm'])->name('assign-rvm');
     Route::post('/remove-rvm', [ProcessingEngineController::class, 'removeFromRvm'])->name('remove-rvm');
-});
+    });
+    Route::post('/admin/rvm/pulse-check/{rvm?}', [RvmController::class, 'manualPulseCheck'])->name('admin.rvm.pulse-check');
+    Route::post('/admin/rvm/health-check/{rvm?}', [RvmController::class, 'manualHealthCheck'])->name('admin.rvm.health-check');
 
+    // Rute untuk Health Controller
+    Route::get('/health', [HealthController::class, 'check']);
 require __DIR__ . '/auth.php';

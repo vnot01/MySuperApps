@@ -42,6 +42,7 @@
     <!-- Layout CSS -->
     <link rel="stylesheet" href="{{ asset('css/admin/layout/navbar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/layout/menu-simple.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/layout/mobile-menu.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/layout/footer.css') }}">
 
     <!-- Page Specific CSS -->
@@ -110,9 +111,13 @@
     <!-- Layout JS -->
     <script src="{{ asset('js/admin/components/menu-toggle-simple.js') }}"></script>
     <script src="{{ asset('js/admin/components/notifications.js') }}"></script>
-    <script src="{{ asset('js/admin/components/loading.js') }}"></script>
+    <script src="{{ asset('js/admin/navbar-notifications.js') }}"></script>
+    <!-- <script src="{{ asset('js/admin/components/loading.js') }}"></script> -->
     <script src="{{ asset('js/admin/components/form-manager.js') }}"></script>
 
+    <!-- Mobile Menu JS -->
+    <script src="{{ asset('js/admin/layout/mobile-menu.js') }}"></script>
+    
     <!-- Page Specific JS -->
     @yield('page-js')
 </body>

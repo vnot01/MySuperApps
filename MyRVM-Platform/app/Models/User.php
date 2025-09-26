@@ -30,6 +30,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'discord_id',
         'avatar',
         'phone_number',
+        'bio',
     ];
 
     /**
@@ -56,15 +57,12 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getAvatarUrlAttribute(): ?string
     {
-        if ($this->avatar && Storage::disk('s3')->exists($this->avatar)) {
-            return Storage::disk('s3')->url($this->avatar);
+        if ($this->avatar) {
+            return asset('storage/' . $this->avatar);
         }
-        // Gunakan nama disk 'minio' yang sudah kita konfigurasi
-        // if ($this->avatar && Storage::disk('s3')->exists($this->avatar)) {
-        //     // Use Storage::url to get the public URL if configured
-        //     return Storage::url($this->avatar);
-        // }
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name);
+        
+        // Fallback to UI Avatars service
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=7367f0&color=fff';
     }
 
     /**

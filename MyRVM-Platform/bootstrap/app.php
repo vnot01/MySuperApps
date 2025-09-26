@@ -17,12 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'session.security' => \App\Http\Middleware\SessionSecurityMiddleware::class,
             'rvm.csrf' => \App\Http\Middleware\RvmCsrfMiddleware::class,
+            'user.action.logger' => \App\Http\Middleware\UserActionLogger::class,
         ]);
         
-        // Replace default CSRF middleware with RVM-aware CSRF middleware
-        $middleware->web(replace: [
-            \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class => \App\Http\Middleware\RvmCsrfMiddleware::class,
-        ]);
+        // Add UserActionLogger to global middleware for authenticated routes
+        $middleware->append(\App\Http\Middleware\UserActionLogger::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

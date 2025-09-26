@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as Middleware;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class RvmCsrfMiddleware extends Middleware
@@ -28,25 +29,13 @@ class RvmCsrfMiddleware extends Middleware
      */
     private function isRvmRequest(Request $request): bool
     {
-        // Check for RVM-specific headers
-        $rvmId = $request->header('X-RVM-ID');
-        $rvmUserAgent = $request->header('User-Agent');
-        
-        // Check for RVM IP addresses
-        $clientIp = $request->ip();
-        $rvmIps = ['172.28.233.83', '10.3.52.161', '127.0.0.1', 'localhost'];
-        
-        // Check if request has RVM identifier
-        return $rvmId || 
-               str_contains($rvmUserAgent ?? '', 'RVM') ||
-               in_array($clientIp, $rvmIps) ||
-               $request->hasHeader('X-RVM-ID');
+        return $request->hasHeader('X-Rvm-Request');
     }
 
     /**
      * Handle RVM request with custom CSRF logic
      */
-    private function handleRvmRequest(Request $request, Closure $next): Response
+    private function handleRvmRequest(Request $request, Closure $next): mixed
     {
         // For RVM requests, we'll use API token authentication instead of CSRF
         $apiKey = $request->header('Authorization');
@@ -90,29 +79,8 @@ class RvmCsrfMiddleware extends Middleware
                 $token
             );
         } catch (\Exception $e) {
-            \Log::warning('RVM CSRF validation failed: ' . $e->getMessage());
+            Log::warning('RVM CSRF validation failed: ' . $e->getMessage());
             return false;
         }
     }
-
-    /**
-     * The URIs that should be excluded from CSRF verification.
-     */
-    protected $except = [
-        // RVM-Jetson API endpoints
-        'api/health-check',
-        'api/status',
-        'api/rvm/*',
-        'admin/rvm/*/metrics',
-        'admin/rvm/*/execute-command',
-        'admin/rvm/*/command/*/status',
-        'admin/rvm/*/recent-commands',
-        'admin/rvm/*/store-metrics',
-        
-        // Webhook endpoints
-        'webhook/*',
-        
-        // API endpoints for external services
-        'api/*',
-    ];
 }

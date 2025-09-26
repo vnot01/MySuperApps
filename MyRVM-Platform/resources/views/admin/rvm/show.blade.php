@@ -78,6 +78,9 @@
                     <button class="btn btn-outline-primary" onclick="window.history.back()">
                         <i class="fas fa-arrow-left me-2"></i>Back
                     </button>
+                    <button class="btn btn-outline-success" onclick="refreshRvmData()" id="refresh-btn">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </button>
                     <a href="{{ route('admin.rvm.maintenance-mode', $rvm->id) }}" class="btn btn-warning">
                         <i class="fas fa-wrench me-2"></i>Maintenance Mode
                     </a>
@@ -443,6 +446,9 @@ function copyToClipboard(text) {
     }
 }
 </script>
+
+<!-- RVM Details Auto-refresh Script -->
+<script src="{{ asset('js/admin/rvm-details.js') }}"></script>
 <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
