@@ -126,7 +126,7 @@
                                                         {{ $notification->title }}
                                                     </h6>
                                                     @if(!$notification->isRead())
-                                                        <span class="ms-2" style="display: inline-block; width: 10px; height: 10px; background-color: #dc3545; border-radius: 50%; border: 1px solid #fff; box-shadow: 0 0 3px rgba(0,0,0,0.3);"></span>
+                                                        <span class="ms-2 notification-dot" style="display: inline-block !important; width: 8px !important; height: 8px !important; background-color: #696cff !important; border-radius: 50% !important; position: relative !important; z-index: 10 !important;"></span>
                                                     @endif
                                                 </div>
                                                 <p class="mb-1 text-muted text-truncate" style="font-size: 0.6rem; line-height: 1.2;">
