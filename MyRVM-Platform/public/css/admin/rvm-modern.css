@@ -142,7 +142,7 @@
 }
 
 /* Avatar Styling - ONLY for notification dropdown, NOT user profile */
-.dropdown-notifications .avatar {
+/* .dropdown-notifications .avatar {
     position: relative;
     display: inline-flex;
     align-items: center;
@@ -158,10 +158,10 @@
     width: 2rem;
     height: 2rem;
     font-size: 0.75rem;
-}
+} */
 
 /* Avatar initial - ONLY for notification dropdown */
-.dropdown-notifications .avatar-initial {
+/* .dropdown-notifications .avatar-initial {
     width: 100%;
     height: 100%;
     border-radius: 50%;
@@ -169,7 +169,7 @@
     align-items: center;
     justify-content: center;
     color: white;
-}
+} */
 
 .bg-label-primary {
     background-color: #007bff;
@@ -294,7 +294,7 @@
 }
 
 /* Notification dropdown specific styling */
-.dropdown-notifications .dropdown-menu {
+/* .dropdown-notifications .dropdown-menu {
     border: 0px solid #e9ecef;
     border-radius: 8px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
@@ -307,25 +307,25 @@
     min-width: 280px;
     max-height: 450px;
     transform: translateY(5px) !important;
-}
+} */
 
 /* Notification dropdown list with scroll */
-.dropdown-notifications .dropdown-notifications-list {
+/* .dropdown-notifications .dropdown-notifications-list {
     max-height: 350px;
     overflow-y: auto;
-}
+} */
 
 /* Ensure footer is always visible */
-.dropdown-notifications .dropdown-menu-footer {
+/* .dropdown-notifications .dropdown-menu-footer {
     position: sticky;
     bottom: 0;
     background-color: white;
     border-top: 1px solid #e9ecef;
     z-index: 10;
-}
+} */
 
 /* Ensure user profile avatar is not affected */
-.dropdown-user .avatar {
+/* .dropdown-user .avatar {
     width: auto !important;
     height: auto !important;
 }
@@ -349,7 +349,7 @@
 .dropdown-item i {
     width: 16px;
     text-align: center;
-}
+} */
 
 /* Button Styling */
 .btn-icon {

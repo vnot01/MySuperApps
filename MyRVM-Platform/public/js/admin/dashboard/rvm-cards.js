@@ -66,6 +66,8 @@ function createRvmCard(rvm) {
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/admin/rvm/${rvm.id}"><i class="fas fa-eye me-2"></i>View Details</a></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-primary" href="#" onclick="openRemoteAccess(${rvm.id}, '${rvm.name}')"><i class="fas fa-wrench me-2"></i>Enter Maintenance Mode</a></li>
                             <li><a class="dropdown-item" href="#" onclick="openStatusModal(${rvm.id}, '${rvm.name}')"><i class="fas fa-edit me-2"></i>Update Status</a></li>
                         </ul>

@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard/animations.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/dashboard/responsive.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/remote-access.css') }}">
-    <!-- <link rel="stylesheet" href="{{ asset('css/admin/rvm-modern.css') }}"> -->
+    <link rel="stylesheet" href="{{ asset('css/admin/rvm-modern.css') }}">
 @endsection
 
 @section('breadcrumb')
@@ -30,22 +30,26 @@
 
 @section('content')
     <!-- Header -->
+    <!-- Modern Page Header -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="mb-1 fw-bold text-primary">
-                        <i class="fas fa-recycle me-2"></i>RVM Management
-                    </h1>
-                    <p class="text-muted mb-0">Manage all Reverse Vending Machines</p>
-                </div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-outline-primary" onclick="refreshAllRVMs()">
-                        <i class="fas fa-sync-alt me-2"></i>Refresh All
-                    </button>
-                    <button class="btn btn-primary" onclick="showAddRVMModal()">
-                        <i class="fas fa-plus me-2"></i>Add New RVM
-                    </button>
+            <div class="page-header modern-header">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h1 class="page-title fw-bold mb-2">
+                            <i class="fas fa-recycle me-2"></i>
+                            RVM Management
+                        </h1>
+                        <p class="page-description text-muted mb-0">Manage all Reverse Vending Machines</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-primary" onclick="refreshAllRVMs()">
+                            <i class="fas fa-sync-alt me-2"></i>Refresh All
+                        </button>
+                        <button class="btn btn-primary" onclick="showAddRVMModal()">
+                            <i class="fas fa-plus me-2"></i>Add New RVM
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -195,6 +199,7 @@
         </div>
     </div>
 
+
     <!-- RVM Cards Grid -->
     <div class="row g-4 mb-4" id="rvm-cards-container">
         @foreach($rvms as $rvm)
@@ -310,7 +315,7 @@
                     </div>
 
                     <!-- Remote Access Status -->
-                    <div class="mt-auto">
+                    <!-- <div class="mt-auto">
                         <div class="d-flex justify-content-between align-items-center">
                             <small class="text-muted">Remote Access</small>
                             <div class="remote-access-status" data-rvm-id="{{ $rvm->id }}">
@@ -319,7 +324,7 @@
                                 </span>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>
