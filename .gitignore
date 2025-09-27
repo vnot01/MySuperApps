@@ -68,6 +68,14 @@ data/input/remote/
 data/input/temp/
 data/models/
 
+# Keep only last 5 test images in data/input/test_images/
+data/input/test_images/*
+!data/input/test_images/21_mineral.jpg
+!data/input/test_images/24_mineral.jpg
+!data/input/test_images/27_not_mineral.jpg
+!data/input/test_images/58.mineral_filled.jpg
+!data/input/test_images/69.non_mineral.jpg
+
 # Backup files
 backups/
 *.tar.gz
