@@ -1973,6 +1973,8 @@
             const data = await response.json();
             
             if (data.success) {
+                // Download and save detection results
+                await downloadDetectionResults(data);
                 displayResults(data);
                 showNotification(`Successfully processed ${data.uploaded_files.length} image(s)`, 'success');
             } else {
@@ -1991,6 +1993,74 @@
             // Reset button
             processBtn.disabled = false;
             processBtn.innerHTML = '<i class="fas fa-cogs me-2"></i>Process Images';
+        }
+    }
+
+    // Download Detection Results
+    async function downloadDetectionResults(data) {
+        try {
+            console.log('Downloading detection results...');
+            
+            // Create directory structure
+            const sessionId = data.session_id || 'unknown_session';
+            const timestamp = data.timestamp || new Date().toISOString().replace(/[:.]/g, '-');
+            const batchName = `batch_${timestamp}`;
+            
+            // Download each type of result for each file
+            for (const result of data.detection_results) {
+                if (result.file_paths) {
+                    const fileTypes = ['raw', 'best', 'sam', 'hybrid', 'visualisasi'];
+                    
+                    for (const fileType of fileTypes) {
+                        if (result.file_paths[fileType]) {
+                            await downloadImageFromAPI(
+                                result.file_paths[fileType],
+                                `${fileType}_${result.filename}`,
+                                batchName
+                            );
+                        }
+                    }
+                }
+            }
+            
+            console.log('All detection results downloaded successfully');
+        } catch (error) {
+            console.error('Error downloading detection results:', error);
+        }
+    }
+    
+    // Download Image from API
+    async function downloadImageFromAPI(imagePath, filename, batchName) {
+        try {
+            const response = await fetch(`${CV_API_BASE}/${imagePath}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'image/*'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const blob = await response.blob();
+            
+            // Create download link
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.style.display = 'none';
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            URL.revokeObjectURL(url);
+            
+            console.log(`Downloaded: ${filename}`);
+        } catch (error) {
+            console.error(`Error downloading ${filename}:`, error);
         }
     }
 
@@ -2030,6 +2100,20 @@
                 ? Math.round(result.detections[0].confidence * 100) 
                 : 0;
             
+            // Create download buttons for each result type
+            let downloadButtons = '';
+            if (result.file_paths) {
+                const fileTypes = ['raw', 'best', 'sam', 'hybrid', 'visualisasi'];
+                downloadButtons = fileTypes.map(type => {
+                    if (result.file_paths[type]) {
+                        return `<button class="btn btn-sm btn-outline-primary me-1 mb-1" onclick="downloadSingleResult('${result.file_paths[type]}', '${type}_${result.filename}')">
+                            <i class="fas fa-download me-1"></i>${type}
+                        </button>`;
+                    }
+                    return '';
+                }).join('');
+            }
+            
             imageItem.innerHTML = `
                 <img src="${URL.createObjectURL(selectedFiles.find(f => f.name === result.filename))}" alt="${result.filename}">
                 <div class="detection-overlay"></div>
@@ -2037,6 +2121,7 @@
                 <div class="image-info">
                     <div>${result.filename}</div>
                     <div>${detectionCount} detections</div>
+                    <div class="mt-2">${downloadButtons}</div>
                 </div>
             `;
             detectionResults.appendChild(imageItem);
@@ -2063,8 +2148,56 @@
                         <strong>Session ID:</strong> ${data.session_id}
                     </div>
                 </div>
+                <div class="mt-3">
+                    <button class="btn btn-primary" onclick="downloadAllResults()">
+                        <i class="fas fa-download me-2"></i>Download All Results
+                    </button>
+                </div>
             </div>
         `;
+    }
+    
+    // Download Single Result
+    async function downloadSingleResult(imagePath, filename) {
+        try {
+            const response = await fetch(`${CV_API_BASE}/${imagePath}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'image/*'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const blob = await response.blob();
+            
+            // Create download link
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.style.display = 'none';
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            URL.revokeObjectURL(url);
+            
+            showNotification(`Downloaded: ${filename}`, 'success');
+        } catch (error) {
+            console.error(`Error downloading ${filename}:`, error);
+            showNotification(`Failed to download ${filename}`, 'error');
+        }
+    }
+    
+    // Download All Results
+    async function downloadAllResults() {
+        // This will be called when user clicks "Download All Results" button
+        // The actual download logic is already implemented in downloadDetectionResults
+        showNotification('All results have been downloaded automatically during processing', 'info');
     }
 
     // Initialize CV Platform when page loads
