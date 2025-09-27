@@ -62,7 +62,7 @@ tmp/
 *.pkl
 *.joblib
 
-# Data directories
+# Data directories - exclude all
 data/output/
 data/input/remote/
 data/input/temp/
