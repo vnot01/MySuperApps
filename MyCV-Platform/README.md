@@ -55,7 +55,10 @@ source venv/bin/activate
 
 ### Option 3: Web Application (Real-time Camera)
 ```bash
-./run_web.sh
+cd direct
+source venv/bin/activate
+cd MySuperApps/MyCV-Platform
+./scripts/run_web.sh
 ```
 
 ### Option 4: Docker CPU Testing
