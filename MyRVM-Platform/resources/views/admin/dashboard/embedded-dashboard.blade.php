@@ -207,7 +207,7 @@
                 try {
                     // Use hardcoded RVM data for now (since API requires authentication)
                     const rvmDevices = [
-                        { id: 1, name: 'RVM-Jetson-Orin', ip: '100.117.234.2', port: '5000' },
+                        { id: 1, name: 'RVM-Jetson-Orin', ip: '100.117.234.2', port: '5002' },
                         { id: 3, name: 'RVM-Test-Maintenance', ip: '192.168.1.100', port: '8001' }
                     ];
                     

@@ -210,6 +210,139 @@
             margin-right: 0.75rem;
             color: #667eea;
         }
+        
+        /* CV Platform Styles */
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #e8f0fe;
+            transform: scale(1.02);
+        }
+        
+        .upload-content {
+            pointer-events: none;
+        }
+        
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .image-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .image-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .image-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+        
+        .image-item .image-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .detection-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,255,0,0.1);
+            border: 2px solid #28a745;
+            border-radius: 4px;
+        }
+        
+        .detection-info {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: rgba(40, 167, 69, 0.9);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+            background: white;
+        }
+        
+        .file-item .file-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .file-item .file-info i {
+            margin-right: 0.5rem;
+            color: #667eea;
+        }
+        
+        .file-item .file-size {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        .health-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+        
+        .health-dot.healthy {
+            background: #28a745;
+        }
+        
+        .health-dot.unhealthy {
+            background: #dc3545;
+        }
+        
+        .health-dot.checking {
+            background: #ffc107;
+        }
     </style>
 @endsection
 
@@ -374,6 +507,153 @@
                         <span class="metric-value text-danger" id="error-count">
                             {{ $latestApplicationMetrics ? $latestApplicationMetrics->error_count : 'N/A' }}
                         </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CV Platform Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="section-title">
+                <i class="fas fa-eye"></i>
+                CV Platform - Image Detection
+            </h2>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <!-- CV Platform Card -->
+        <div class="col-12">
+            <div class="card metrics-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-camera me-2"></i>
+                        Computer Vision Platform
+                        <span class="badge bg-success ms-2" id="cv-health-badge">
+                            <i class="fas fa-circle me-1" id="cv-health-dot"></i>
+                            <span id="cv-health-text">Checking...</span>
+                        </span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Environment Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="alert alert-info">
+                                <h6 class="mb-2"><i class="fas fa-info-circle me-2"></i>Environment Detection</h6>
+                                <div id="environment-info">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Server:</span>
+                                        <span id="env-server">Loading...</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>GPU Available:</span>
+                                        <span id="env-gpu">Loading...</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>GPU Count:</span>
+                                        <span id="env-gpu-count">Loading...</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Status:</span>
+                                        <span id="env-status">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-success">
+                                <h6 class="mb-2"><i class="fas fa-heartbeat me-2"></i>Health Status</h6>
+                                <div id="health-info">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Service:</span>
+                                        <span id="health-service">Loading...</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Status:</span>
+                                        <span id="health-status">Loading...</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Version:</span>
+                                        <span id="health-version">Loading...</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Last Check:</span>
+                                        <span id="health-timestamp">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Section -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="upload-section">
+                                <h6 class="mb-3"><i class="fas fa-upload me-2"></i>Upload Images</h6>
+                                <div class="upload-area" id="upload-area">
+                                    <div class="upload-content">
+                                        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                        <p class="mb-2">Drag & drop images here or click to browse</p>
+                                        <p class="text-muted small">Supports multiple images (JPG, PNG, JPEG)</p>
+                                        <input type="file" id="image-upload" multiple accept="image/*" style="display: none;">
+                                        <button class="btn btn-primary" onclick="document.getElementById('image-upload').click()">
+                                            <i class="fas fa-folder-open me-2"></i>Choose Files
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Selected Files -->
+                                <div id="selected-files" class="mt-3" style="display: none;">
+                                    <h6>Selected Files:</h6>
+                                    <div id="file-list" class="list-group"></div>
+                                </div>
+
+                                <!-- Process Button -->
+                                <div class="mt-3">
+                                    <button class="btn btn-success btn-lg w-100" id="process-btn" onclick="processImages()" disabled>
+                                        <i class="fas fa-cogs me-2"></i>Process Images
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <!-- Results Section -->
+                            <div class="results-section">
+                                <h6 class="mb-3"><i class="fas fa-chart-bar me-2"></i>Detection Results</h6>
+                                <div id="results-container" class="text-center text-muted">
+                                    <i class="fas fa-image fa-3x mb-3"></i>
+                                    <p>Upload and process images to see detection results</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Image Display Windows -->
+                    <div class="row mt-4" id="image-windows" style="display: none;">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-images me-2"></i>Uploaded Images</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="uploaded-images" class="image-gallery"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-search me-2"></i>Detection Results</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="detection-results" class="image-gallery"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -607,35 +887,6 @@
     let terminalHistoryIndex = -1;
     let otaPollingInterval = null;
 
-    // Initialize Maintenance Mode
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Maintenance Mode initialized for RVM:', window.maintenanceModeData.rvmId);
-        
-        // Auto-activate maintenance mode if not already active
-        autoActivateMaintenanceMode();
-        
-        // Start real-time metrics refresh
-        startMetricsRefresh();
-        
-        // Load OTA data from metrics API
-        loadOTAData();
-        
-        // Initialize terminal
-        initializeTerminal();
-        
-        // Initialize command managers
-        if (typeof EnhancedMetricsManager !== 'undefined') {
-            window.enhancedMetricsManager = new EnhancedMetricsManager(window.maintenanceModeData.rvmId);
-        }
-        
-        if (typeof RemoteCommandsManager !== 'undefined') {
-            window.remoteCommandsManager = new RemoteCommandsManager(window.maintenanceModeData.rvmId);
-        }
-        
-        if (typeof OTAManagementManager !== 'undefined') {
-            window.otaManagementManager = new OTAManagementManager(window.maintenanceModeData.rvmId);
-        }
-    });
 
     // Auto-activate maintenance mode if not already active
     function autoActivateMaintenanceMode() {
@@ -1407,6 +1658,345 @@
         if (otaPollingInterval) {
             clearInterval(otaPollingInterval);
         }
+        if (cvHealthInterval) {
+            clearInterval(cvHealthInterval);
+        }
+    });
+
+    // CV Platform JavaScript
+    let cvHealthInterval;
+    let selectedFiles = [];
+    const CV_API_BASE = 'http://100.98.142.94:5000';
+
+    // Initialize CV Platform
+    function initializeCVPlatform() {
+        console.log('Initializing CV Platform...');
+        
+        // Load environment detection
+        loadEnvironmentDetection();
+        
+        // Start health check
+        checkCVHealth();
+        cvHealthInterval = setInterval(checkCVHealth, 10000); // Check every 10 seconds
+        
+        // Initialize file upload
+        initializeFileUpload();
+    }
+
+    // Load Environment Detection
+    async function loadEnvironmentDetection() {
+        try {
+            const response = await fetch(`${CV_API_BASE}/api/detect-environment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'online') {
+                document.getElementById('env-server').textContent = data.server || 'MyCV-Platform API';
+                document.getElementById('env-gpu').textContent = data.available || 'Unknown';
+                document.getElementById('env-gpu-count').textContent = data.gpu_count || '0';
+                document.getElementById('env-status').innerHTML = '<span class="badge bg-success">Online</span>';
+            } else {
+                throw new Error('Service offline');
+            }
+        } catch (error) {
+            console.error('Environment detection error:', error);
+            document.getElementById('env-server').textContent = 'Error';
+            document.getElementById('env-gpu').textContent = 'Error';
+            document.getElementById('env-gpu-count').textContent = 'Error';
+            document.getElementById('env-status').innerHTML = '<span class="badge bg-danger">Offline</span>';
+        }
+    }
+
+    // Check CV Health
+    async function checkCVHealth() {
+        try {
+            const response = await fetch(`${CV_API_BASE}/api/health`);
+            const data = await response.json();
+            
+            if (data.success && data.status === 'healthy') {
+                updateHealthStatus(true, data);
+            } else {
+                updateHealthStatus(false, data);
+            }
+        } catch (error) {
+            console.error('Health check error:', error);
+            updateHealthStatus(false, { message: 'Connection failed' });
+        }
+    }
+
+    // Update Health Status
+    function updateHealthStatus(isHealthy, data) {
+        const healthDot = document.getElementById('cv-health-dot');
+        const healthText = document.getElementById('cv-health-text');
+        const healthBadge = document.getElementById('cv-health-badge');
+        
+        if (isHealthy) {
+            healthDot.className = 'fas fa-circle me-1 text-success';
+            healthText.textContent = 'Healthy';
+            healthBadge.className = 'badge bg-success ms-2';
+            
+            // Update health info
+            document.getElementById('health-service').textContent = data.service || 'MyCV-Platform API Server';
+            document.getElementById('health-status').innerHTML = '<span class="badge bg-success">Healthy</span>';
+            document.getElementById('health-version').textContent = data.version || '1.0.0';
+            document.getElementById('health-timestamp').textContent = new Date().toLocaleTimeString();
+        } else {
+            healthDot.className = 'fas fa-circle me-1 text-danger';
+            healthText.textContent = 'Unhealthy';
+            healthBadge.className = 'badge bg-danger ms-2';
+            
+            // Update health info
+            document.getElementById('health-service').textContent = 'MyCV-Platform API Server';
+            document.getElementById('health-status').innerHTML = '<span class="badge bg-danger">Unhealthy</span>';
+            document.getElementById('health-version').textContent = 'Unknown';
+            document.getElementById('health-timestamp').textContent = new Date().toLocaleTimeString();
+        }
+    }
+
+    // Initialize File Upload
+    function initializeFileUpload() {
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('image-upload');
+        
+        // Click to upload
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // File input change
+        fileInput.addEventListener('change', handleFileSelect);
+        
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFileSelect({ target: { files: e.dataTransfer.files } });
+        });
+    }
+
+    // Handle File Selection
+    function handleFileSelect(event) {
+        const files = Array.from(event.target.files);
+        selectedFiles = files;
+        
+        if (files.length > 0) {
+            displaySelectedFiles(files);
+            document.getElementById('process-btn').disabled = false;
+        } else {
+            document.getElementById('selected-files').style.display = 'none';
+            document.getElementById('process-btn').disabled = true;
+        }
+    }
+
+    // Display Selected Files
+    function displaySelectedFiles(files) {
+        const fileList = document.getElementById('file-list');
+        const selectedFilesDiv = document.getElementById('selected-files');
+        
+        fileList.innerHTML = '';
+        
+        files.forEach((file, index) => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <div class="file-info">
+                    <i class="fas fa-image"></i>
+                    <span>${file.name}</span>
+                </div>
+                <div class="file-size">${formatFileSize(file.size)}</div>
+            `;
+            fileList.appendChild(fileItem);
+        });
+        
+        selectedFilesDiv.style.display = 'block';
+    }
+
+    // Format File Size
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Process Images
+    async function processImages() {
+        if (selectedFiles.length === 0) {
+            showNotification('Please select images to process', 'error');
+            return;
+        }
+        
+        const processBtn = document.getElementById('process-btn');
+        const resultsContainer = document.getElementById('results-container');
+        
+        // Show loading state
+        processBtn.disabled = true;
+        processBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        
+        // Clear previous results
+        resultsContainer.innerHTML = `
+            <div class="text-center">
+                <i class="fas fa-spinner fa-spin fa-3x mb-3 text-primary"></i>
+                <p>Processing ${selectedFiles.length} image(s)...</p>
+            </div>
+        `;
+        
+        try {
+            const formData = new FormData();
+            formData.append('user_id', 'maintenance_user_' + window.maintenanceModeData.rvmId);
+            
+            selectedFiles.forEach(file => {
+                formData.append('files', file);
+            });
+            
+            const response = await fetch(`${CV_API_BASE}/api/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                displayResults(data);
+                showNotification(`Successfully processed ${data.uploaded_files.length} image(s)`, 'success');
+            } else {
+                throw new Error(data.message || 'Processing failed');
+            }
+        } catch (error) {
+            console.error('Processing error:', error);
+            resultsContainer.innerHTML = `
+                <div class="text-center text-danger">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                    <p>Error processing images: ${error.message}</p>
+                </div>
+            `;
+            showNotification('Failed to process images', 'error');
+        } finally {
+            // Reset button
+            processBtn.disabled = false;
+            processBtn.innerHTML = '<i class="fas fa-cogs me-2"></i>Process Images';
+        }
+    }
+
+    // Display Results
+    function displayResults(data) {
+        const resultsContainer = document.getElementById('results-container');
+        const imageWindows = document.getElementById('image-windows');
+        const uploadedImages = document.getElementById('uploaded-images');
+        const detectionResults = document.getElementById('detection-results');
+        
+        // Show image windows
+        imageWindows.style.display = 'block';
+        
+        // Display uploaded images
+        uploadedImages.innerHTML = '';
+        data.uploaded_files.forEach(file => {
+            const imageItem = document.createElement('div');
+            imageItem.className = 'image-item';
+            imageItem.innerHTML = `
+                <img src="${URL.createObjectURL(selectedFiles.find(f => f.name === file.filename))}" alt="${file.filename}">
+                <div class="image-info">
+                    <div>${file.filename}</div>
+                    <div>${formatFileSize(file.size)}</div>
+                </div>
+            `;
+            uploadedImages.appendChild(imageItem);
+        });
+        
+        // Display detection results
+        detectionResults.innerHTML = '';
+        data.detection_results.forEach(result => {
+            const imageItem = document.createElement('div');
+            imageItem.className = 'image-item';
+            
+            const detectionCount = result.detections ? result.detections.length : 0;
+            const confidence = result.detections && result.detections.length > 0 
+                ? Math.round(result.detections[0].confidence * 100) 
+                : 0;
+            
+            imageItem.innerHTML = `
+                <img src="${URL.createObjectURL(selectedFiles.find(f => f.name === result.filename))}" alt="${result.filename}">
+                <div class="detection-overlay"></div>
+                <div class="detection-info">${detectionCount} objects (${confidence}%)</div>
+                <div class="image-info">
+                    <div>${result.filename}</div>
+                    <div>${detectionCount} detections</div>
+                </div>
+            `;
+            detectionResults.appendChild(imageItem);
+        });
+        
+        // Update results summary
+        const totalDetections = data.detection_results.reduce((sum, result) => sum + (result.detections ? result.detections.length : 0), 0);
+        const processingTime = data.processing_time || 0;
+        
+        resultsContainer.innerHTML = `
+            <div class="alert alert-success">
+                <h6><i class="fas fa-check-circle me-2"></i>Processing Complete</h6>
+                <div class="row">
+                    <div class="col-6">
+                        <strong>Files Processed:</strong> ${data.uploaded_files.length}
+                    </div>
+                    <div class="col-6">
+                        <strong>Total Detections:</strong> ${totalDetections}
+                    </div>
+                    <div class="col-6">
+                        <strong>Processing Time:</strong> ${processingTime.toFixed(2)}s
+                    </div>
+                    <div class="col-6">
+                        <strong>Session ID:</strong> ${data.session_id}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Initialize CV Platform when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Maintenance Mode initialized for RVM:', window.maintenanceModeData.rvmId);
+        
+        // Auto-activate maintenance mode if not already active
+        autoActivateMaintenanceMode();
+        
+        // Start real-time metrics refresh
+        startMetricsRefresh();
+        
+        // Load OTA data from metrics API
+        loadOTAData();
+        
+        // Initialize terminal
+        initializeTerminal();
+        
+        // Initialize command managers
+        if (typeof EnhancedMetricsManager !== 'undefined') {
+            window.enhancedMetricsManager = new EnhancedMetricsManager(window.maintenanceModeData.rvmId);
+        }
+        
+        if (typeof RemoteCommandsManager !== 'undefined') {
+            window.remoteCommandsManager = new RemoteCommandsManager(window.maintenanceModeData.rvmId);
+        }
+        
+        if (typeof OTAManagementManager !== 'undefined') {
+            window.otaManagementManager = new OTAManagementManager(window.maintenanceModeData.rvmId);
+        }
+        
+        // Initialize CV Platform
+        initializeCVPlatform();
     });
     </script>
 @endsection
