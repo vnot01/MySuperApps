@@ -33,19 +33,19 @@ print_error() {
 }
 
 # Check if we're in the right directory
-if [ ! -f "MyCV-Platform/direct/run_yolo_sam_integration-copy.py" ]; then
+if [ ! -f "run_yolo_sam_integration-copy.py" ]; then
     print_error "Please run this script from the MySuperApps root directory"
     exit 1
 fi
 
 # Check virtual environment
-if [ ! -d "MyCV-Platform/direct/venv" ]; then
-    print_error "Virtual environment not found! Please run ./MyCV-Platform/direct/scripts/setup.sh first"
+if [ ! -d "venv" ]; then
+    print_error "Virtual environment not found! Please run ./scripts/setup.sh first"
     exit 1
 fi
 
 print_status "Activating virtual environment..."
-source MyCV-Platform/direct/venv/bin/activate
+source venv/bin/activate
 
 if [[ "$VIRTUAL_ENV" != "" ]]; then
     print_success "✅ Virtual environment activated: $VIRTUAL_ENV"
@@ -56,9 +56,9 @@ fi
 
 # Check if models exist
 print_status "Checking required models..."
-if [ ! -f "MyCV-Platform/direct/data/models/yolo/active/yolo11m.pt" ]; then
+if [ ! -f "data/models/yolo/active/yolo11m.pt" ]; then
     print_warning "YOLO11m model not found, downloading..."
-    cd MyCV-Platform/direct
+    # cd MyCV-Platform/direct
     python3 -c "
 from ultralytics import YOLO
 import os
@@ -70,13 +70,13 @@ print('YOLO11m downloaded and saved')
 "
     # Clean up downloaded file from root directory
     rm -f yolo11m.pt
-    cd ../..
+    # cd ../..
     print_success "✅ YOLO11m downloaded and cleaned up"
 fi
 
-if [ ! -f "MyCV-Platform/direct/data/models/sam/active/sam2_b.pt" ]; then
+if [ ! -f "data/models/sam/active/sam2_b.pt" ]; then
     print_warning "SAM2_b model not found, downloading..."
-    cd MyCV-Platform/direct
+    # cd MyCV-Platform/direct
     python3 -c "
 from ultralytics import SAM
 import os
@@ -90,14 +90,14 @@ if os.path.exists('sam2_b.pt'):
 "
     # Clean up downloaded file from root directory
     rm -f sam2_b.pt
-    cd ../..
+    # cd ../..
     print_success "✅ SAM2_b downloaded and cleaned up"
 fi
 
-if [ ! -f "MyCV-Platform/direct/data/models/trained/best.pt" ]; then
+if [ ! -f "data/models/trained/best.pt" ]; then
     print_warning "best.pt model not found, downloading from GitHub..."
     print_status "Downloading best.pt from https://github.com/vnot01/MySuperApps/releases/download/v1.0.0/best.pt"
-    cd MyCV-Platform/direct
+    # cd MyCV-Platform/direct
     mkdir -p data/models/trained
     python3 -c "
 import os
@@ -126,7 +126,7 @@ def download_file(url, filename):
 os.makedirs('data/models/trained', exist_ok=True)
 download_file('https://github.com/vnot01/MySuperApps/releases/download/v1.0.0/best.pt', 'data/models/trained/best.pt')
 "
-    cd ../..
+    # cd ../..
     print_success "best.pt downloaded from GitHub"
 fi
 
@@ -137,8 +137,8 @@ TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 USER_ID="test_user_001"
 
 # Create remote directory structure
-INPUT_DIR="MyCV-Platform/direct/data/input/remote/${TIMESTAMP}/${USER_ID}"
-OUTPUT_DIR="MyCV-Platform/direct/data/output/remote/${TIMESTAMP}/${USER_ID}"
+INPUT_DIR="data/input/remote/${TIMESTAMP}/${USER_ID}"
+OUTPUT_DIR="data/output/remote/${TIMESTAMP}/${USER_ID}"
 YOLO_DIR="${OUTPUT_DIR}/yolo"
 BEST_DIR="${OUTPUT_DIR}/best"
 SEGMENTASI_DIR="${OUTPUT_DIR}/segmentasi"
@@ -161,7 +161,7 @@ print_success "  Hybrid: ${HYBRID_DIR}"
 
 # Copy random test images (more than 1)
 print_status "Copying random test images for testing..."
-TEST_IMAGES_DIR="MyCV-Platform/direct/data/input/test_images"
+TEST_IMAGES_DIR="data/input/test_images"
 AVAILABLE_IMAGES=($(ls "${TEST_IMAGES_DIR}"/*.jpg 2>/dev/null | head -5))
 
 if [ ${#AVAILABLE_IMAGES[@]} -eq 0 ]; then
@@ -187,7 +187,7 @@ print_success "Previous results cleaned"
 
 # Run integration test with copy script
 print_status "Running YOLO + SAM2 integration test (copy version)..."
-cd MyCV-Platform/direct
+# cd MyCV-Platform/direct
 python3 run_yolo_sam_integration-copy.py
 
 if [ $? -eq 0 ]; then
@@ -207,7 +207,7 @@ else
     print_warning "⚠️  Visualization generation failed, but integration test passed"
 fi
 
-cd ../..
+# cd ../..
 
 # Show results summary
 print_status "Test Results Summary:"

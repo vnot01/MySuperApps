@@ -41,21 +41,28 @@ Project ini dibagi menjadi 2 folder:
 
 ### Option 1: Direct Execution (Recommended)
 ```bash
+cd MySuperApps/MyCV-Platform
 cd direct
+python3 -m venv venv
 source venv/bin/activate
+pip install -r requirements.txt
 ./scripts/run_fresh_integration_test.sh
 ```
 
 ### Option 2: Copy Version with Enhanced Features
 ```bash
+cd MySuperApps/MyCV-Platform
 cd direct
+python3 -m venv venv
 source venv/bin/activate
+pip install -r requirements.txt
 ./scripts/run_fresh_integration_test-copy.sh
 ```
 
 ### Option 3: Web Application (Real-time Camera)
 ```bash
 cd direct
+python3 -m venv venv
 source venv/bin/activate
 cd MySuperApps/MyCV-Platform
 ./scripts/run_web.sh

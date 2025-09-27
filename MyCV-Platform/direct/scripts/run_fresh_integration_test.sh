@@ -121,6 +121,7 @@ def download_file(url, filename):
 os.makedirs('data/models/trained', exist_ok=True)
 download_file('https://github.com/vnot01/MySuperApps/releases/download/v1.0.0/best.pt', 'data/models/trained/best.pt')
 "
+
     print_success "best.pt downloaded from GitHub"
 fi
 
