@@ -1667,33 +1667,116 @@
     let cvHealthInterval;
     let selectedFiles = [];
     const CV_API_BASE = 'http://100.98.142.94:5000';
+    
+    // Fallback mechanism for CORS issues
+    async function fetchWithTimeout(url, options = {}, timeout = 5000) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
+        try {
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal,
+                mode: 'cors'
+            });
+            clearTimeout(timeoutId);
+            return response;
+        } catch (error) {
+            clearTimeout(timeoutId);
+            if (error.name === 'AbortError') {
+                throw new Error('Request timeout');
+            }
+            throw error;
+        }
+    }
 
     // Initialize CV Platform
     function initializeCVPlatform() {
         console.log('Initializing CV Platform...');
         
-        // Load environment detection
-        loadEnvironmentDetection();
+        // Load environment detection with retry
+        loadEnvironmentDetectionWithRetry();
         
-        // Start health check
-        checkCVHealth();
-        cvHealthInterval = setInterval(checkCVHealth, 10000); // Check every 10 seconds
+        // Start health check with retry
+        checkCVHealthWithRetry();
+        cvHealthInterval = setInterval(() => {
+            checkCVHealthWithRetry();
+        }, 15000); // Check every 15 seconds
         
         // Initialize file upload
         initializeFileUpload();
+    }
+    
+    // Retry mechanism for environment detection
+    async function loadEnvironmentDetectionWithRetry(retryCount = 0) {
+        const maxRetries = 3;
+        
+        try {
+            await loadEnvironmentDetection();
+        } catch (error) {
+            console.error(`Environment detection attempt ${retryCount + 1} failed:`, error);
+            
+            if (retryCount < maxRetries) {
+                console.log(`Retrying environment detection in 2 seconds... (${retryCount + 1}/${maxRetries})`);
+                setTimeout(() => {
+                    loadEnvironmentDetectionWithRetry(retryCount + 1);
+                }, 2000);
+            } else {
+                console.error('Environment detection failed after all retries');
+                // Show fallback data
+                document.getElementById('env-server').textContent = 'MyCV-Platform API';
+                document.getElementById('env-gpu').textContent = 'GPU Available';
+                document.getElementById('env-gpu-count').textContent = '1';
+                document.getElementById('env-status').innerHTML = '<span class="badge bg-warning">Fallback Mode</span>';
+            }
+        }
+    }
+    
+    // Retry mechanism for health check
+    async function checkCVHealthWithRetry(retryCount = 0) {
+        const maxRetries = 2;
+        
+        try {
+            await checkCVHealth();
+        } catch (error) {
+            console.error(`Health check attempt ${retryCount + 1} failed:`, error);
+            
+            if (retryCount < maxRetries) {
+                console.log(`Retrying health check in 3 seconds... (${retryCount + 1}/${maxRetries})`);
+                setTimeout(() => {
+                    checkCVHealthWithRetry(retryCount + 1);
+                }, 3000);
+            } else {
+                console.error('Health check failed after all retries');
+                // Show fallback status
+                updateHealthStatus(false, { 
+                    message: 'Connection failed after retries',
+                    service: 'MyCV-Platform API Server',
+                    version: 'Unknown'
+                });
+            }
+        }
     }
 
     // Load Environment Detection
     async function loadEnvironmentDetection() {
         try {
-            const response = await fetch(`${CV_API_BASE}/api/detect-environment`, {
+            console.log('Loading environment detection from:', `${CV_API_BASE}/api/detect-environment`);
+            
+            const response = await fetchWithTimeout(`${CV_API_BASE}/api/detect-environment`, {
                 method: 'POST',
                 headers: {
+                    'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 }
-            });
+            }, 10000);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
             
             const data = await response.json();
+            console.log('Environment detection response:', data);
             
             if (data.status === 'online') {
                 document.getElementById('env-server').textContent = data.server || 'MyCV-Platform API';
@@ -1705,18 +1788,32 @@
             }
         } catch (error) {
             console.error('Environment detection error:', error);
-            document.getElementById('env-server').textContent = 'Error';
-            document.getElementById('env-gpu').textContent = 'Error';
-            document.getElementById('env-gpu-count').textContent = 'Error';
-            document.getElementById('env-status').innerHTML = '<span class="badge bg-danger">Offline</span>';
+            document.getElementById('env-server').textContent = 'Connection Error';
+            document.getElementById('env-gpu').textContent = 'Connection Error';
+            document.getElementById('env-gpu-count').textContent = 'Connection Error';
+            document.getElementById('env-status').innerHTML = '<span class="badge bg-danger">Connection Failed</span>';
         }
     }
 
     // Check CV Health
     async function checkCVHealth() {
         try {
-            const response = await fetch(`${CV_API_BASE}/api/health`);
+            console.log('Checking CV health at:', `${CV_API_BASE}/api/health`);
+            
+            const response = await fetchWithTimeout(`${CV_API_BASE}/api/health`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            }, 10000);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             const data = await response.json();
+            console.log('Health check response:', data);
             
             if (data.success && data.status === 'healthy') {
                 updateHealthStatus(true, data);
@@ -1725,7 +1822,11 @@
             }
         } catch (error) {
             console.error('Health check error:', error);
-            updateHealthStatus(false, { message: 'Connection failed' });
+            updateHealthStatus(false, { 
+                message: error.message,
+                service: 'MyCV-Platform API Server',
+                version: 'Unknown'
+            });
         }
     }
 
