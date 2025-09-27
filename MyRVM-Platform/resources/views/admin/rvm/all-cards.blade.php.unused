@@ -1,0 +1,155 @@
+    <!-- RVM Monitoring Section -->
+    <div class="row flex-grow-1 rvm-list-container">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm h-100 rvm-list-card">
+                <div class="card-header border-0 bg-transparent p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1 fw-bold">RVM Monitoring 123</h5>
+                            <p class="card-subtitle text-muted mb-0">Real-time status of all Reverse Vending Machines</p>
+                            <div class="mt-2">
+                                <span class="badge bg-info">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Timezone sync ready 123
+                                </span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <small class="text-muted me-3">Last updated: <span id="last-updated">--:--:--</span></small>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="goToPage(1)">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="changePage(-1)" id="prev-page">
+                                    <i class="fas fa-angle-left"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="changePage(1)" id="next-page">
+                                    <i class="fas fa-angle-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row" id="rvm-cards-container">
+                        @foreach($rvms as $rvm)
+                        <div class="col-md-6 col-lg-4 col-xl-3 mb-4" data-rvm-id="{{ $rvm->id }}">
+                            <div class="card rvm-card h-100 border-0 shadow-sm">
+                                <div class="card-header border-0 bg-transparent p-3">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="d-flex align-items-center">
+                                            <div class="me-2">
+                                                <div class="avatar avatar-sm">
+                                                    <span class="avatar-initial rounded bg-label-primary">
+                                                        {{ substr($rvm->name, -2) }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold">{{ $rvm->name }}</h6>
+                                                <small class="text-muted">{{ $rvm->location ?? $rvm->location_description ?? 'Not Set' }}</small>
+                                            </div>
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-text-secondary btn-icon rounded-pill" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" href="#" onclick="viewRVMDetails({{ $rvm->id }})">
+                                                    <i class="fas fa-eye me-2"></i>View Details
+                                                </a></li>
+                                                <li><a class="dropdown-item" href="#" onclick="editRVM({{ $rvm->id }})">
+                                                    <i class="fas fa-edit me-2"></i>Edit RVM
+                                                </a></li>
+                                                <li><a class="dropdown-item" href="#" onclick="syncTimezone({{ $rvm->id }})">
+                                                    <i class="fas fa-clock me-2"></i>Sync Timezone
+                                                </a></li>
+                                                <li><a class="dropdown-item text-primary" href="#" onclick="showRemoteAccessModal({{ $rvm->id }})">
+                                                    <i class="fas fa-wrench me-2"></i>Enter Maintenance Mode
+                                                </a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteRVM({{ $rvm->id }})">
+                                                    <i class="fas fa-trash me-2"></i>Delete
+                                                </a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body p-3">
+                                    <!-- Status Indicator -->
+                                    <div class="d-flex align-items-center mb-3">
+                                        @php
+                                            $statusConfig = [
+                                                'active' => ['class' => 'success', 'icon' => 'check-circle', 'color' => '#28a745'],
+                                                'inactive' => ['class' => 'secondary', 'icon' => 'pause-circle', 'color' => '#6c757d'],
+                                                'maintenance' => ['class' => 'warning', 'icon' => 'wrench', 'color' => '#ffc107'],
+                                                'error' => ['class' => 'danger', 'icon' => 'exclamation-triangle', 'color' => '#dc3545'],
+                                                'full' => ['class' => 'danger', 'icon' => 'exclamation-triangle', 'color' => '#dc3545']
+                                            ];
+                                            $config = $statusConfig[$rvm->status] ?? ['class' => 'secondary', 'icon' => 'question-circle', 'color' => '#6c757d'];
+                                        @endphp
+                                        <div class="me-2">
+                                            <div class="status-indicator" style="background-color: {{ $config['color'] }}"></div>
+                                        </div>
+                                        <span class="text-capitalize {{ $config['class'] }}">
+                                            <i class="fas fa-{{ $config['icon'] }} me-1"></i>{{ ucfirst($rvm->status) }}
+                                        </span>
+                                    </div>
+
+                                    <!-- System Information -->
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-6">
+                                            <div class="info-item">
+                                                <small class="text-muted">IP Address</small>
+                                                <div class="fw-bold">{{ $rvm->ip_address ?? 'Not Set' }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="info-item">
+                                                <small class="text-muted">Port</small>
+                                                <div class="fw-bold">{{ $rvm->port ?? '8000' }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Connection Status -->
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="connection-pulse me-2" id="connection-pulse-{{ $rvm->id }}"></div>
+                                            <small class="text-muted">Connection</small>
+                                        </div>
+                                        <span class="badge bg-secondary" id="connection-{{ $rvm->id }}">
+                                            <i class="fas fa-question-circle me-1"></i>Unknown
+                                        </span>
+                                    </div>
+
+                                    <!-- Real-time Clock -->
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-clock me-2 text-primary"></i>
+                                            <small class="text-muted">Local Time</small>
+                                        </div>
+                                        <div class="fw-bold text-primary" id="local-time-{{ $rvm->id }}">
+                                            {{ $rvm->timezone ? now()->setTimezone($rvm->timezone)->format('H:i:s') : '--:--:--' }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Last Update -->
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-sync-alt me-2 text-info"></i>
+                                            <small class="text-muted">Last Update</small>
+                                        </div>
+                                        <small class="text-muted" id="last-update-{{ $rvm->id }}">
+                                            {{ $rvm->last_ping ? \Carbon\Carbon::parse($rvm->last_ping)->format('H:i') : 'Never' }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

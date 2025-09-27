@@ -1,0 +1,144 @@
+/* ===== FIX: Full Width Horizontal Menu ===== */
+/*
+  This rule makes the menu container take full width of the screen,
+  ensuring consistent appearance across all pages regardless of content width.
+*/
+.layout-menu.menu-horizontal > .menu-container {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Center the menu items within the full-width container */
+.layout-menu.menu-horizontal .menu-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: center;
+}
+
+/* Menu Toggle Styles */
+.menu-toggle {
+    position: relative;
+}
+
+.menu-sub {
+    display: none;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin-top: 5px;
+    padding: 8px 0;
+    min-width: 200px;
+    animation: slideDown 0.3s ease;
+}
+
+.menu-sub.show {
+    display: block;
+}
+
+/* Aturan untuk sub-menu level kedua (jika ada) */
+.menu-sub .menu-item {
+    position: relative; /* Diperlukan agar sub-sub-menu bisa diposisikan */
+    list-style: none; /* Hapus bullet points */
+}
+
+.menu-sub .menu-link {
+    padding: 10px 20px;
+    color: #6c757d;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    display: block; /* Agar link memenuhi area li */
+    white-space: nowrap; /* Agar teks tidak terpotong */
+    text-decoration: none;
+}
+
+.menu-sub .menu-link:hover {
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+    transform: translateX(5px);
+}
+
+.menu-sub .menu-sub {
+    top: 0;
+    left: 100%; /* Posisikan di sebelah kanan parent */
+    margin-top: 0;
+    margin-left: 1px;
+    z-index: 1050;
+    position: absolute;
+}
+
+/* Menu Toggle Styles */
+.menu-item .menu-sub {
+    display: none; /* Sembunyikan secara default */
+    position: absolute; /* PENTING untuk menu horizontal agar tidak mendorong item lain */
+    background: white;
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    margin-top: 5px; /* Jarak dari parent */
+    padding: 8px 0;
+    min-width: 220px; /* Lebar minimum dropdown */
+    z-index: 1050; /* Pastikan di atas konten lain */
+    list-style: none; /* Hapus bullet points */
+    animation: slideDown 0.2s ease-out; /* Animasi halus */
+}
+
+/* Tampilkan sub-menu jika parent-nya memiliki class 'open' */
+.menu-item.open > .menu-sub {
+    display: block;
+}
+
+.menu-item.open > .menu-link {
+    color: #667eea !important;
+}
+
+/* Hapus Paksa Semua Panah Menu */
+.layout-menu .menu-link.menu-toggle::after {
+    content: none !important;
+}
+
+/* Hapus Lingkaran/Penanda Kustom */
+.menu-inner .menu-sub .menu-link::before {
+    content: none !important;
+}
+
+/* Animasi slideDown */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Debug styles untuk menu */
+.menu-toggle {
+    cursor: pointer;
+}
+
+.menu-toggle:hover {
+    background-color: rgba(102, 126, 234, 0.1);
+}
+
+/* Pastikan sub-menu terlihat saat open */
+.menu-item.open > .menu-sub {
+    display: block !important;
+}
+
+/* Pastikan sub-menu tersembunyi secara default */
+.menu-item .menu-sub {
+    display: none !important;
+}
+
+/* Hanya tampilkan sub-menu yang memiliki parent dengan class open */
+.menu-item.open > .menu-sub {
+    display: block !important;
+}

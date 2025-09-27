@@ -1,0 +1,55 @@
+{
+  "id": "myrvm-economy-api-env",
+  "name": "MyRVM Economy API Environment",
+  "values": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "voucher_id",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "test_user_email",
+      "value": "john@test.com",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "test_user_password",
+      "value": "password123",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "test_user_email_new",
+      "value": "testeconomy@example.com",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "test_user_password_new",
+      "value": "password123",
+      "type": "secret",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

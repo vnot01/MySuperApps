@@ -1,0 +1,37 @@
+{
+  "id": "myrvm-v2-management-env",
+  "name": "MyRVM v2.1 - Management Environment",
+  "values": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api/v2",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "auth_token",
+      "value": "2|eJnDVVbwaoNtfiFYgm7ewEetIHQadfy60252ZSnT70844d92",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "user_id",
+      "value": "4",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "tenant_id",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "rvm_id",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

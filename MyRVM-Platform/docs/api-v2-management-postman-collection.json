@@ -1,0 +1,563 @@
+{
+  "info": {
+    "name": "MyRVM v2.1 - Management APIs",
+    "description": "Collection untuk testing Management Controllers API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api/v2",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "2|eJnDVVbwaoNtfiFYgm7ewEetIHQadfy60252ZSnT70844d92",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Admin Controller",
+      "item": [
+        {
+          "name": "Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/dashboard/stats",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "dashboard", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Get Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/users",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "users"]
+            }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin Test User\",\n  \"email\": \"admintest@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"role_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/users",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "users"]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Admin User\",\n  \"email\": \"admintest@example.com\",\n  \"phone_number\": \"+6281234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "users", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "users", "{{user_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tenant Controller",
+      "item": [
+        {
+          "name": "Get Tenants",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tenants",
+              "host": ["{{base_url}}"],
+              "path": ["tenants"]
+            }
+          }
+        },
+        {
+          "name": "Get Tenant Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tenants/{{tenant_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tenants", "{{tenant_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Tenant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Tenant\",\n  \"description\": \"Test tenant for API testing\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tenants",
+              "host": ["{{base_url}}"],
+              "path": ["tenants"]
+            }
+          }
+        },
+        {
+          "name": "Update Tenant",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Test Tenant\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tenants/{{tenant_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tenants", "{{tenant_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Tenant",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tenants/{{tenant_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tenants", "{{tenant_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Tenant Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tenants/{{tenant_id}}/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["tenants", "{{tenant_id}}", "statistics"]
+            }
+          }
+        },
+        {
+          "name": "Toggle Tenant Status",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tenants/{{tenant_id}}/toggle-status",
+              "host": ["{{base_url}}"],
+              "path": ["tenants", "{{tenant_id}}", "toggle-status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "RVM Controller",
+      "item": [
+        {
+          "name": "Get RVMs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/rvms",
+              "host": ["{{base_url}}"],
+              "path": ["rvms"]
+            }
+          }
+        },
+        {
+          "name": "Get RVM Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/rvms/{{rvm_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rvms", "{{rvm_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create RVM",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test RVM\",\n  \"location\": \"Test Location\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rvms",
+              "host": ["{{base_url}}"],
+              "path": ["rvms"]
+            }
+          }
+        },
+        {
+          "name": "Update RVM",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Test RVM\",\n  \"location\": \"Updated Location\",\n  \"status\": \"maintenance\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rvms/{{rvm_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rvms", "{{rvm_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete RVM",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/rvms/{{rvm_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["rvms", "{{rvm_id}}"]
+            }
+          }
+        },
+        {
+          "name": "RVM Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/rvms/{{rvm_id}}/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["rvms", "{{rvm_id}}", "statistics"]
+            }
+          }
+        },
+        {
+          "name": "Update RVM Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"inactive\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rvms/{{rvm_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["rvms", "{{rvm_id}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Regenerate API Key",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/rvms/{{rvm_id}}/regenerate-api-key",
+              "host": ["{{base_url}}"],
+              "path": ["rvms", "{{rvm_id}}", "regenerate-api-key"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Management Controller",
+      "item": [
+        {
+          "name": "Get Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "Get Roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/roles",
+              "host": ["{{base_url}}"],
+              "path": ["users", "roles"]
+            }
+          }
+        },
+        {
+          "name": "Get User Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User Management\",\n  \"email\": \"testmanagement@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"role_id\": 4\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Test User\",\n  \"email\": \"testmanagement@example.com\",\n  \"phone_number\": \"+6281234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "User Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{user_id}}", "statistics"]
+            }
+          }
+        },
+        {
+          "name": "Update User Balance",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"balance\": 5000,\n  \"reason\": \"Admin balance adjustment for testing\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/{{user_id}}/balance",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{user_id}}", "balance"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics Controller",
+      "item": [
+        {
+          "name": "Dashboard Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/analytics/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["analytics", "dashboard"]
+            }
+          }
+        },
+        {
+          "name": "Deposit Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/analytics/deposits",
+              "host": ["{{base_url}}"],
+              "path": ["analytics", "deposits"]
+            }
+          }
+        },
+        {
+          "name": "Economy Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/analytics/economy",
+              "host": ["{{base_url}}"],
+              "path": ["analytics", "economy"]
+            }
+          }
+        },
+        {
+          "name": "User Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/analytics/users",
+              "host": ["{{base_url}}"],
+              "path": ["analytics", "users"]
+            }
+          }
+        },
+        {
+          "name": "RVM Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/analytics/rvms",
+              "host": ["{{base_url}}"],
+              "path": ["analytics", "rvms"]
+            }
+          }
+        },
+        {
+          "name": "Generate Custom Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"deposits\",\n  \"start_date\": \"2025-09-01\",\n  \"end_date\": \"2025-09-30\",\n  \"filters\": {\n    \"status\": \"completed\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/analytics/reports",
+              "host": ["{{base_url}}"],
+              "path": ["analytics", "reports"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

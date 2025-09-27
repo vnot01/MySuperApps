@@ -1,0 +1,771 @@
+{
+  "info": {
+    "name": "MyRVM API V2 - Economy Management",
+    "description": "Postman collection for MyRVM v2.1 Economy API endpoints including User Balance Management and Voucher Management",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "voucher_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set user_id from response if available",
+          "if (pm.response && pm.response.json() && pm.response.json().data && pm.response.json().data.user_id) {",
+          "    pm.collectionVariables.set('user_id', pm.response.json().data.user_id);",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script",
+          "pm.test('Response time is less than 5000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has success field', function () {",
+          "    const jsonData = pm.response.json();",
+          "    pm.expect(jsonData).to.have.property('success');",
+          "});",
+          "",
+          "pm.test('Response has message field', function () {",
+          "    const jsonData = pm.response.json();",
+          "    pm.expect(jsonData).to.have.property('message');",
+          "});",
+          "",
+          "// Log response for debugging",
+          "console.log('Response:', pm.response.json());"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login successful', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('token');",
+                  "    pm.expect(jsonData.data).to.have.property('user');",
+                  "});",
+                  "",
+                  "pm.test('Set auth token', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.success && jsonData.data.token) {",
+                  "        pm.collectionVariables.set('auth_token', jsonData.data.token);",
+                  "        pm.collectionVariables.set('user_id', jsonData.data.user.id);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@test.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Balance Management",
+      "item": [
+        {
+          "name": "Get User Balance",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Get balance successful', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('current_balance');",
+                  "    pm.expect(jsonData.data).to.have.property('currency');",
+                  "    pm.expect(jsonData.data).to.have.property('statistics');",
+                  "    pm.expect(jsonData.data).to.have.property('recent_transactions');",
+                  "});",
+                  "",
+                  "pm.test('Balance is valid number', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const balance = parseFloat(jsonData.data.current_balance);",
+                  "    pm.expect(balance).to.be.a('number');",
+                  "    pm.expect(balance).to.be.at.least(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/user/balance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "user", "balance"]
+            }
+          }
+        },
+        {
+          "name": "Get Transaction History",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Get transaction history successful', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "    pm.expect(jsonData).to.have.property('pagination');",
+                  "});",
+                  "",
+                  "pm.test('Pagination structure is correct', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const pagination = jsonData.pagination;",
+                  "    pm.expect(pagination).to.have.property('current_page');",
+                  "    pm.expect(pagination).to.have.property('per_page');",
+                  "    pm.expect(pagination).to.have.property('total');",
+                  "    pm.expect(pagination).to.have.property('last_page');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/user/balance/transactions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "user", "balance", "transactions"]
+            }
+          }
+        },
+        {
+          "name": "Get Transaction History - Filter by Credit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Get credit transactions successful', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('All transactions are credit type', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    jsonData.data.forEach(transaction => {",
+                  "        pm.expect(transaction.type).to.eql('credit');",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/user/balance/transactions?type=credit",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "user", "balance", "transactions"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "credit"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Transaction History - Filter by Debit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Get debit transactions successful', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('All transactions are debit type', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    jsonData.data.forEach(transaction => {",
+                  "        pm.expect(transaction.type).to.eql('debit');",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/user/balance/transactions?type=debit",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "user", "balance", "transactions"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "debit"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Transaction History - Pagination",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Get paginated transactions successful', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Pagination limits are respected', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.length).to.be.at.most(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/user/balance/transactions?page=1&per_page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "user", "balance", "transactions"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Balance Statistics",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Get balance statistics successful', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('current_balance');",
+                  "    pm.expect(jsonData.data).to.have.property('currency');",
+                  "    pm.expect(jsonData.data).to.have.property('last_30_days');",
+                  "    pm.expect(jsonData.data).to.have.property('daily_changes');",
+                  "});",
+                  "",
+                  "pm.test('Statistics structure is correct', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const stats = jsonData.data.last_30_days;",
+                  "    pm.expect(stats).to.have.property('total_transactions');",
+                  "    pm.expect(stats).to.have.property('total_credits');",
+                  "    pm.expect(stats).to.have.property('total_debits');",
+                  "    pm.expect(stats).to.have.property('net_change');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/user/balance/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "user", "balance", "statistics"]
+            }
+          }
+        },
+        {
+          "name": "Get Economy Summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Get economy summary successful', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('user_balance');",
+                  "    pm.expect(jsonData.data).to.have.property('transaction_summary');",
+                  "    pm.expect(jsonData.data).to.have.property('deposit_summary');",
+                  "    pm.expect(jsonData.data).to.have.property('voucher_summary');",
+                  "});",
+                  "",
+                  "pm.test('Economy summary structure is complete', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const summary = jsonData.data;",
+                  "    pm.expect(summary.user_balance).to.have.property('current_balance');",
+                  "    pm.expect(summary.transaction_summary).to.have.property('total_transactions');",
+                  "    pm.expect(summary.deposit_summary).to.have.property('total_deposits');",
+                  "    pm.expect(summary.voucher_summary).to.have.property('total_redemptions');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/user/economy/summary",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "user", "economy", "summary"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Voucher Management",
+      "item": [
+        {
+          "name": "Get Available Vouchers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Get vouchers successful', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "    pm.expect(jsonData).to.have.property('pagination');",
+                  "});",
+                  "",
+                  "pm.test('Voucher structure is correct', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data.length > 0) {",
+                  "        const voucher = jsonData.data[0];",
+                  "        pm.expect(voucher).to.have.property('id');",
+                  "        pm.expect(voucher).to.have.property('title');",
+                  "        pm.expect(voucher).to.have.property('description');",
+                  "        pm.expect(voucher).to.have.property('cost');",
+                  "        pm.expect(voucher).to.have.property('stock');",
+                  "        pm.expect(voucher).to.have.property('is_redeemed');",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Set voucher_id for testing', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data.length > 0) {",
+                  "        const availableVoucher = jsonData.data.find(v => !v.is_redeemed);",
+                  "        if (availableVoucher) {",
+                  "            pm.collectionVariables.set('voucher_id', availableVoucher.id);",
+                  "        }",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/vouchers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "vouchers"]
+            }
+          }
+        },
+        {
+          "name": "Redeem Voucher - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Redeem voucher successful', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data).to.have.property('redemption_id');",
+                  "    pm.expect(jsonData.data).to.have.property('redemption_code');",
+                  "    pm.expect(jsonData.data).to.have.property('voucher');",
+                  "    pm.expect(jsonData.data).to.have.property('new_balance');",
+                  "    pm.expect(jsonData.data).to.have.property('transaction_id');",
+                  "});",
+                  "",
+                  "pm.test('Redemption code format is correct', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const redemptionCode = jsonData.data.redemption_code;",
+                  "    pm.expect(redemptionCode).to.match(/^VRM[A-F0-9]+$/);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"voucher_id\": {{voucher_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/vouchers/redeem",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "vouchers", "redeem"]
+            }
+          }
+        },
+        {
+          "name": "Redeem Voucher - Already Redeemed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Already redeemed error handled', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "    pm.expect(jsonData.message).to.include('already redeemed');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"voucher_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/vouchers/redeem",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "vouchers", "redeem"]
+            }
+          }
+        },
+        {
+          "name": "Redeem Voucher - Insufficient Balance",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Insufficient balance error handled', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "    pm.expect(jsonData.message).to.include('Insufficient balance');",
+                  "    pm.expect(jsonData.data).to.have.property('required_balance');",
+                  "    pm.expect(jsonData.data).to.have.property('current_balance');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"voucher_id\": 4\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/vouchers/redeem",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "vouchers", "redeem"]
+            }
+          }
+        },
+        {
+          "name": "Redeem Voucher - Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Voucher not found error handled', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "    pm.expect(jsonData.message).to.include('not found');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"voucher_id\": 999\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/vouchers/redeem",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "vouchers", "redeem"]
+            }
+          }
+        },
+        {
+          "name": "Redeem Voucher - Missing Voucher ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Missing voucher ID error handled', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "    pm.expect(jsonData.message).to.include('Voucher ID is required');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/vouchers/redeem",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "vouchers", "redeem"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Scenarios",
+      "item": [
+        {
+          "name": "Unauthorized Access - No Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Unauthorized access handled', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 302]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/user/balance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "user", "balance"]
+            }
+          }
+        },
+        {
+          "name": "Unauthorized Access - Invalid Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Invalid token handled', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 302]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "invalid_token",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/user/balance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "user", "balance"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Performance Testing",
+      "item": [
+        {
+          "name": "Load Test - Get Balance (10 requests)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// This will be run 10 times by Newman",
+                  "console.log('Running load test iteration:', pm.info.iteration + 1);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Load test - Response time acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+                  "});",
+                  "",
+                  "pm.test('Load test - Response successful', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v2/user/balance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "user", "balance"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
