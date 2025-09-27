@@ -42,6 +42,14 @@ Project ini dibagi menjadi 2 folder:
 ### Option 1: Direct Execution (Recommended)
 ```bash
 cd MySuperApps/MyCV-Platform
+./run_direct.sh
+```
+
+**📖 Detailed Guide:** [README_run_direct.md](./README_run_direct.md)
+
+### Option 1b: Manual Setup
+```bash
+cd MySuperApps/MyCV-Platform
 cd direct
 python3 -m venv venv
 source venv/bin/activate
@@ -372,6 +380,37 @@ python3 app/utils/environment_detector.py
 ./scripts/detect_environment.sh
 ```
 
+## 🚀 Script Launchers
+
+### **Main Launchers:**
+
+#### 1. **Direct Execution** - [`run_direct.sh`](./run_direct.sh)
+- **Purpose**: Menjalankan aplikasi langsung di VM tanpa Docker
+- **Features**: Auto setup venv, install dependencies, run integration test
+- **Documentation**: [📖 README_run_direct.md](./README_run_direct.md)
+
+#### 2. **Web Application** - [`run_web.sh`](./run_web.sh)
+- **Purpose**: Menjalankan aplikasi web real-time camera detection
+- **Features**: Real-time YOLO + SAM2 processing dengan web interface
+- **URL**: http://localhost:5000
+
+#### 3. **Docker Testing** - [`run_docker.sh`](./run_docker.sh)
+- **Purpose**: Menjalankan aplikasi dengan Docker (CPU-only)
+- **Features**: Docker container testing dengan multiple configurations
+- **Note**: GPU support bermasalah, gunakan CPU-only mode
+
+### **Quick Launch Commands:**
+```bash
+# Direct execution (Recommended)
+./run_direct.sh
+
+# Web application
+./run_web.sh
+
+# Docker testing
+./run_docker.sh
+```
+
 ---
 
 **Status**: ✅ **PRODUCTION READY**  
@@ -385,3 +424,4 @@ python3 app/utils/environment_detector.py
 - ✅ **Structured output directories** dengan subfolder organization
 - ✅ **Compare visualization** dengan 2x3 subplot layout
 - ✅ **Improved file naming convention** untuk better organization
+- ✅ **Script Launchers Documentation** - [📖 README_run_direct.md](./README_run_direct.md)
