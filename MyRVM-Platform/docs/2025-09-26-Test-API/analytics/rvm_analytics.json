@@ -1,0 +1,120 @@
+{
+    "success": true,
+    "message": "RVM analytics retrieved successfully",
+    "data": {
+        "period": "30d",
+        "date_range": {
+            "start": "2025-08-28",
+            "end": "2025-09-27"
+        },
+        "summary": {
+            "total_rvms": 2,
+            "active_rvms": 0,
+            "inactive_rvms": 1,
+            "maintenance_rvms": 0,
+            "rvms_with_activity": 0,
+            "utilization_rate": 0
+        },
+        "performance_ranking": [
+            {
+                "id": 3,
+                "name": "RVM-Test-Maintenance",
+                "location_description": null,
+                "status": "inactive",
+                "api_key": "test-api-key-123",
+                "created_at": "2025-09-24T01:15:58.000000Z",
+                "updated_at": "2025-09-25T10:29:57.000000Z",
+                "last_status_change": "2025-09-25T10:29:57.000000Z",
+                "admin_access_pin": null,
+                "remote_access_enabled": true,
+                "kiosk_mode_enabled": true,
+                "pos_settings": null,
+                "capacity": 50,
+                "special_status": null,
+                "last_capacity_update": null,
+                "location": "Test Location",
+                "address": null,
+                "ip_address": "192.168.1.100",
+                "port": 8001,
+                "timezone": "Asia/Jakarta",
+                "timezone_offset": null,
+                "last_timezone_sync": null,
+                "last_ping": null,
+                "connection_status": "unknown",
+                "api_token": null,
+                "api_token_expires_at": null,
+                "last_api_access": null,
+                "latitude": null,
+                "longitude": null,
+                "last_pulse_at": null,
+                "health_data": null,
+                "deposits_count": 0,
+                "deposits_sum_reward_amount": null
+            },
+            {
+                "id": 1,
+                "name": "RVM-Jetson-Orin",
+                "location_description": null,
+                "status": "error",
+                "api_key": "rvm_7EB64E7724088BE2",
+                "created_at": "2025-09-23T20:18:27.000000Z",
+                "updated_at": "2025-09-26T17:07:22.000000Z",
+                "last_status_change": "2025-09-26T17:07:22.000000Z",
+                "admin_access_pin": null,
+                "remote_access_enabled": true,
+                "kiosk_mode_enabled": true,
+                "pos_settings": {
+                    "software_version": "1.0.0"
+                },
+                "capacity": 0,
+                "special_status": null,
+                "last_capacity_update": null,
+                "location": "Kasetsart University",
+                "address": "Jl. Daniswara, Bantul, 55751, Indonesia",
+                "ip_address": "100.117.234.2",
+                "port": 5000,
+                "timezone": "Asia/Jakarta",
+                "timezone_offset": "+07:00",
+                "last_timezone_sync": null,
+                "last_ping": "2025-09-23T22:15:09.000000Z",
+                "connection_status": "connected",
+                "api_token": null,
+                "api_token_expires_at": null,
+                "last_api_access": null,
+                "latitude": null,
+                "longitude": null,
+                "last_pulse_at": null,
+                "health_data": null,
+                "deposits_count": 0,
+                "deposits_sum_reward_amount": null
+            }
+        ],
+        "utilization_rates": [
+            {
+                "rvm_id": 3,
+                "rvm_name": "RVM-Test-Maintenance",
+                "status": "inactive",
+                "deposits_count": 0,
+                "utilization_rate": "Low"
+            },
+            {
+                "rvm_id": 1,
+                "rvm_name": "RVM-Jetson-Orin",
+                "status": "error",
+                "deposits_count": 0,
+                "utilization_rate": "Low"
+            }
+        ],
+        "maintenance_insights": {
+            "maintenance_rvms": 0,
+            "inactive_rvms": 1,
+            "rvms_needing_attention": [
+                {
+                    "id": 3,
+                    "name": "RVM-Test-Maintenance",
+                    "status": "inactive"
+                }
+            ]
+        }
+    }
+}

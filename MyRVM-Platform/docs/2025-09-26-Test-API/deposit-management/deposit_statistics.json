@@ -1,0 +1,12 @@
+{
+    "success": true,
+    "data": {
+        "total_deposits": 1,
+        "completed_deposits": 0,
+        "pending_deposits": 0,
+        "rejected_deposits": 0,
+        "total_rewards": "1925.00",
+        "avg_confidence": "77.0000000000000000",
+        "waste_types_count": 1
+    }
+}

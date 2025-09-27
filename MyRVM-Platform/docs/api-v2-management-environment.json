@@ -4,7 +4,7 @@
   "values": [
     {
       "key": "base_url",
-      "value": "http://localhost:8000/api/v2",
+      "value": "http://100.123.143.87:8001/api/v2",
       "type": "default",
       "enabled": true
     },
@@ -16,7 +16,7 @@
     },
     {
       "key": "user_id",
-      "value": "4",
+      "value": "1",
       "type": "default",
       "enabled": true
     },

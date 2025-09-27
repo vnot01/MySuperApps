@@ -1,0 +1,21 @@
+{
+    "success": true,
+    "message": "Report generated successfully",
+    "data": {
+        "report_type": "economy",
+        "date_range": {
+            "start": "2025-09-01",
+            "end": "2025-09-07"
+        },
+        "format": "json",
+        "generated_at": "2025-09-26T17:29:04.713793Z",
+        "report": {
+            "total_transactions": 716,
+            "total_credits": 0,
+            "total_debits": 0,
+            "net_flow": 0,
+            "voucher_redemptions": 0,
+            "avg_transaction_amount": 0
+        }
+    }
+}

@@ -1,0 +1,34 @@
+{
+    "success": true,
+    "message": "Tenant statistics retrieved successfully",
+    "data": {
+        "tenant_info": {
+            "id": 1,
+            "name": "Test Tenant API",
+            "is_active": true
+        },
+        "users": {
+            "total": 0,
+            "by_role": []
+        },
+        "vouchers": {
+            "total": 0,
+            "active": 0,
+            "inactive": 0,
+            "total_redeemed": 0,
+            "total_stock": 0
+        },
+        "reverse_vending_machines": {
+            "total": 0,
+            "active": 0,
+            "inactive": 0,
+            "maintenance": 0,
+            "full": 0
+        },
+        "deposits": {
+            "total": 0,
+            "completed": 0,
+            "pending": 0
+        }
+    }
+}

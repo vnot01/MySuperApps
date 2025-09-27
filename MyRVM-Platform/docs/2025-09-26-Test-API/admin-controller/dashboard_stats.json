@@ -1,0 +1,48 @@
+{
+    "success": true,
+    "message": "Dashboard statistics retrieved successfully",
+    "data": {
+        "statistics": {
+            "users": {
+                "total": 10,
+                "active": 10,
+                "pending": 0,
+                "new_today": 0
+            },
+            "tenants": {
+                "total": 0,
+                "active": 0,
+                "inactive": 0
+            },
+            "rvms": {
+                "total": 2,
+                "active": 0,
+                "inactive": 1,
+                "maintenance": 0,
+                "full": 0
+            },
+            "deposits": {
+                "total": 0,
+                "completed": 0,
+                "pending": 0,
+                "rejected": 0,
+                "today": 0,
+                "total_rewards": 0
+            },
+            "economy": {
+                "total_transactions": 6747,
+                "total_credits": 0,
+                "total_debits": 0,
+                "active_balances": 10,
+                "total_balance": "70696.1400"
+            },
+            "vouchers": {
+                "total": 0,
+                "active": 0,
+                "total_redemptions": 0,
+                "total_spent": 0
+            }
+        },
+        "generated_at": "2025-09-26T16:50:34.493784Z"
+    }
+}
