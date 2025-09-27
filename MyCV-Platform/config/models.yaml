@@ -1,5 +1,7 @@
 # MyCV-Platform Model Configuration
 # Dynamic model management dengan URL downloads
+# Version: 1.1.0-enhanced
+# Last Updated: 2025-09-27
 
 yolo:
   models:
@@ -26,12 +28,13 @@ yolo:
     yolo11m:
       url: "https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11m.pt"
       filename: "yolo11m.pt"
-      active: false
-      description: "YOLO11 Medium - Higher accuracy"
+      active: true
+      description: "YOLO11 Medium - Higher accuracy (Copy Version)"
       size: "49.7MB"
       params: "20.1M"
       flops: "68.0B"
       mAP: 51.5
+      json_output: false
       
     yolo11l:
       url: "https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11l.pt"
@@ -57,11 +60,12 @@ yolo:
       url: "upload"
       filename: "best.pt"
       active: true
-      description: "Custom trained model"
+      description: "Custom trained model (Copy Version)"
       size: "unknown"
       params: "unknown"
       flops: "unknown"
       mAP: "unknown"
+      json_output: true
 
 trained:
   models:
@@ -69,11 +73,12 @@ trained:
       url: "https://github.com/vnot01/MySuperApps/releases/download/trained-models/best.pt"
       filename: "best.pt"
       active: true
-      description: "Custom trained YOLO model from MySuperApps"
+      description: "Custom trained YOLO model from MySuperApps (Copy Version)"
       size: "unknown"
       params: "unknown"
       flops: "unknown"
       mAP: "unknown"
+      json_output: true
 
 sam:
   models:
@@ -81,9 +86,11 @@ sam:
       url: "https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2_b.pt"
       filename: "sam2_b.pt"
       active: true
-      description: "SAM2 Base - Fastest segmentation"
+      description: "SAM2 Base - Fastest segmentation (Copy Version)"
       size: "358MB"
       params: "91.0M"
+      brightness_preservation: true
+      alpha_blending: 0.3
 
     # sam2.1_b:
     #   url: "https://github.com/ultralytics/assets/releases/download/v8.3.0/sam2.1_b.pt"
@@ -101,6 +108,40 @@ sam:
     #   size: "2.4GB"
     #   params: "308.0M"
 
+# Copy Version Enhanced Features
+copy_version:
+  enabled: true
+  structured_output: true
+  subfolder_organization: true
+  compare_visualization: true
+  brightness_preservation: true
+  
+  # Output directory structure
+  output_structure:
+    base_path: "./direct/data/output/remote"
+    subfolders:
+      - "yolo"
+      - "best" 
+      - "segmentasi"
+      - "hybrid"
+    
+  # File naming convention
+  naming_convention:
+    detection: "(image_name)-(model_name)-detection.png"
+    best: "(image_name)-(model_name)-best.png"
+    segmentation: "(image_name)-(model_name)-segmentation.png"
+    hybrid: "(image_name)-(model_name)-hybrid.png"
+    compare: "(image_name)-(model_name)-compare.png"
+    json: "(image_name)-(model_name)-detection.json"
+    
+  # JSON output configuration
+  json_output:
+    best_pt_only: true
+    yolo11m_disabled: true
+    include_confidence: true
+    include_bbox: true
+    include_masks: true
+
 # Model management settings
 settings:
   auto_download: true
@@ -112,9 +153,68 @@ settings:
   
 # Storage paths
 paths:
-  yolo_active: "/app/data/models/yolo/active"
-  yolo_downloads: "/app/data/models/yolo/downloads"
-  sam_active: "/app/data/models/sam/active"
-  sam_downloads: "/app/data/models/sam/downloads"
-  output: "/app/data/output"
-  logs: "/app/logs"
+  # Direct execution paths
+  direct:
+    yolo_active: "./direct/data/models/yolo/active"
+    yolo_downloads: "./direct/data/models/yolo/downloads"
+    sam_active: "./direct/data/models/sam/active"
+    sam_downloads: "./direct/data/models/sam/downloads"
+    trained_active: "./direct/data/models/trained/active"
+    trained_downloads: "./direct/data/models/trained/downloads"
+    output: "./direct/data/output"
+    input_test: "./direct/data/input/test_images"
+    input_remote: "./direct/data/input/remote"
+    logs: "./direct/logs"
+    
+  # Docker paths (legacy)
+  docker:
+    yolo_active: "/app/data/models/yolo/active"
+    yolo_downloads: "/app/data/models/yolo/downloads"
+    sam_active: "/app/data/models/sam/active"
+    sam_downloads: "/app/data/models/sam/downloads"
+    output: "/app/data/output"
+    logs: "/app/logs"
+
+# Script Launchers Configuration
+launchers:
+  run_direct:
+    enabled: true
+    script_path: "./run_direct.sh"
+    documentation: "./README_run_direct.md"
+    description: "Direct execution launcher"
+    
+  run_web:
+    enabled: true
+    script_path: "./run_web.sh"
+    documentation: "./README_run_web.md"
+    description: "Web application launcher"
+    port: 5000
+    host: "localhost"
+    
+  run_docker:
+    enabled: true
+    script_path: "./run_docker.sh"
+    description: "Docker testing launcher"
+    gpu_support: false
+    cpu_only: true
+
+# Web Application Configuration
+web_app:
+  enabled: true
+  port: 5000
+  host: "0.0.0.0"
+  debug: true
+  camera:
+    default_index: 0
+    auto_detect: true
+    resolution: "auto"
+    fps: "real-time"
+  models:
+    yolo: "yolo11m.pt"
+    trained: "best.pt"
+    sam: "sam2_b.pt"
+  features:
+    real_time_detection: true
+    interactive_controls: true
+    visualization_options: true
+    performance_metrics: true
