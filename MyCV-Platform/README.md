@@ -393,6 +393,7 @@ python3 app/utils/environment_detector.py
 - **Purpose**: Menjalankan aplikasi web real-time camera detection
 - **Features**: Real-time YOLO + SAM2 processing dengan web interface
 - **URL**: http://localhost:5000
+- **Documentation**: [📖 README_run_web.md](./README_run_web.md)
 
 #### 3. **Docker Testing** - [`run_docker.sh`](./run_docker.sh)
 - **Purpose**: Menjalankan aplikasi dengan Docker (CPU-only)
@@ -425,3 +426,4 @@ python3 app/utils/environment_detector.py
 - ✅ **Compare visualization** dengan 2x3 subplot layout
 - ✅ **Improved file naming convention** untuk better organization
 - ✅ **Script Launchers Documentation** - [📖 README_run_direct.md](./README_run_direct.md)
+- ✅ **Web Application Documentation** - [📖 README_run_web.md](./README_run_web.md)
