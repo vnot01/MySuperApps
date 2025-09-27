@@ -1,0 +1,31 @@
+{
+    "success": true,
+    "message": "Economy summary retrieved successfully",
+    "data": {
+        "user_balance": {
+            "current_balance": "8615.7800",
+            "currency": "IDR_POIN"
+        },
+        "transaction_summary": {
+            "total_transactions": 634,
+            "total_credits": "1925.0000",
+            "total_debits": "0",
+            "credit_count": 1,
+            "debit_count": 0,
+            "net_balance": 1925
+        },
+        "deposit_summary": {
+            "total_deposits": 1,
+            "completed_deposits": 1,
+            "pending_deposits": 0,
+            "rejected_deposits": 0,
+            "total_rewards": "1925.00",
+            "avg_confidence": "77.0000000000000000"
+        },
+        "voucher_summary": {
+            "total_redemptions": 0,
+            "total_spent": 0,
+            "by_tenant": []
+        }
+    }
+}

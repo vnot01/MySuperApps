@@ -147,3 +147,10 @@ EOF
 echo "Laporan generated: Docs/laporan_perubahan/${DATE}_laporan_perubahan_${REPO_NAME}.md"
 ```
 
+
+
+
+
+
+
+

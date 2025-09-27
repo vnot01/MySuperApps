@@ -1,0 +1,127 @@
+{
+    "success": true,
+    "message": "User balance retrieved successfully",
+    "data": {
+        "user_id": 6,
+        "current_balance": "8615.7800",
+        "currency": "IDR_POIN",
+        "statistics": {
+            "total_credits": "1925.0000",
+            "total_debits": 0,
+            "total_transactions": 634,
+            "net_balance": 1925
+        },
+        "recent_transactions": [
+            {
+                "id": 6748,
+                "type": "credit",
+                "amount": "1925.0000",
+                "balance_before": "6690.7800",
+                "balance_after": "8615.7800",
+                "description": "Reward for plastic deposit (ID: 1)",
+                "source_type": "App\\Models\\Deposit",
+                "source_id": 1,
+                "created_at": "2025-09-26T17:33:29.000000Z"
+            },
+            {
+                "id": 371,
+                "type": "deposit_reward",
+                "amount": "6.1800",
+                "balance_before": "449.2300",
+                "balance_after": "455.4100",
+                "description": "SIM: Deposit reward for waste recycling",
+                "source_type": "App\\Models\\Deposit",
+                "source_id": 769,
+                "created_at": "2025-09-18T11:57:02.000000Z"
+            },
+            {
+                "id": 3148,
+                "type": "deposit_reward",
+                "amount": "7.2000",
+                "balance_before": "3228.1400",
+                "balance_after": "3235.3400",
+                "description": "SIM: Deposit reward for waste recycling",
+                "source_type": "App\\Models\\Deposit",
+                "source_id": 860,
+                "created_at": "2025-09-18T09:45:57.000000Z"
+            },
+            {
+                "id": 2772,
+                "type": "deposit_reward",
+                "amount": "4.4900",
+                "balance_before": "2906.0700",
+                "balance_after": "2910.5600",
+                "description": "SIM: Deposit reward for waste recycling",
+                "source_type": "App\\Models\\Deposit",
+                "source_id": 119,
+                "created_at": "2025-09-18T05:13:05.000000Z"
+            },
+            {
+                "id": 2361,
+                "type": "deposit_reward",
+                "amount": "19.2300",
+                "balance_before": "2470.9800",
+                "balance_after": "2490.2100",
+                "description": "SIM: Deposit reward for waste recycling",
+                "source_type": "App\\Models\\Deposit",
+                "source_id": 334,
+                "created_at": "2025-09-18T05:07:49.000000Z"
+            },
+            {
+                "id": 180,
+                "type": "deposit_reward",
+                "amount": "17.8600",
+                "balance_before": "201.3100",
+                "balance_after": "219.1700",
+                "description": "SIM: Deposit reward for waste recycling",
+                "source_type": "App\\Models\\Deposit",
+                "source_id": 639,
+                "created_at": "2025-09-18T03:53:46.000000Z"
+            },
+            {
+                "id": 3978,
+                "type": "deposit_reward",
+                "amount": "14.4500",
+                "balance_before": "4018.1000",
+                "balance_after": "4032.5500",
+                "description": "SIM: Deposit reward for waste recycling",
+                "source_type": "App\\Models\\Deposit",
+                "source_id": 393,
+                "created_at": "2025-09-18T02:39:36.000000Z"
+            },
+            {
+                "id": 4392,
+                "type": "deposit_reward",
+                "amount": "11.3400",
+                "balance_before": "4379.5600",
+                "balance_after": "4390.9000",
+                "description": "SIM: Deposit reward for waste recycling",
+                "source_type": "App\\Models\\Deposit",
+                "source_id": 158,
+                "created_at": "2025-09-17T08:02:56.000000Z"
+            },
+            {
+                "id": 174,
+                "type": "deposit_reward",
+                "amount": "1.2500",
+                "balance_before": "200.0600",
+                "balance_after": "201.3100",
+                "description": "SIM: Deposit reward for waste recycling",
+                "source_type": "App\\Models\\Deposit",
+                "source_id": 922,
+                "created_at": "2025-09-17T05:45:46.000000Z"
+            },
+            {
+                "id": 1575,
+                "type": "deposit_reward",
+                "amount": "17.9500",
+                "balance_before": "1609.3600",
+                "balance_after": "1627.3100",
+                "description": "SIM: Deposit reward for waste recycling",
+                "source_type": "App\\Models\\Deposit",
+                "source_id": 943,
+                "created_at": "2025-09-17T04:51:14.000000Z"
+            }
+        ]
+    }
+}

@@ -2,7 +2,7 @@
 
 ## Base URL
 ```
-http://localhost:8000/api/v2
+http://100.123.143.87:8001/api/v2
 ```
 
 ## Authentication
@@ -14,12 +14,12 @@ Authorization: Bearer <token>
 
 ### Windows PowerShell
 ```powershell
-curl.exe -X GET "http://localhost:8000/api/v2/endpoint" -H "Authorization: Bearer <token>"
+curl.exe -X GET "http://100.123.143.87:8001/api/v2/endpoint" -H "Authorization: Bearer <token>"
 ```
 
 ### Windows CMD / macOS / Linux
 ```bash
-curl -X GET "http://localhost:8000/api/v2/endpoint" -H "Authorization: Bearer <token>"
+curl -X GET "http://100.123.143.87:8001/api/v2/endpoint" -H "Authorization: Bearer <token>"
 ```
 
 ## Endpoints Summary

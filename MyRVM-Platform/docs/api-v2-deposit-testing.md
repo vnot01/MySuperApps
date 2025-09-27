@@ -9,26 +9,29 @@ Dokumentasi ini menjelaskan cara testing lengkap untuk API Deposit Management de
 ### 1. Environment Setup
 ```bash
 # Pastikan Docker container berjalan
-docker compose up -d
+# docker compose up -d
+
+# Selalu gunakan perintah docker compose exec app karena Di dalam Docker
+docker compose exec app <perintah yang lain>
 
 # Pastikan Laravel server berjalan
-docker compose exec app php artisan serve --host=0.0.0.0 --port=8000
+# docker compose exec app php artisan serve --host=0.0.0.0 --port=8000
 ```
 
 ### 2. Database Setup
 ```bash
 # Jalankan migration
-docker compose exec app php artisan migrate
+# docker compose exec app php artisan migrate
 
 # Seed data untuk testing
-docker compose exec app php artisan db:seed --class=RvmSeeder
-docker compose exec app php artisan db:seed --class=UserSeeder
+# docker compose exec app php artisan db:seed --class=RvmSeeder
+# docker compose exec app php artisan db:seed --class=UserSeeder
 ```
 
 ### 3. Authentication Token
 ```bash
 # Login untuk mendapatkan token
-curl -X POST "http://localhost:8000/api/v2/auth/login" \
+curl -X POST "http://100.123.143.87:8001/api/v2/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"email": "john@test.com", "password": "password123"}'
 
@@ -74,7 +77,7 @@ sourceable_type, sourceable_id, created_at, updated_at
 
 **Request**:
 ```bash
-curl -X POST "http://localhost:8000/api/v2/deposits" \
+curl -X POST "http://100.123.143.87:8001/api/v2/deposits" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -130,7 +133,7 @@ curl -X POST "http://localhost:8000/api/v2/deposits" \
 
 **Request**:
 ```bash
-curl -X GET "http://localhost:8000/api/v2/deposits?per_page=5&status=processing" \
+curl -X GET "http://100.123.143.87:8001/api/v2/deposits?per_page=5&status=processing" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
@@ -155,7 +158,7 @@ curl -X GET "http://localhost:8000/api/v2/deposits?per_page=5&status=processing"
         "created_at": "2025-09-07T06:55:09.000000Z"
       }
     ],
-    "first_page_url": "http://localhost:8000/api/v2/deposits?page=1",
+    "first_page_url": "http://100.123.143.87:8001/api/v2/deposits?page=1",
     "from": 1,
     "last_page": 1,
     "per_page": 5,
@@ -178,7 +181,7 @@ curl -X GET "http://localhost:8000/api/v2/deposits?per_page=5&status=processing"
 
 **Request**:
 ```bash
-curl -X GET "http://localhost:8000/api/v2/deposits/statistics" \
+curl -X GET "http://100.123.143.87:8001/api/v2/deposits/statistics" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
@@ -210,7 +213,7 @@ curl -X GET "http://localhost:8000/api/v2/deposits/statistics" \
 
 **Request**:
 ```bash
-curl -X GET "http://localhost:8000/api/v2/deposits/3" \
+curl -X GET "http://100.123.143.87:8001/api/v2/deposits/3" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
@@ -263,7 +266,7 @@ curl -X GET "http://localhost:8000/api/v2/deposits/3" \
 
 **Request**:
 ```bash
-curl -X POST "http://localhost:8000/api/v2/deposits/3/process" \
+curl -X POST "http://100.123.143.87:8001/api/v2/deposits/3/process" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -330,46 +333,46 @@ CV Result → Gemini Vision → Validation → Enhanced Analysis
 ### Scenario 1: Complete Deposit Flow
 ```bash
 # 1. Create deposit
-curl -X POST "http://localhost:8000/api/v2/deposits" \
+curl -X POST "http://100.123.143.87:8001/api/v2/deposits" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"rvm_id": 1, "waste_type": "plastic", "weight": 0.5, "quantity": 2}'
 
 # 2. Check deposit status
-curl -X GET "http://localhost:8000/api/v2/deposits/3" \
+curl -X GET "http://100.123.143.87:8001/api/v2/deposits/3" \
   -H "Authorization: Bearer YOUR_TOKEN"
 
 # 3. Process deposit
-curl -X POST "http://localhost:8000/api/v2/deposits/3/process" \
+curl -X POST "http://100.123.143.87:8001/api/v2/deposits/3/process" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"status": "completed"}'
 
 # 4. Verify final status
-curl -X GET "http://localhost:8000/api/v2/deposits/3" \
+curl -X GET "http://100.123.143.87:8001/api/v2/deposits/3" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
 ### Scenario 2: Error Handling
 ```bash
 # 1. Invalid RVM ID
-curl -X POST "http://localhost:8000/api/v2/deposits" \
+curl -X POST "http://100.123.143.87:8001/api/v2/deposits" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"rvm_id": 999, "waste_type": "plastic", "weight": 0.5, "quantity": 1}'
 
 # 2. Missing required fields
-curl -X POST "http://localhost:8000/api/v2/deposits" \
+curl -X POST "http://100.123.143.87:8001/api/v2/deposits" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"waste_type": "plastic"}'
 
 # 3. Invalid deposit ID
-curl -X GET "http://localhost:8000/api/v2/deposits/999" \
+curl -X GET "http://100.123.143.87:8001/api/v2/deposits/999" \
   -H "Authorization: Bearer YOUR_TOKEN"
 
 # 4. Process non-existent deposit
-curl -X POST "http://localhost:8000/api/v2/deposits/999/process" \
+curl -X POST "http://100.123.143.87:8001/api/v2/deposits/999/process" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"status": "completed"}'
@@ -454,7 +457,7 @@ docker compose exec app php artisan config:clear
 ```bash
 # Test multiple concurrent requests
 for i in {1..10}; do
-  curl -X POST "http://localhost:8000/api/v2/deposits" \
+  curl -X POST "http://100.123.143.87:8001/api/v2/deposits" \
     -H "Authorization: Bearer YOUR_TOKEN" \
     -H "Content-Type: application/json" \
     -d '{"rvm_id": 1, "waste_type": "plastic", "weight": 0.5, "quantity": 1}' &
@@ -465,7 +468,7 @@ wait
 ### Response Time Testing
 ```bash
 # Measure response time
-time curl -X GET "http://localhost:8000/api/v2/deposits" \
+time curl -X GET "http://100.123.143.87:8001/api/v2/deposits" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 

@@ -1,0 +1,10 @@
+{
+    "success": true,
+    "message": "RVM API key regenerated successfully",
+    "data": {
+        "id": 4,
+        "name": "RVM-Test-001",
+        "api_key": "rvm_4FQwnHVnosjmOLRdEin5tQLtEssPESfN",
+        "updated_at": "2025-09-26T20:10:47.000000Z"
+    }
+}

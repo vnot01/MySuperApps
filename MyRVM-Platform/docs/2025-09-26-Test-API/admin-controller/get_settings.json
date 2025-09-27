@@ -1,0 +1,16 @@
+{
+    "success": true,
+    "message": "System settings retrieved successfully",
+    "data": {
+        "app_name": "Laravel",
+        "app_env": "local",
+        "app_debug": true,
+        "database_connection": "pgsql",
+        "cache_driver": "redis",
+        "queue_driver": "database",
+        "mail_driver": "log",
+        "session_driver": "file",
+        "timezone": "Asia/Jakarta",
+        "locale": "en"
+    }
+}

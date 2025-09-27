@@ -1,0 +1,14 @@
+{
+    "success": true,
+    "message": "Login successful",
+    "data": {
+        "user": {
+            "id": 6,
+            "name": "Admin User",
+            "email": "admin@myrvm.com",
+            "role": "Admin"
+        },
+        "token": "45|DOwBj11xptX1Z9uI8R1jT3FgBTSPSpK3QuYBPTKLb3ce5d57",
+        "token_type": "Bearer"
+    }
+}
