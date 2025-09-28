@@ -5,7 +5,11 @@
 
 set -e
 
-echo "🧪 MyCV-Platform Fresh Integration Test (Copy Version)"
+# Load project info from model_info.json
+PROJECT_NAME=$(python3 -c "import json; data=json.load(open('data/models/model_info.json')); print(data['name'])")
+PROJECT_VERSION=$(python3 -c "import json; data=json.load(open('data/models/model_info.json')); print(data['version'])")
+
+echo "🧪 $PROJECT_NAME v$PROJECT_VERSION"
 echo "======================================================"
 
 # Colors for output
@@ -215,8 +219,8 @@ fi
 # cd ../..
 
 # Show results summary
-print_status "Test Results Summary:"
-echo "========================"
+print_status "$PROJECT_NAME v$PROJECT_VERSION - Results Summary:"
+echo "======================================================"
 echo "📁 Generated files:"
 find "${OUTPUT_DIR}" -name "*.png" -o -name "*.json" | wc -l | xargs echo "Total files:"
 echo ""
@@ -266,6 +270,6 @@ for file in "${COPIED_FILES[@]}"; do
 done
 echo ""
 
-print_success "🎉 Fresh integration test with visualizations completed successfully!"
+print_success "🎉 $PROJECT_NAME completed successfully!"
 print_status "📊 Check '${OUTPUT_DIR}' for all results and visualizations"
 print_status "🖼️  All files are stored in structured directories as requested"

@@ -483,7 +483,17 @@ def generate_visualizations(image_path, base_name, output_dir, yolo_dir, best_di
 
 def main():
     """Main function"""
-    log_message("🚀 MyCV-Platform YOLO + SAM Integration (Copy Version)", 'info')
+    # Load project info from model_info.json
+    try:
+        with open('data/models/model_info.json', 'r') as f:
+            model_info = json.load(f)
+        project_name = model_info['name']
+        project_version = model_info['version']
+    except:
+        project_name = "MyHybrid-Detection"
+        project_version = "1.0.0"
+    
+    log_message(f"🚀 {project_name} v{project_version}", 'info')
     log_message("=" * 60, 'info')
     
     # Check environment
@@ -583,7 +593,7 @@ def main():
         # Generate visualizations for this image
         generate_visualizations(image_path, base_name, output_dir, yolo_dir, best_dir, segmentasi_dir, hybrid_dir)
     
-    log_message("\n🎉 Integration and visualization completed successfully!", 'success')
+    log_message(f"\n🎉 {project_name} completed successfully!", 'success')
     log_message("📊 Check 'data/output/remote' for results", 'info')
 
 if __name__ == "__main__":
