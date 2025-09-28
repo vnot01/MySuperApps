@@ -14,6 +14,44 @@ from termcolor import colored
 import json
 from pathlib import Path
 import matplotlib.pyplot as plt
+import time
+import threading
+from itertools import cycle
+
+class LoadingSpinner:
+    """Animated loading spinner for long-running operations"""
+    
+    def __init__(self, message="Processing", delay=0.1):
+        self.message = message
+        self.delay = delay
+        self.spinner_chars = cycle(['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'])
+        self.running = False
+        self.thread = None
+        
+    def start(self):
+        """Start the spinner animation"""
+        self.running = True
+        self.thread = threading.Thread(target=self._spin)
+        self.thread.daemon = True
+        self.thread.start()
+        
+    def stop(self, success_message="✅ Complete"):
+        """Stop the spinner and show completion message"""
+        self.running = False
+        if self.thread:
+            self.thread.join()
+        # Clear the spinner line and show completion
+        print(f"\r{' ' * 50}\r{success_message}", end='', flush=True)
+        print()  # New line
+        
+    def _spin(self):
+        """Internal method to run the spinner animation"""
+        while self.running:
+            for char in self.spinner_chars:
+                if not self.running:
+                    break
+                print(f"\r{colored(char, 'cyan')} {self.message}...", end='', flush=True)
+                time.sleep(self.delay)
 
 def log_message(message, level='info'):
     """Print colored log message"""
@@ -51,57 +89,51 @@ def check_environment():
 
 def load_models(device):
     """Load YOLO and SAM models"""
-    # log_message("📦 Loading models...", 'info')
+    spinner = LoadingSpinner("Loading AI models")
+    spinner.start()
     
     models = {}
     
-    # Load YOLO11m
     try:
-        # log_message("Loading YOLO11m model...", 'info')
+        # Load YOLO11m
         yolo11m_path = "data/models/yolo/active/yolo11m.pt"
         if os.path.exists(yolo11m_path):
             models['yolo11m'] = YOLO(yolo11m_path)
-            # log_message("✅ YOLO11m loaded successfully", 'success')
         else:
+            spinner.stop("❌ YOLO11m model not found")
             log_message("❌ YOLO11m model not found", 'error')
             return None
-    except Exception as e:
-        log_message(f"❌ Failed to load YOLO11m: {e}", 'error')
-        return None
-    
-    # Load best.pt
-    try:
-        # log_message("Loading best.pt model...", 'info')
+        
+        # Load best.pt
         best_pt_path = "data/models/trained/active/best.pt"
         if os.path.exists(best_pt_path):
             models['best_pt'] = YOLO(best_pt_path)
-            # log_message("✅ best.pt loaded successfully", 'success')
         else:
+            spinner.stop("❌ best.pt model not found")
             log_message("❌ best.pt model not found", 'error')
             return None
-    except Exception as e:
-        log_message(f"❌ Failed to load best.pt: {e}", 'error')
-        return None
-    
-    # Load SAM2_b
-    try:
-        # log_message("Loading SAM2_b model...", 'info')
+        
+        # Load SAM2_b
         sam2_path = "data/models/sam/active/sam2_b.pt"
         if os.path.exists(sam2_path):
             models['sam2_b'] = SAM(sam2_path)
-            # log_message("✅ SAM2_b loaded successfully", 'success')
         else:
+            spinner.stop("❌ SAM2_b model not found")
             log_message("❌ SAM2_b model not found", 'error')
             return None
+        
+        spinner.stop("✅ All models loaded successfully")
+        return models
+        
     except Exception as e:
-        log_message(f"❌ Failed to load SAM2_b: {e}", 'error')
+        spinner.stop(f"❌ Failed to load models: {e}")
+        log_message(f"❌ Failed to load models: {e}", 'error')
         return None
-    
-    return models
 
 def run_yolo_detection(model, image_path, model_name, device):
     """Run YOLO detection on image"""
-    # log_message(f"🔍 Running {model_name} detection on {os.path.basename(image_path)}...", 'info')
+    spinner = LoadingSpinner(f"Running {model_name} detection")
+    spinner.start()
     
     try:
         # Run detection
@@ -124,19 +156,18 @@ def run_yolo_detection(model, image_path, model_name, device):
                     }
                     detections.append(detection)
         
-        # log_message(f"✅ {model_name} found {len(detections)} objects", 'success')
-        # for i, det in enumerate(detections):
-        #     log_message(f"   Object {i+1}: {det['class_name']} (conf: {det['confidence']:.3f})", 'info')
-        
+        spinner.stop(f"✅ {model_name} found {len(detections)} objects")
         return detections
         
     except Exception as e:
+        spinner.stop(f"❌ {model_name} detection failed")
         log_message(f"❌ {model_name} detection failed: {e}", 'error')
         return []
 
 def run_sam_segmentation(sam_model, image_path, bounding_boxes, model_name, device):
     """Run SAM2 segmentation using bounding boxes as prompts"""
-    # log_message(f"🎯 Running SAM2 segmentation with {len(bounding_boxes)} bounding boxes...", 'info')
+    spinner = LoadingSpinner(f"Running SAM2 segmentation ({len(bounding_boxes)} objects)")
+    spinner.start()
     
     try:
         # Load image
@@ -150,7 +181,7 @@ def run_sam_segmentation(sam_model, image_path, bounding_boxes, model_name, devi
             boxes.append([x1, y1, x2, y2])
         
         if not boxes:
-            # log_message("⚠️  No bounding boxes provided for SAM2", 'warning')
+            spinner.stop("⚠️  No bounding boxes provided for SAM2")
             return []
         
         # Run SAM2 segmentation
@@ -168,10 +199,11 @@ def run_sam_segmentation(sam_model, image_path, bounding_boxes, model_name, devi
                     'class_name': bounding_boxes[i]['class_name']
                 })
         
-        # log_message(f"✅ SAM2 generated {len(masks)} segmentation masks", 'success')
+        spinner.stop(f"✅ SAM2 generated {len(masks)} segmentation masks")
         return masks
         
     except Exception as e:
+        spinner.stop(f"❌ SAM2 segmentation failed")
         log_message(f"❌ SAM2 segmentation failed: {e}", 'error')
         return []
 
@@ -434,7 +466,8 @@ def create_compare_visualization(image_path, yolo_detection_path, best_detection
 
 def generate_visualizations(image_path, base_name, output_dir, yolo_dir, best_dir, segmentasi_dir, hybrid_dir):
     """Generate all visualizations for an image"""
-    # log_message(f"🎨 Generating visualizations for {base_name}...", 'info')
+    spinner = LoadingSpinner(f"Generating visualizations for {base_name}")
+    spinner.start()
     
     # Load detection results
     yolo11m_json = os.path.join(output_dir, f"{base_name}-yolo11m-detection.json")
@@ -481,10 +514,9 @@ def generate_visualizations(image_path, base_name, output_dir, yolo_dir, best_di
         compare_output_path = os.path.join(output_dir, f"{base_name}-best_pt-compare.png")
         create_compare_visualization(image_path, yolo_detection_path, best_detection_path, 
                                    segmentation_path, hybrid_path, compare_output_path)
-        # log_message(f"✅ Compare visualization saved: {compare_output_path}", 'success')
+        spinner.stop(f"✅ Visualizations completed for {base_name}")
     else:
-        # log_message(f"⚠️  Compare visualization skipped for {base_name} - Missing: {', '.join(missing_files)}", 'warning')
-        pass
+        spinner.stop(f"⚠️  Compare visualization skipped for {base_name} - Missing: {', '.join(missing_files)}")
 
 def main():
     """Main function"""
@@ -498,8 +530,8 @@ def main():
         project_name = "MyHybrid-Detection"
         project_version = "1.0.0"
     
-    log_message(f"🚀 {project_name} v{project_version}", 'info')
-    log_message("=" * 60, 'info')
+    log_message(f"🚀 Starting Detection Process", 'info')
+    # log_message("=" * 50, 'info')
     
     # Check environment
     device = check_environment()
@@ -527,10 +559,10 @@ def main():
     # log_message(f"📁 Found {len(test_images)} test images in remote directory", 'info')
     
     # Process each image
-    for image_path in test_images:
+    for i, image_path in enumerate(test_images, 1):
         image_name = os.path.basename(image_path)
-        # log_message(f"\n🖼️  Processing: {image_name}", 'info')
-        # log_message("-" * 30, 'info')
+        print(f"\n🖼️  Processing image {i}/{len(test_images)}: {image_name}")
+        print("-" * 50)
         
         # Extract timestamp and user_id from path
         path_parts = image_path.split(os.sep)
@@ -599,7 +631,7 @@ def main():
         # Generate visualizations for this image
         generate_visualizations(image_path, base_name, output_dir, yolo_dir, best_dir, segmentasi_dir, hybrid_dir)
     
-    log_message(f"\n🎉 {project_name} completed successfully!", 'success')
+    # log_message(f"🎉 {project_name} completed successfully!", 'success')
     # log_message("📊 Check 'data/output/remote' for results", 'info')
 
 if __name__ == "__main__":
