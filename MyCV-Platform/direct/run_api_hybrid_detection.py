@@ -463,15 +463,23 @@ def generate_visualizations(image_path, base_name, output_dir, yolo_dir, best_di
     hybrid_path = os.path.join(hybrid_dir, f"{base_name}-best_pt-hybrid.png")
     
     # Check if all required files exist for compare
-    if (os.path.exists(yolo_detection_path) and os.path.exists(best_detection_path) and 
-        os.path.exists(segmentation_path) and os.path.exists(hybrid_path)):
-        
+    missing_files = []
+    if not os.path.exists(yolo_detection_path):
+        missing_files.append("YOLO11m detection")
+    if not os.path.exists(best_detection_path):
+        missing_files.append("best.pt detection")
+    if not os.path.exists(segmentation_path):
+        missing_files.append("SAM2 segmentation")
+    if not os.path.exists(hybrid_path):
+        missing_files.append("hybrid result")
+    
+    if len(missing_files) == 0:
         compare_output_path = os.path.join(output_dir, f"{base_name}-best_pt-compare.png")
         create_compare_visualization(image_path, yolo_detection_path, best_detection_path, 
                                    segmentation_path, hybrid_path, compare_output_path)
         log_message(f"✅ Compare visualization saved: {compare_output_path}", 'success')
     else:
-        log_message(f"⚠️  Some files missing for compare visualization of {base_name}", 'warning')
+        log_message(f"⚠️  Compare visualization skipped for {base_name} - Missing: {', '.join(missing_files)}", 'warning')
 
 def main():
     """Main function"""
@@ -543,7 +551,19 @@ def main():
             save_results_remote_structured(f"{base_name}-yolo11m", yolo11m_detections, sam_yolo11m_masks, 
                                          yolo_dir, segmentasi_dir, hybrid_dir, output_dir, image_path, "yolo11m")
         else:
-            log_message("⚠️  No YOLO11m detections, skipping SAM2", 'warning')
+            log_message("⚠️  No YOLO11m detections, creating fallback detection image", 'warning')
+            # Create fallback detection image (original image with "No detections" text)
+            original_image = cv2.imread(image_path)
+            original_image_rgb = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
+            
+            # Add "No detections" text
+            cv2.putText(original_image, "No YOLO11m detections", (50, 50), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            
+            # Save fallback detection image
+            fallback_file = os.path.join(yolo_dir, f"{base_name}-yolo11m-detection.png")
+            cv2.imwrite(fallback_file, original_image)
+            log_message(f"✅ Fallback YOLO11m detection image saved: {fallback_file}", 'success')
         
         # 3. Run best.pt detection
         log_message("3️⃣ best.pt Detection", 'info')
