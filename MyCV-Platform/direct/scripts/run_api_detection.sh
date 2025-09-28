@@ -171,14 +171,23 @@ fi
 
 # Copy 2-3 random images
 NUM_IMAGES=$((RANDOM % 2 + 2))  # Random between 2-3 images
+COPIED_FILES=()
+
 for i in $(seq 0 $((NUM_IMAGES-1))); do
     if [ $i -lt ${#AVAILABLE_IMAGES[@]} ]; then
         cp "${AVAILABLE_IMAGES[$i]}" "${INPUT_DIR}/"
+        COPIED_FILES+=("$(basename "${AVAILABLE_IMAGES[$i]}")")
         print_status "Copied: $(basename "${AVAILABLE_IMAGES[$i]}")"
     fi
 done
 
 print_success "Copied ${NUM_IMAGES} test images to ${INPUT_DIR}"
+echo ""
+echo "📋 Files to be processed:"
+for file in "${COPIED_FILES[@]}"; do
+    echo "  📄 $file"
+done
+echo ""
 
 # Clean previous results in output directory
 print_status "Cleaning previous test results..."
@@ -244,6 +253,12 @@ echo "🎨 Generated Visualizations:"
 echo "- YOLO11m visualization in yolo/ folder"
 echo "- Best.pt visualization in best/ folder"
 echo "- Compare visualization in main output directory"
+echo ""
+echo "📋 Processed Files Summary:"
+for file in "${COPIED_FILES[@]}"; do
+    echo "  ✅ $file - Successfully processed"
+done
+echo ""
 
 print_success "🎉 Fresh integration test with visualizations completed successfully!"
 print_status "📊 Check '${OUTPUT_DIR}' for all results and visualizations"
