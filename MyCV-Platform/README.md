@@ -84,7 +84,22 @@ cd MySuperApps/MyCV-Platform
 
 **📖 API Documentation:** [API README](./direct/app/api-hybrid-detection/README.md)
 
-### Option 5: Docker CPU Testing
+### Option 4b: API Service Manager (Background + Auto-Start)
+```bash
+cd MySuperApps/MyCV-Platform
+./api_service.sh start    # Start API in background
+./api_service.sh stop     # Stop API
+./api_service.sh status   # Check status
+./api_service.sh logs     # View logs
+```
+
+**🔧 Auto-Start Setup:**
+```bash
+# Setup auto-start on boot
+echo "@reboot /home/my/MySuperApps/MyCV-Platform/auto_start_api.sh" | crontab -
+```
+
+### Option 6: Docker CPU Testing
 ```bash
 cd docker
 docker-compose -f docker-compose.cpu.yml up --build
@@ -92,25 +107,29 @@ docker-compose -f docker-compose.cpu.yml up --build
 
 ## 📊 Perbandingan
 
-| Feature | Direct | Copy Version | Web App | API | Docker GPU | Docker CPU |
-|---------|--------|--------------|---------|-----|------------|------------|
-| **GPU Support** | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
-| **Real-time** | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| **Public Access** | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| **Performance** | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | N/A | ⭐ |
-| **Setup** | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ❌ | ⭐⭐ |
-| **Production** | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
-| **Development** | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
-| **Enhanced Features** | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ |
-| **Structured Output** | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ |
-| **Compare Visualization** | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ |
-| **RESTful API** | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| **Background Processing** | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Feature | Direct | Copy Version | Web App | API | Service Manager | Docker GPU | Docker CPU |
+|---------|--------|--------------|---------|-----|----------------|------------|------------|
+| **GPU Support** | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **Real-time** | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Public Access** | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ |
+| **Background Running** | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| **Auto-Start on Boot** | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| **Performance** | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | N/A | ⭐ |
+| **Setup** | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ❌ | ⭐⭐ |
+| **Production** | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **Development** | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+| **Enhanced Features** | ❌ | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
+| **Structured Output** | ❌ | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
+| **Compare Visualization** | ❌ | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
+| **RESTful API** | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ |
+| **Background Processing** | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ |
 
 ## 🎯 Rekomendasi
 
 **Untuk Production**: Gunakan `run_fresh_integration_test-copy.sh` (Copy Version) dengan fitur enhanced
 **Untuk Public API**: Gunakan `./run_api.sh` untuk akses publik via RESTful API
+**Untuk Background Service**: Gunakan `./api_service.sh` untuk API yang berjalan di background
+**Untuk Auto-Start**: Setup crontab untuk auto-start API setelah VM restart
 **Untuk Real-time**: Gunakan `run_web.sh` untuk deteksi kamera
 **Untuk Development**: Gunakan folder `direct/` atau `docker/` (CPU-only)
 **Untuk Testing**: Gunakan Copy Version untuk fitur lengkap dan output terstruktur
@@ -166,6 +185,12 @@ docker-compose -f docker-compose.cpu.yml up --build
 - **Processing gagal**: Check models tersedia dan virtual environment
 - **Port conflict**: Check port usage `netstat -tlnp | grep 5000`
 
+### Service Manager Issues
+- **Service tidak start**: Check virtual environment dan dependencies
+- **PID file error**: Delete `/tmp/mycv_api.pid` dan restart service
+- **Auto-start tidak jalan**: Check crontab `crontab -l` dan log `/tmp/mycv_auto_start.log`
+- **Background process hilang**: Use `./api_service.sh status` untuk check status
+
 ### Docker Issues
 - Docker GPU bermasalah karena bug NVIDIA Container Toolkit
 - Gunakan Docker CPU untuk testing: `docker-compose -f docker-compose.cpu.yml up`
@@ -215,6 +240,15 @@ Jika ada masalah, cek dokumentasi di masing-masing folder atau lihat [Testing Gu
 - ✅ **CORS Support** untuk web applications
 - ✅ **Error Handling** yang comprehensive
 - ✅ **Public Access** di http://100.98.142.94:5000
+
+### **Service Manager Features:**
+- ✅ **Toggle On/Off** API dengan `./api_service.sh`
+- ✅ **Background Running** independent dari terminal
+- ✅ **Auto-Start on Boot** via crontab
+- ✅ **PID Management** dengan auto-recovery
+- ✅ **Centralized Logging** di `/tmp/mycv_api.log`
+- ✅ **Status Monitoring** real-time
+- ✅ **Production Mode** dengan disabled debug
 
 ---
 
@@ -446,8 +480,8 @@ python3 app/utils/environment_detector.py
 ---
 
 **Status**: ✅ **PRODUCTION READY**  
-**Version**: 1.1.0-enhanced  
-**Last Updated**: 27 September 2025
+**Version**: 1.3.0-service  
+**Last Updated**: 28 September 2025
 
 ### **Recent Updates:**
 - ✅ **Copy Version** dengan enhanced features
@@ -462,3 +496,6 @@ python3 app/utils/environment_detector.py
 - ✅ **Background Processing** dengan session management
 - ✅ **Multi-file Upload** dengan real-time status monitoring
 - ✅ **File Download** dan detection history features
+- ✅ **API Service Manager** - Toggle on/off dengan background running
+- ✅ **Auto-Start on Boot** - API otomatis start setelah VM restart
+- ✅ **Production Mode** - Disabled debug mode untuk production ready

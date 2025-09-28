@@ -1,8 +1,17 @@
 # MyCV-Platform Changelog
 
-## [1.2.0-api] - 2025-09-28
+## [1.3.0-service] - 2025-09-28
 
 ### 🎯 **Major Changes**
+
+#### **API Service Manager Implementation**
+- ✅ **Service Manager** - Toggle on/off API dengan `./api_service.sh`
+- ✅ **Background Running** - API berjalan di background independent dari terminal
+- ✅ **Auto-Start on Boot** - API otomatis start setelah VM restart via crontab
+- ✅ **PID Management** - Process tracking dengan PID file dan auto-recovery
+- ✅ **Log Management** - Centralized logging di `/tmp/mycv_api.log`
+- ✅ **Status Monitoring** - Real-time status checking dan endpoint testing
+- ✅ **Production Mode** - Disabled debug mode untuk production ready
 
 #### **API Hybrid Detection Implementation**
 - ✅ **RESTful API** - Implementasi API lengkap untuk public access di port 5000
@@ -39,6 +48,16 @@
 
 ### 🆕 **New Features**
 
+#### **API Service Manager Features**
+- `./api_service.sh` - Service manager untuk toggle on/off API
+- `./auto_start_api.sh` - Auto-start script untuk crontab
+- `./install_service.sh` - Systemd service installer (root required)
+- `./setup_user_service.sh` - User systemd service installer
+- Background running dengan nohup dan PID tracking
+- Auto-recovery dengan process detection
+- Centralized logging dan status monitoring
+- Production mode (debug=False)
+
 #### **API Hybrid Detection Features**
 - `./direct/app/api-hybrid-detection/app.py` - Flask API server dengan 7 endpoints
 - `./direct/app/api-hybrid-detection/run_api.sh` - API launcher script
@@ -74,6 +93,12 @@
 ---
 
 ### 🔧 **Updated Files**
+
+#### **Service Manager Files**
+- `./api_service.sh` - Service manager untuk toggle on/off API
+- `./auto_start_api.sh` - Auto-start script untuk crontab
+- `./install_service.sh` - Systemd service installer
+- `./setup_user_service.sh` - User systemd service installer
 
 #### **API Files**
 - `./direct/app/api-hybrid-detection/app.py` - Flask API server dengan 7 endpoints
@@ -116,6 +141,9 @@
 - **API Processing** - Fixed background processing dengan proper threading
 - **File Upload Validation** - Enhanced file type dan size validation
 - **Session Management** - Fixed session ID generation dan tracking
+- **Debug Mode** - Disabled debug mode untuk production ready
+- **PID Management** - Fixed process detection dan auto-recovery
+- **Service Management** - Enhanced service start/stop dengan proper error handling
 
 ---
 
@@ -146,10 +174,21 @@
 - **Session Management** - Efficient session tracking dan cleanup
 - **File Upload** - Optimized multi-file upload handling
 - **API Response** - Faster response times dengan proper error handling
+- **Service Management** - Efficient service start/stop dengan PID tracking
+- **Auto-Start** - Fast boot time dengan crontab integration
+- **Production Mode** - Optimized performance dengan disabled debug mode
 
 ---
 
 ### 🔧 **Technical Details**
+
+#### **Service Manager Implementation**
+- Service manager script dengan start/stop/restart/status/logs commands
+- Background running menggunakan nohup dan PID file tracking
+- Auto-recovery dengan process detection dan PID file recreation
+- Centralized logging di `/tmp/mycv_api.log`
+- Auto-start on boot via crontab dengan 30-second delay
+- Production mode dengan disabled debug mode
 
 #### **API Implementation**
 - Flask API server dengan 7 endpoints lengkap
@@ -180,6 +219,27 @@
 ---
 
 ### 🎯 **Usage Examples**
+
+#### **API Service Manager**
+```bash
+# Start API service (background)
+./api_service.sh start
+
+# Stop API service
+./api_service.sh stop
+
+# Restart API service
+./api_service.sh restart
+
+# Check service status
+./api_service.sh status
+
+# View logs
+./api_service.sh logs
+
+# Setup auto-start on boot
+echo "@reboot /home/my/MySuperApps/MyCV-Platform/auto_start_api.sh" | crontab -
+```
 
 #### **API Hybrid Detection**
 ```bash
@@ -240,6 +300,11 @@ source venv/bin/activate
 ### 🔍 **Testing**
 
 #### **Test Coverage**
+- API Service Manager functionality
+- Background running dan PID management
+- Auto-start on boot via crontab
+- Service start/stop/restart operations
+- Process detection dan auto-recovery
 - API Hybrid Detection functionality
 - Background processing dengan threading
 - Session management dan tracking
@@ -282,19 +347,23 @@ source venv/bin/activate
 
 ### 🎉 **Summary**
 
-MyCV-Platform v1.2.0-api sekarang dilengkapi dengan:
+MyCV-Platform v1.3.0-service sekarang dilengkapi dengan:
 
-1. **API Hybrid Detection** - RESTful API lengkap untuk public access di port 5000
-2. **Background Processing** - Processing berjalan di background dengan session management
-3. **Multi-file Upload** - Support upload multiple images dengan real-time status
-4. **File Download & History** - Download hasil dan lihat detection history
-5. **Copy Version Enhanced Features** - Fitur-fitur yang ditingkatkan dengan structured output
-6. **Script Launchers Documentation** - Dokumentasi lengkap untuk semua launcher
-7. **GitHub Repository Integration** - Koneksi dan manajemen repository yang optimal
-8. **Enhanced File Management** - Organisasi file dan output yang lebih baik
-9. **Improved Visualization** - Kualitas visualisasi yang lebih baik dengan brightness preservation
+1. **API Service Manager** - Toggle on/off API dengan background running dan auto-start
+2. **Auto-Start on Boot** - API otomatis start setelah VM restart via crontab
+3. **Production Ready** - Disabled debug mode untuk production environment
+4. **PID Management** - Process tracking dengan auto-recovery dan centralized logging
+5. **API Hybrid Detection** - RESTful API lengkap untuk public access di port 5000
+6. **Background Processing** - Processing berjalan di background dengan session management
+7. **Multi-file Upload** - Support upload multiple images dengan real-time status
+8. **File Download & History** - Download hasil dan lihat detection history
+9. **Copy Version Enhanced Features** - Fitur-fitur yang ditingkatkan dengan structured output
+10. **Script Launchers Documentation** - Dokumentasi lengkap untuk semua launcher
+11. **GitHub Repository Integration** - Koneksi dan manajemen repository yang optimal
+12. **Enhanced File Management** - Organisasi file dan output yang lebih baik
+13. **Improved Visualization** - Kualitas visualisasi yang lebih baik dengan brightness preservation
 
-Semua perubahan ini memastikan bahwa MyCV-Platform memiliki API yang lengkap untuk akses publik, fitur-fitur yang lebih canggih, dokumentasi yang lengkap, dan manajemen file yang lebih terorganisir.
+Semua perubahan ini memastikan bahwa MyCV-Platform memiliki service management yang lengkap, API yang production-ready, fitur-fitur yang lebih canggih, dokumentasi yang lengkap, dan manajemen file yang lebih terorganisir.
 
 ---
 
