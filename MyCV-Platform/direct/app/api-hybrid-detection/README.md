@@ -18,16 +18,259 @@ cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection
 
 ### Health & Status
 - `GET /api/health` - Health check
-- `GET /api/status` - API status dan informasi
+#### Response: `GET /api/health`
+```json
+{
+    "service": "MyCV-Platform Hybrid Detection API",
+    "status": "healthy",
+    "timestamp": "2025-09-28T13:52:36.623043",
+    "uptime": 1759067556.6230543,
+    "version": "1.0.0"
+}
+```
+
+- `GET /api/status` - API status dan informasi lengkap dengan GPU details
+#### Response: `GET /api/status`
+```json
+{
+    "api_status": "online",
+    "endpoints": [
+        "/api/health",
+        "/api/status",
+        "/api/upload",
+        "/api/process/<session_id>",
+        "/api/results/<session_id>",
+        "/api/download/<session_id>/<filename>",
+        "/api/detections"
+    ],
+    "gpu_info": {
+        "available_gpus": 1,
+        "cuda_available": true,
+        "cudnn_enabled": true,
+        "gpus": [
+            {
+                "id": 0,
+                "name": "NVIDIA GeForce RTX 3060",
+                "memory_gb": 11.63
+            }
+        ],
+        "pytorch_cuda_version": "2.8.0+cu128",
+        "status": "success",
+        "total_memory_all_gpus_gb": 11.63
+    },
+    "service": "MyCV-Platform Hybrid Detection API",
+    "timestamp": "2025-09-28T15:09:48.393352",
+    "total_sessions_processed": 7,
+    "version": "1.0.0"
+}
+```
 
 ### Upload & Processing
 - `POST /api/upload` - Upload gambar untuk deteksi
+#### Response: `POST /api/upload`
+```json
+{
+    "message": "Files uploaded successfully. Processing started.",
+    "results_url": "/api/results/session_9eebbca5",
+    "session_id": "session_9eebbca5",
+    "status_url": "/api/process/session_9eebbca5",
+    "success": true,
+    "timestamp": "20250928_135630",
+    "uploaded_files": [
+        {
+            "original_name": "27_not_mineral.jpg",
+            "path": "../../data/input/remote/20250928_135630/test_userrrr/27_not_mineral.jpg",
+            "saved_name": "27_not_mineral.jpg"
+        }
+    ],
+    "user_id": "test_userrrr"
+}
+```
 - `GET /api/process/<session_id>` - Status pemrosesan
+#### Response: `GET /api/process/session_9eebbca5`
+```json
+{
+    "end_time": "2025-09-28T13:57:03.728872",
+    "message": "Detection completed successfully",
+    "start_time": "2025-09-28T13:56:30.727720",
+    "status": "completed",
+    "timestamp": "20250928_135630",
+    "user_id": "test_userrrr"
+}
+```
 - `GET /api/results/<session_id>` - Hasil deteksi
+#### Response: `GET /api/results/session_9eebbca5`
+```json
+{
+    "results": {
+        "detection_summary": {
+            "dishwasher": 1,
+            "soda": 1
+        },
+        "images_processed": [
+            {
+                "detection_count": 2,
+                "detections": [
+                    {
+                        "bbox": [
+                            289.1062316894531,
+                            224.7684326171875,
+                            368.2486267089844,
+                            452.5482177734375
+                        ],
+                        "class_id": 5,
+                        "class_name": "soda",
+                        "confidence": 0.28023016452789307
+                    },
+                    {
+                        "bbox": [
+                            288.54638671875,
+                            223.8448944091797,
+                            369.2777099609375,
+                            452.61724853515625
+                        ],
+                        "class_id": 0,
+                        "class_name": "dishwasher",
+                        "confidence": 0.27135953307151794
+                    }
+                ],
+                "image_name": "27_not_mineral",
+                "json_file": "/27_not_mineral-best_pt-detection.json",
+                "visualizations": [
+                    {
+                        "file": "27_not_mineral-best_pt-compare.png",
+                        "path": "/27_not_mineral-best_pt-compare.png",
+                        "type": "compare"
+                    }
+                ]
+            }
+        ],
+        "total_files": 1
+    },
+    "session_id": "session_9eebbca5",
+    "status": "completed",
+    "timestamp": "20250928_135630",
+    "user_id": "test_userrrr"
+}
+```
 
 ### Download & History
 - `GET /api/download/<session_id>/<filename>` - Download file hasil
 - `GET /api/detections` - Semua deteksi terbaru
+#### Response: `GET /api/detections`
+```json
+{
+    "recent_detections": [
+        {
+            "detection_count": 2,
+            "detections": [
+                {
+                    "bbox": [
+                        289.1062316894531,
+                        224.7684326171875,
+                        368.2486267089844,
+                        452.5482177734375
+                    ],
+                    "class_id": 5,
+                    "class_name": "soda",
+                    "confidence": 0.28023016452789307
+                },
+                {
+                    "bbox": [
+                        288.54638671875,
+                        223.8448944091797,
+                        369.2777099609375,
+                        452.61724853515625
+                    ],
+                    "class_id": 0,
+                    "class_name": "dishwasher",
+                    "confidence": 0.27135953307151794
+                }
+            ],
+            "image_name": "27_not_mineral",
+            "timestamp": "20250928_135630",
+            "user_id": "test_userrrr"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        294.4569091796875,
+                        308.8126220703125,
+                        363.95751953125,
+                        448.69964599609375
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8424936532974243
+                }
+            ],
+            "image_name": "21_mineral",
+            "timestamp": "20250928_092747",
+            "user_id": "test_api_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        57.36895751953125,
+                        62.235107421875,
+                        344.09259033203125,
+                        577.8096923828125
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8787883520126343
+                }
+            ],
+            "image_name": "1-botol_mineral",
+            "timestamp": "20250928_091258",
+            "user_id": "test_user_001"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        294.4569091796875,
+                        308.8126220703125,
+                        363.95751953125,
+                        448.69964599609375
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8424936532974243
+                }
+            ],
+            "image_name": "21_mineral",
+            "timestamp": "20250928_091258",
+            "user_id": "test_user_001"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        252.4176788330078,
+                        145.65257263183594,
+                        394.87469482421875,
+                        367.3836669921875
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.9168100953102112
+                }
+            ],
+            "image_name": "244.mineral_crush",
+            "timestamp": "20250928_091258",
+            "user_id": "test_user_001"
+        }
+    ],
+    "total_sessions": 5
+}
+```
 
 ## 📤 Upload Images
 
@@ -153,12 +396,104 @@ curl http://100.98.142.94:5000/api/results/session_abc123
 - ✅ **Detection History**: Lihat semua deteksi terbaru
 - ✅ **CORS Support**: Support untuk web applications
 - ✅ **Error Handling**: Comprehensive error handling
+- ✅ **GPU Detection**: Real-time GPU information dengan memory details
+- ✅ **System Monitoring**: Total sessions processed tracking
 
 ## 🔍 Detection Models
 
 1. **YOLO11m**: Object detection
 2. **best.pt**: Custom trained model
 3. **SAM2_b**: Segmentation model
+
+## 🖥️ GPU Information
+
+API secara otomatis mendeteksi dan melaporkan informasi GPU yang tersedia:
+
+### GPU Detection Features:
+- **Real-time Detection**: Mendeteksi GPU yang tersedia saat runtime
+- **Memory Information**: Menampilkan total memory setiap GPU
+- **CUDA Support**: Mengecek ketersediaan CUDA dan cuDNN
+- **Multi-GPU Support**: Mendukung sistem dengan multiple GPU
+- **PyTorch Integration**: Menggunakan PyTorch untuk deteksi GPU
+
+### GPU Info Structure:
+```json
+{
+    "gpu_info": {
+        "available_gpus": 1,
+        "cuda_available": true,
+        "cudnn_enabled": true,
+        "gpus": [
+            {
+                "id": 0,
+                "name": "NVIDIA GeForce RTX 3060",
+                "memory_gb": 11.63
+            }
+        ],
+        "pytorch_cuda_version": "2.8.0+cu128",
+        "status": "success",
+        "total_memory_all_gpus_gb": 11.63
+    }
+}
+```
+
+### Supported GPU Types:
+- **NVIDIA GPUs**: Semua GPU NVIDIA dengan CUDA support
+- **Memory Detection**: Otomatis mendeteksi total memory
+- **Multi-GPU Systems**: Mendukung sistem dengan multiple GPU
+- **Fallback Support**: Graceful handling jika GPU tidak tersedia
+
+## 📈 System Monitoring
+
+API menyediakan monitoring sistem secara real-time:
+
+### Monitoring Features:
+- **Session Tracking**: Menghitung total sessions yang telah diproses
+- **Performance Metrics**: Melacak performa sistem
+- **Resource Usage**: Monitoring penggunaan GPU dan memory
+- **Health Status**: Real-time health check
+
+### System Status Response:
+```json
+{
+    "api_status": "online",
+    "service": "MyCV-Platform Hybrid Detection API",
+    "version": "1.0.0",
+    "total_sessions_processed": 7,
+    "gpu_info": { ... },
+    "timestamp": "2025-09-28T15:09:48.393352"
+}
+```
+
+### Monitoring Endpoints:
+- `GET /api/status` - Comprehensive system status
+- `GET /api/health` - Basic health check
+- `GET /api/detections` - Processing history
+
+## 🌐 Web Application Integration
+
+API terintegrasi dengan MyCV-Platform Web Application untuk menampilkan informasi real-time:
+
+### Web App Features:
+- **Real-time System Status**: Menampilkan status GPU dan sistem
+- **Upload Interface**: Multi-file upload dengan drag & drop
+- **Processing Status**: Real-time monitoring processing
+- **Results Display**: Frame-based results visualization
+- **Download Management**: Download hasil processing
+
+### System Status Display:
+Web application menampilkan informasi real dari API:
+- **Service**: MyCV-Platform Hybrid Detection API
+- **Status**: Online/Offline
+- **Version**: 1.0.0
+- **Server**: 100.98.142.94
+- **GPU Available**: NVIDIA GeForce RTX 3060 (11.63GB)
+- **GPU Count**: 1 GPU(s) - 11.63GB Total
+
+### Integration Endpoints:
+- Web App: `http://100.98.142.94:5002`
+- API Service: `http://100.98.142.94:5000`
+- Real-time data exchange antara Web App dan API
 
 ## 📊 Output Files
 

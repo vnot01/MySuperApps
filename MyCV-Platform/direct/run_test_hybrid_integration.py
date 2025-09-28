@@ -485,7 +485,7 @@ def main():
     """Main function"""
     # Load project info from model_info.json
     try:
-        with open('data/models/model_info.json', 'r') as f:
+        with open('/data/models/model_info.json', 'r') as f:
             model_info = json.load(f)
         project_name = model_info['name']
         project_version = model_info['version']
@@ -509,8 +509,25 @@ def main():
     test_images_dir = "data/input/remote"
     test_images = []
     
-    # Find all images in remote subdirectories
-    for root, dirs, files in os.walk(test_images_dir):
+    # Find only the latest session images (most recent timestamp)
+    timestamp_dirs = []
+    for item in os.listdir(test_images_dir):
+        item_path = os.path.join(test_images_dir, item)
+        if os.path.isdir(item_path):
+            timestamp_dirs.append(item)
+    
+    if not timestamp_dirs:
+        log_message("❌ No timestamp directories found in remote directory", 'error')
+        return
+    
+    # Sort timestamps and get the latest one
+    latest_timestamp = sorted(timestamp_dirs)[-1]
+    latest_session_dir = os.path.join(test_images_dir, latest_timestamp)
+    
+    log_message(f"📅 Processing latest session: {latest_timestamp}", 'info')
+    
+    # Find images only in the latest session
+    for root, dirs, files in os.walk(latest_session_dir):
         for file in files:
             if file.endswith('.jpg'):
                 test_images.append(os.path.join(root, file))
@@ -593,8 +610,111 @@ def main():
         # Generate visualizations for this image
         generate_visualizations(image_path, base_name, output_dir, yolo_dir, best_dir, segmentasi_dir, hybrid_dir)
     
+    # Create summary.json for each session
+    create_session_summary(test_images, project_name, project_version)
+    
     log_message(f"\n🎉 {project_name} completed successfully!", 'success')
     log_message("📊 Check 'data/output/remote' for results", 'info')
+
+def create_session_summary(test_images, project_name, project_version):
+    """Create summary.json for each session (timestamp/user_id)"""
+    log_message("📋 Creating session summaries...", 'info')
+    
+    # Group images by session (timestamp/user_id)
+    sessions = {}
+    for image_path in test_images:
+        path_parts = image_path.split(os.sep)
+        timestamp = path_parts[-3] if len(path_parts) >= 3 else "unknown"
+        user_id = path_parts[-2] if len(path_parts) >= 2 else "unknown"
+        
+        session_key = f"{timestamp}/{user_id}"
+        if session_key not in sessions:
+            sessions[session_key] = {
+                'timestamp': timestamp,
+                'user_id': user_id,
+                'images': []
+            }
+        sessions[session_key]['images'].append(image_path)
+    
+    # Create summary for each session
+    for session_key, session_data in sessions.items():
+        timestamp = session_data['timestamp']
+        user_id = session_data['user_id']
+        
+        log_message(f"📝 Creating summary for session: {session_key}", 'info')
+        
+        # Output directory for this session
+        output_dir = f"data/output/remote/{timestamp}/{user_id}"
+        
+        # Collect all detection results for this session
+        detection_summary = []
+        
+        # Find all JSON files in the session directory (only for current session)
+        json_files = []
+        if os.path.exists(output_dir):
+            for root, dirs, files in os.walk(output_dir):
+                for file in files:
+                    if file.endswith('-detection.json'):
+                        # Only include files from current session
+                        json_files.append(os.path.join(root, file))
+        
+        # Process each JSON file
+        for json_file in json_files:
+            try:
+                with open(json_file, 'r') as f:
+                    detection_data = json.load(f)
+                
+                # Extract image name and model from filename
+                filename = os.path.basename(json_file)
+                # Format: image_name-model-detection.json
+                parts = filename.replace('-detection.json', '').split('-')
+                if len(parts) >= 2:
+                    image_name = '-'.join(parts[:-1])  # Everything except last part (model)
+                    model_name = parts[-1]  # Last part is model name
+                else:
+                    image_name = filename.replace('-detection.json', '')
+                    model_name = 'unknown'
+                
+                # Create detection entry according to user's format
+                detection_entry = {
+                    "id": len(detection_summary),
+                    "name": filename,
+                    "datas": detection_data,
+                    "object_count": len(detection_data),
+                    "detection_count": len(detection_data)
+                }
+                
+                # Add images_url if the corresponding image exists
+                best_dir = os.path.join(output_dir, "best")
+                best_image_path = os.path.join(best_dir, f"{image_name}-{model_name}-best.png")
+                if os.path.exists(best_image_path):
+                    # Create relative URL path for API download
+                    detection_entry["images_url"] = f"https://100.98.142.94:5000/api/download/{timestamp}/{user_id}/{os.path.basename(best_image_path)}"
+                
+                detection_summary.append(detection_entry)
+                
+            except Exception as e:
+                log_message(f"⚠️  Error processing {json_file}: {e}", 'warning')
+                continue
+        
+        # Create summary data according to user's format
+        summary_data = {
+            "detection_summary": detection_summary,
+            "session_id": f"session_{timestamp}_{user_id}",
+            "status": "completed",
+            "timestamp": timestamp,
+            "user_id": user_id
+        }
+        
+        # Save summary.json
+        summary_file = os.path.join(output_dir, "summary.json")
+        try:
+            with open(summary_file, 'w') as f:
+                json.dump(summary_data, f, indent=2)
+            log_message(f"✅ Summary saved: {summary_file}", 'success')
+            log_message(f"   📊 {len(detection_summary)} detections from {len(session_data['images'])} images", 'info')
+        except Exception as e:
+            log_message(f"❌ Error saving summary: {e}", 'error')
 
 if __name__ == "__main__":
     main()

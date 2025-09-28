@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import time
 import threading
 from itertools import cycle
+import argparse
 
 class LoadingSpinner:
     """Animated loading spinner for long-running operations"""
@@ -520,6 +521,13 @@ def generate_visualizations(image_path, base_name, output_dir, yolo_dir, best_di
 
 def main():
     """Main function"""
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='MyCV-Platform YOLO + SAM Integration Script')
+    parser.add_argument('--timestamp', help='Timestamp for specific session processing')
+    parser.add_argument('--user_id', help='User ID for specific session processing')
+    parser.add_argument('--session_id', help='Session ID for tracking')
+    args = parser.parse_args()
+    
     # Load project info from model_info.json
     try:
         with open('data/models/model_info.json', 'r') as f:
@@ -531,6 +539,10 @@ def main():
         project_version = "1.0.0"
     
     log_message(f"🚀 Starting Detection Process", 'info')
+    if args.session_id:
+        log_message(f"📋 Session ID: {args.session_id}", 'info')
+    if args.timestamp and args.user_id:
+        log_message(f"📁 Processing session: {args.timestamp}/{args.user_id}", 'info')
     # log_message("=" * 50, 'info')
     
     # Check environment
@@ -546,17 +558,28 @@ def main():
     test_images_dir = "data/input/remote"
     test_images = []
     
-    # Find all images in remote subdirectories
-    for root, dirs, files in os.walk(test_images_dir):
-        for file in files:
-            if file.endswith('.jpg'):
-                test_images.append(os.path.join(root, file))
+    # If specific session parameters provided, process only that session
+    if args.timestamp and args.user_id:
+        session_dir = os.path.join(test_images_dir, args.timestamp, args.user_id)
+        if os.path.exists(session_dir):
+            for file in os.listdir(session_dir):
+                if file.endswith('.jpg'):
+                    test_images.append(os.path.join(session_dir, file))
+            log_message(f"📁 Found {len(test_images)} images in session {args.timestamp}/{args.user_id}", 'info')
+        else:
+            log_message(f"❌ Session directory not found: {session_dir}", 'error')
+            return
+    else:
+        # Fallback: process all images (for backward compatibility)
+        for root, dirs, files in os.walk(test_images_dir):
+            for file in files:
+                if file.endswith('.jpg'):
+                    test_images.append(os.path.join(root, file))
+        log_message(f"📁 Found {len(test_images)} test images in remote directory", 'info')
     
     if not test_images:
-        log_message("❌ No test images found in remote directory", 'error')
+        log_message("❌ No test images found", 'error')
         return
-    
-    # log_message(f"📁 Found {len(test_images)} test images in remote directory", 'info')
     
     # Process each image
     for i, image_path in enumerate(test_images, 1):

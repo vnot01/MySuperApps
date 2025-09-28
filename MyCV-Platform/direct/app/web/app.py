@@ -13,6 +13,7 @@ import base64
 import json
 from pathlib import Path
 from flask import Flask, render_template, Response, jsonify, request
+from datetime import datetime
 from ultralytics import YOLO, SAM
 import threading
 import time
@@ -355,11 +356,12 @@ def health():
     """Health check"""
     return jsonify({
         'status': 'healthy',
-        'models_loaded': len(models),
-        'device': device,
-        'camera_available': camera_available,
-        'camera_initialized': camera_initialized
+        'service': 'MyCV-Platform Web Application',
+        'version': '1.0.0',
+        'timestamp': datetime.now().isoformat(),
+        'uptime': time.time()
     })
+
 
 def main():
     """Main function"""

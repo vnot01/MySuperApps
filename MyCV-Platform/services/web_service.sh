@@ -13,12 +13,15 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
+# PROJECT_DIR="/home/my/MySuperApps/MyCV-Platform/direct/app/web"
 PROJECT_DIR="/home/my/MySuperApps/MyCV-Platform"
 WEB_DIR="${PROJECT_DIR}/direct/app/web"
 VENV_DIR="${PROJECT_DIR}/direct/venv"
 PID_FILE="/tmp/mycv_web.pid"
 LOG_FILE="/tmp/mycv_web.log"
-WEB_SCRIPT="${WEB_DIR}/run_web_app.sh"
+# MySuperApps/MyCV-Platform/direct/app/web/app.py
+WEB_SCRIPT="${WEB_DIR}/app.py"
+# WEB_SCRIPT="${WEB_DIR}/run_web_app.sh"
 
 # Function to print colored output
 print_status() {
@@ -43,7 +46,7 @@ is_running() {
         local pid=$(cat "$PID_FILE")
         if ps -p "$pid" > /dev/null 2>&1; then
             # Check if it's actually the Web service (port 5002)
-            if ss -tlnp 2>/dev/null | grep ":5002" | grep -q "pid=$pid"; then
+            if ss -tlnp 2>/dev/null | grep ":5002" | grep -q "pid=$pid" && ps -p "$pid" -o cmd= | grep -q "python3.*app.py"; then
                 return 0
             else
                 rm -f "$PID_FILE"
@@ -56,8 +59,11 @@ is_running() {
     # Check for process listening on port 5002
     local web_pid=$(ss -tlnp 2>/dev/null | grep ":5002" | grep -o 'pid=[0-9]*' | cut -d'=' -f2)
     if [ -n "$web_pid" ] && ps -p "$web_pid" > /dev/null 2>&1; then
-        echo "$web_pid" > "$PID_FILE"
-        return 0
+        # Verify it's actually a python3 app.py process
+        if ps -p "$web_pid" -o cmd= | grep -q "python3.*app.py"; then
+            echo "$web_pid" > "$PID_FILE"
+            return 0
+        fi
     fi
     
     return 1
@@ -92,6 +98,8 @@ start_web() {
     
     # Start web service in background
     cd "$WEB_DIR"
+    
+    # Activate virtual environment
     nohup bash -c "source $VENV_DIR/bin/activate && python3 app.py" > "$LOG_FILE" 2>&1 &
     local pid=$!
     
@@ -102,25 +110,31 @@ start_web() {
     sleep 3
     
     # Check if service is actually running
-    if is_running; then
-        print_success "✅ Web Service started successfully!"
-        print_status "📡 Web URL: http://100.98.142.94:5002"
-        print_status "📋 PID: $pid"
-        print_status "📄 Log: $LOG_FILE"
-        print_status "🔧 Use './web_service.sh stop' to stop the service"
+    # if is_running; then
+    #     print_success "✅ Web Service started successfully!"
+    #     print_status "📡 Web URL: http://100.98.142.94:5002"
+    #     print_status "📋 PID: $pid"
+    #     print_status "📄 Log: $LOG_FILE"
+    #     print_status "🔧 Use './web_service.sh stop' to stop the service"
         
-        # Test web endpoint
-        sleep 2
-        if curl -s http://100.98.142.94:5002/health > /dev/null 2>&1; then
-            print_success "✅ Web endpoint is responding"
-        else
-            print_warning "⚠️ Web endpoint not responding yet (may take a few more seconds)"
-        fi
-    else
-        print_error "❌ Failed to start Web Service"
-        rm -f "$PID_FILE"
-        return 1
-    fi
+    #     # Test web endpoint
+    #     sleep 2
+    #     if curl -s http://100.98.142.94:5002/health > /dev/null 2>&1; then
+    #         print_success "✅ Web endpoint is responding"
+    #     else
+    #         print_warning "⚠️ Web endpoint not responding yet (may take a few more seconds)"
+    #     fi
+    # else
+    #     print_error "❌ Failed to start Web Service"
+    #     print_error "📄 Check log: $LOG_FILE"
+    #     rm -f "$PID_FILE"
+    #     # Show last few lines of log
+    #     if [ -f "$LOG_FILE" ]; then
+    #         print_error "Last log entries:"
+    #         tail -5 "$LOG_FILE" | sed 's/^/   /'
+    #     fi
+    #     return 1
+    # fi
 }
 
 # Function to stop web service

@@ -16,6 +16,7 @@ from werkzeug.utils import secure_filename
 import subprocess
 import threading
 from pathlib import Path
+import torch
 
 # Add parent directory to path to import detection modules
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
@@ -44,6 +45,63 @@ def allowed_file(filename):
 def generate_session_id():
     """Generate unique session ID"""
     return f"session_{uuid.uuid4().hex[:8]}"
+
+def get_gpu_info():
+    """Get detailed GPU information"""
+    gpus_data = []
+    total_memory_all_gpus_gb = 0.0
+    
+    try:
+        # Periksa apakah CUDA tersedia
+        if torch.cuda.is_available():
+            num_gpus = torch.cuda.device_count()
+
+            # Iterasi untuk setiap GPU yang tersedia
+            for i in range(num_gpus):
+                device_properties = torch.cuda.get_device_properties(i)
+                gpu_name = device_properties.name
+                total_memory_bytes = device_properties.total_memory
+                total_memory_gb = total_memory_bytes / 1024**3
+                
+                # Buat dictionary untuk satu GPU
+                gpu_info = {
+                    "id": i,
+                    "name": gpu_name,
+                    "memory_gb": round(total_memory_gb, 2)
+                }
+                gpus_data.append(gpu_info)
+                total_memory_all_gpus_gb += total_memory_gb
+
+            return {
+                "status": "success",
+                "cuda_available": True,
+                "cudnn_enabled": torch.backends.cudnn.enabled,
+                "pytorch_cuda_version": torch.__version__,
+                "available_gpus": num_gpus,
+                "gpus": gpus_data,
+                "total_memory_all_gpus_gb": round(total_memory_all_gpus_gb, 2)
+            }
+        else:
+            # Kondisi jika CUDA tidak tersedia
+            return {
+                "status": "error",
+                "message": "Tidak ada GPU berkemampuan CUDA yang ditemukan.",
+                "cuda_available": False,
+                "available_gpus": 0,
+                "gpus": [],
+                "total_memory_all_gpus_gb": 0.0
+            }
+
+    except Exception as e:
+        # Tangani error jika terjadi pengecualian
+        return {
+            "status": "error",
+            "message": f"Terjadi kesalahan saat mengambil data GPU: {str(e)}",
+            "cuda_available": False,
+            "available_gpus": 0,
+            "gpus": [],
+            "total_memory_all_gpus_gb": 0.0
+        }
 
 def create_directory_structure(timestamp, user_id):
     """Create directory structure for processing"""
@@ -75,9 +133,12 @@ def run_detection_process(timestamp, user_id, session_id):
         # Change to direct directory
         direct_dir = os.path.join(os.path.dirname(__file__), '../../')
         
-        # Run the detection script
+        # Run the detection script with specific session parameters
         cmd = [
-            'python3', 'run_api_hybrid_detection.py'
+            'python3', 'run_api_hybrid_detection.py', 
+            '--timestamp', timestamp,
+            '--user_id', user_id,
+            '--session_id', session_id
         ]
         
         result = subprocess.run(
@@ -199,7 +260,30 @@ def health_check():
 
 @app.route('/api/status', methods=['GET'])
 def api_status():
-    """API status endpoint"""
+    """API status endpoint with GPU information"""
+    # Get GPU information
+    gpu_info = get_gpu_info()
+    
+    # Get detection history for total sessions
+    total_sessions = 0
+    try:
+        if os.path.exists(OUTPUT_FOLDER):
+            for timestamp_dir in os.listdir(OUTPUT_FOLDER):
+                timestamp_path = os.path.join(OUTPUT_FOLDER, timestamp_dir)
+                if os.path.isdir(timestamp_path):
+                    for user_dir in os.listdir(timestamp_path):
+                        user_path = os.path.join(timestamp_path, user_dir)
+                        if os.path.isdir(user_path):
+                            # Count JSON files (detection results)
+                            json_count = 0
+                            for root, dirs, files in os.walk(user_path):
+                                for file in files:
+                                    if file.endswith('.json'):
+                                        json_count += 1
+                            total_sessions += json_count
+    except Exception:
+        total_sessions = 0
+    
     return jsonify({
         'api_status': 'online',
         'service': 'MyCV-Platform Hybrid Detection API',
@@ -210,9 +294,12 @@ def api_status():
             '/api/upload',
             '/api/process/<session_id>',
             '/api/results/<session_id>',
-            '/api/download/<session_id>/<filename>'
+            '/api/download/<session_id>/<filename>',
+            '/api/detections'
         ],
-        'timestamp': datetime.now().isoformat()
+        'timestamp': datetime.now().isoformat(),
+        'gpu_info': gpu_info,
+        'total_sessions_processed': total_sessions
     })
 
 @app.route('/api/upload', methods=['POST'])

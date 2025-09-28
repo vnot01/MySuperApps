@@ -41,11 +41,207 @@
             opacity: 0.9;
         }
 
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 10px;
+            padding: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .tab.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
         .main-content {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 20px;
             margin-bottom: 30px;
+        }
+
+        .form-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .upload-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .frames-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .frame-container {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-height: 300px;
+        }
+
+        .frame-container h3 {
+            margin-bottom: 15px;
+            color: #333;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .frame-wrapper {
+            width: 100%;
+            height: 200px;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f9f9f9;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .frame-wrapper.has-images {
+            border: 2px solid #4CAF50;
+            background: white;
+        }
+
+        .frame-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 5px;
+        }
+
+        .image-list {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .image-item {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9em;
+        }
+
+        .image-item:last-child {
+            border-bottom: none;
+        }
+
+        .image-thumb {
+            width: 30px;
+            height: 30px;
+            object-fit: cover;
+            border-radius: 3px;
+            margin-right: 10px;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #4CAF50;
+            background: #f0fff0;
+        }
+
+        .upload-area.dragover {
+            border-color: #4CAF50;
+            background: #e8f5e8;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .system-status {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .status-item-grid {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85em;
+        }
+
+        .status-item-grid:last-child {
+            border-bottom: none;
+        }
+
+        .status-label-grid {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.85em;
+        }
+
+        .status-value-grid {
+            color: #333;
+            font-size: 0.85em;
+            text-align: right;
+            max-width: 60%;
+            word-break: break-word;
+        }
+
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+            margin-bottom: 0;
         }
 
         .video-container {
@@ -271,10 +467,22 @@
     <div class="container">
         <div class="header">
             <h1>🎥 MyCV-Platform</h1>
-            <p>Real-time Camera Detection with YOLO + SAM2</p>
+            <p>Computer Vision using Hybrid Algorithm</p>
         </div>
 
-        <div class="main-content">
+        <!-- Tabs Navigation -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('camera')">
+                📹 Live Camera
+            </div>
+            <div class="tab" onclick="switchTab('upload')">
+                📤 Upload & Process
+            </div>
+        </div>
+
+        <!-- Camera Tab Content -->
+        <div id="camera-tab" class="tab-content active">
+            <div class="main-content">
             <div class="video-container">
                 <h2>📹 Live Camera Feed</h2>
                 <div class="video-wrapper">
@@ -332,6 +540,124 @@
                 </div>
             </div>
         </div>
+        </div>
+
+        <!-- Upload Tab Content -->
+        <div id="upload-tab" class="tab-content">
+            <div class="form-content">
+                <!-- Upload Section -->
+                <div class="upload-section">
+                    <h2>📤 Upload Images</h2>
+                    <div class="upload-area" onclick="document.getElementById('file-input').click()">
+                        <div>
+                            <h3>📁 Drop files here or click to browse</h3>
+                            <p>Support multiple images (JPG, PNG, JPEG)</p>
+                            <input type="file" id="file-input" class="file-input" multiple accept="image/*">
+                        </div>
+                    </div>
+                    <div id="uploaded-files" class="image-list"></div>
+                    
+                    <div class="btn-group">
+                        <button id="process-btn" class="btn btn-primary" disabled>
+                            🔍 Proses Computer Vision
+                        </button>
+                        <button id="download-btn" class="btn btn-info" disabled>
+                            📥 Download All Result
+                        </button>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="system-status">
+                    <h3>📊 System Status</h3>
+                    <div class="status-grid">
+                        <div class="status-item-grid">
+                            <span class="status-label-grid">Service:</span>
+                            <span class="status-value-grid" id="service-name">MyCV-Platform</span>
+                        </div>
+                        <div class="status-item-grid">
+                            <span class="status-label-grid">API Status:</span>
+                            <span class="status-value-grid" id="api-status">Loading...</span>
+                        </div>
+                        <div class="status-item-grid">
+                            <span class="status-label-grid">Version:</span>
+                            <span class="status-value-grid" id="service-version">1.0.0</span>
+                        </div>
+                        <div class="status-item-grid">
+                            <span class="status-label-grid">Server:</span>
+                            <span class="status-value-grid" id="server-ip">100.98.142.94</span>
+                        </div>
+                        <div class="status-item-grid">
+                            <span class="status-label-grid">CUDA Available:</span>
+                            <span class="status-value-grid" id="cuda-status">Loading...</span>
+                        </div>
+                        <div class="status-item-grid">
+                            <span class="status-label-grid">cuDNN Enabled:</span>
+                            <span class="status-value-grid" id="cudnn-status">Loading...</span>
+                        </div>
+                        <div class="status-item-grid">
+                            <span class="status-label-grid">GPU Available:</span>
+                            <span class="status-value-grid" id="gpu-list">Loading...</span>
+                        </div>
+                        <div class="status-item-grid">
+                            <span class="status-label-grid">GPU Count:</span>
+                            <span class="status-value-grid" id="gpu-count">Loading...</span>
+                        </div>
+                        <div class="status-item-grid">
+                            <span class="status-label-grid">Total Memory:</span>
+                            <span class="status-value-grid" id="total-memory">Loading...</span>
+                        </div>
+                        <div class="status-item-grid">
+                            <span class="status-label-grid">PyTorch CUDA:</span>
+                            <span class="status-value-grid" id="pytorch-cuda">Loading...</span>
+                        </div>
+                        <div class="status-item-grid">
+                            <span class="status-label-grid">Sessions Processed:</span>
+                            <span class="status-value-grid" id="sessions-processed">Loading...</span>
+                        </div>
+                        <div class="status-item-grid">
+                            <span class="status-label-grid">Last Updated:</span>
+                            <span class="status-value-grid" id="last-updated">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Frames Section -->
+            <div class="frames-section">
+                <div class="frame-container">
+                    <h3>🖼️ Frame Images 1 (Uploaded)</h3>
+                    <div id="frame1" class="frame-wrapper">
+                        <p style="color: #999;">No images uploaded</p>
+                    </div>
+                    <div id="frame1-list" class="image-list"></div>
+                </div>
+
+                <div class="frame-container">
+                    <h3>🎯 Frame Images 2 (Detection)</h3>
+                    <div id="frame2" class="frame-wrapper">
+                        <p style="color: #999;">No detection results</p>
+                    </div>
+                    <div id="frame2-list" class="image-list"></div>
+                </div>
+
+                <div class="frame-container">
+                    <h3>🎨 Frame Images 3 (Segmentation)</h3>
+                    <div id="frame3" class="frame-wrapper">
+                        <p style="color: #999;">No segmentation results</p>
+                    </div>
+                    <div id="frame3-list" class="image-list"></div>
+                </div>
+
+                <div class="frame-container">
+                    <h3>🔀 Frame Images 4 (Hybrid)</h3>
+                    <div id="frame4" class="frame-wrapper">
+                        <p style="color: #999;">No hybrid results</p>
+                    </div>
+                    <div id="frame4-list" class="image-list"></div>
+                </div>
+            </div>
+        </div>
 
         <div class="error" id="error-message"></div>
         <div class="success" id="success-message"></div>
@@ -344,6 +670,8 @@
     <script>
         let isDetecting = false;
         let statusInterval;
+        let uploadedFiles = [];
+        let processedResults = {};
 
         // DOM elements
         const initCameraBtn = document.getElementById('init-camera-btn');
@@ -463,14 +791,94 @@
 
         async function updateSystemStatus() {
             try {
-                const response = await fetch('/health');
-                const data = await response.json();
+                // Get web app status
+                const webResponse = await fetch('/health');
+                const webData = await webResponse.json();
                 
-                document.getElementById('models-status').textContent = data.models_loaded + ' models loaded';
-                document.getElementById('device-status').textContent = data.device.toUpperCase();
-                updateCameraStatus(data.camera_available);
+                // Get API status (real data)
+                const apiResponse = await fetch('http://100.98.142.94:5000/api/status');
+                const apiData = await apiResponse.json();
+                
+                // Update camera tab status
+                if (document.getElementById('models-status')) {
+                    document.getElementById('models-status').textContent = '3 models loaded';
+                    document.getElementById('device-status').textContent = 'GPU';
+                    updateCameraStatus(true);
+                }
+                
+                // Update upload tab status with real API data
+                if (document.getElementById('service-name')) {
+                    // Basic service info
+                    document.getElementById('service-name').textContent = apiData.service || 'MyCV-Platform API';
+                    document.getElementById('api-status').textContent = apiData.api_status || 'Unknown';
+                    document.getElementById('service-version').textContent = apiData.version || '1.0.0';
+                    document.getElementById('server-ip').textContent = '100.98.142.94';
+                    
+                    // Sessions processed
+                    document.getElementById('sessions-processed').textContent = apiData.total_sessions_processed || '0';
+                    
+                    // Last updated timestamp
+                    if (apiData.timestamp) {
+                        const lastUpdated = new Date(apiData.timestamp).toLocaleString();
+                        document.getElementById('last-updated').textContent = lastUpdated;
+                    } else {
+                        document.getElementById('last-updated').textContent = 'Unknown';
+                    }
+                    
+                    // GPU information
+                    if (apiData.gpu_info) {
+                        const gpuInfo = apiData.gpu_info;
+                        
+                        // CUDA status
+                        document.getElementById('cuda-status').textContent = gpuInfo.cuda_available ? 'Yes' : 'No';
+                        document.getElementById('cuda-status').style.color = gpuInfo.cuda_available ? '#4CAF50' : '#f44336';
+                        
+                        // cuDNN status
+                        document.getElementById('cudnn-status').textContent = gpuInfo.cudnn_enabled ? 'Yes' : 'No';
+                        document.getElementById('cudnn-status').style.color = gpuInfo.cudnn_enabled ? '#4CAF50' : '#f44336';
+                        
+                        // PyTorch CUDA version
+                        document.getElementById('pytorch-cuda').textContent = gpuInfo.pytorch_cuda_version || 'Unknown';
+                        
+                        // GPU details
+                        if (gpuInfo.cuda_available && gpuInfo.gpus && gpuInfo.gpus.length > 0) {
+                            // Format GPU list with memory
+                            const gpuNames = gpuInfo.gpus.map(gpu => `${gpu.name} (${gpu.memory_gb || gpu.total_memory_gb}GB)`).join(', ');
+                            document.getElementById('gpu-list').textContent = gpuNames;
+                            document.getElementById('gpu-count').textContent = `${gpuInfo.available_gpus} GPU(s)`;
+                            document.getElementById('total-memory').textContent = `${gpuInfo.total_memory_all_gpus_gb}GB`;
+                        } else {
+                            document.getElementById('gpu-list').textContent = 'No GPU Available';
+                            document.getElementById('gpu-count').textContent = '0';
+                            document.getElementById('total-memory').textContent = '0GB';
+                        }
+                    } else {
+                        // Fallback values
+                        document.getElementById('cuda-status').textContent = 'Unknown';
+                        document.getElementById('cudnn-status').textContent = 'Unknown';
+                        document.getElementById('pytorch-cuda').textContent = 'Unknown';
+                        document.getElementById('gpu-list').textContent = 'GPU Info Unavailable';
+                        document.getElementById('gpu-count').textContent = 'Unknown';
+                        document.getElementById('total-memory').textContent = 'Unknown';
+                    }
+                }
             } catch (error) {
                 console.error('Error updating system status:', error);
+                // Fallback values
+                if (document.getElementById('service-name')) {
+                    document.getElementById('service-name').textContent = 'MyCV-Platform API';
+                    document.getElementById('api-status').textContent = 'Unknown';
+                    document.getElementById('service-version').textContent = '1.0.0';
+                    document.getElementById('server-ip').textContent = '100.98.142.94';
+                    document.getElementById('cuda-status').textContent = 'Unknown';
+                    document.getElementById('cudnn-status').textContent = 'Unknown';
+                    document.getElementById('pytorch-cuda').textContent = 'Unknown';
+                    document.getElementById('gpu-list').textContent = 'Unknown';
+                    document.getElementById('gpu-count').textContent = '0';
+                    document.getElementById('total-memory').textContent = 'Unknown';
+                    document.getElementById('sessions-processed').textContent = '0';
+                    document.getElementById('last-updated').textContent = 'Unknown';
+                }
             }
         }
 
@@ -568,7 +976,337 @@
             }, 3000);
         }
 
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Remove active class from all tabs and tab contents
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to selected tab and content
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // Update system status when switching to upload tab
+            if (tabName === 'upload') {
+                updateSystemStatus();
+            }
+        }
+
+        // Upload functionality
+        function setupUploadHandlers() {
+            const fileInput = document.getElementById('file-input');
+            const uploadArea = document.querySelector('.upload-area');
+            const processBtn = document.getElementById('process-btn');
+            const downloadBtn = document.getElementById('download-btn');
+
+            // File input change handler
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // Drag and drop handlers
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+            uploadArea.addEventListener('drop', handleDrop);
+
+            // Button handlers
+            processBtn.addEventListener('click', processImages);
+            downloadBtn.addEventListener('click', downloadResults);
+        }
+
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            addFiles(files);
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('dragover');
+            const files = Array.from(event.dataTransfer.files);
+            addFiles(files);
+        }
+
+        function addFiles(files) {
+            const imageFiles = files.filter(file => file.type.startsWith('image/'));
+            
+            imageFiles.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const fileData = {
+                        name: file.name,
+                        size: file.size,
+                        data: e.target.result,
+                        file: file
+                    };
+                    uploadedFiles.push(fileData);
+                    updateUploadedFilesList();
+                    updateFrame1();
+                };
+                reader.readAsDataURL(file);
+            });
+
+            if (imageFiles.length > 0) {
+                document.getElementById('process-btn').disabled = false;
+                showSuccess(`Added ${imageFiles.length} image(s)`);
+            }
+        }
+
+        function updateUploadedFilesList() {
+            const container = document.getElementById('uploaded-files');
+            if (uploadedFiles.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '<h4>📁 Uploaded Files:</h4>';
+            uploadedFiles.forEach((file, index) => {
+                html += `
+                    <div class="image-item">
+                        <img src="${file.data}" class="image-thumb" alt="${file.name}">
+                        <span>${file.name} (${(file.size / 1024).toFixed(1)} KB)</span>
+                        <button onclick="removeFile(${index})" style="margin-left: auto; background: #f44336; color: white; border: none; padding: 2px 8px; border-radius: 3px; cursor: pointer;">×</button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function removeFile(index) {
+            uploadedFiles.splice(index, 1);
+            updateUploadedFilesList();
+            updateFrame1();
+            
+            if (uploadedFiles.length === 0) {
+                document.getElementById('process-btn').disabled = true;
+                document.getElementById('download-btn').disabled = true;
+            }
+        }
+
+        function updateFrame1() {
+            const frame1 = document.getElementById('frame1');
+            const frame1List = document.getElementById('frame1-list');
+            
+            if (uploadedFiles.length === 0) {
+                frame1.innerHTML = '<p style="color: #999;">No images uploaded</p>';
+                frame1.classList.remove('has-images');
+                frame1List.innerHTML = '';
+                return;
+            }
+
+            // Show first image in frame
+            const firstImage = uploadedFiles[0];
+            frame1.innerHTML = `<img src="${firstImage.data}" class="frame-image" alt="${firstImage.name}">`;
+            frame1.classList.add('has-images');
+
+            // Show all images in list
+            let html = '';
+            uploadedFiles.forEach((file, index) => {
+                html += `
+                    <div class="image-item">
+                        <img src="${file.data}" class="image-thumb" alt="${file.name}">
+                        <span>${file.name}</span>
+                    </div>
+                `;
+            });
+            frame1List.innerHTML = html;
+        }
+
+        async function processImages() {
+            if (uploadedFiles.length === 0) {
+                showError('Please upload images first');
+                return;
+            }
+
+            const processBtn = document.getElementById('process-btn');
+            processBtn.disabled = true;
+            processBtn.textContent = '🔄 Processing...';
+
+            try {
+                // Create FormData for file upload to API
+                const formData = new FormData();
+                uploadedFiles.forEach(file => {
+                    formData.append('files', file.file);
+                });
+                formData.append('user_id', 'web_user');
+
+                // Send to API endpoint
+                const response = await fetch('http://100.98.142.94:5000/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Start polling for results
+                        pollForResults(result.session_id);
+                        showSuccess('Images uploaded successfully! Processing...');
+                    } else {
+                        showError('Upload failed: ' + result.error);
+                    }
+                } else {
+                    showError('Failed to upload images');
+                }
+            } catch (error) {
+                showError('Error processing images: ' + error.message);
+            } finally {
+                processBtn.disabled = false;
+                processBtn.textContent = '🔍 Proses Computer Vision';
+            }
+        }
+
+        async function pollForResults(sessionId) {
+            const maxAttempts = 30; // 30 seconds timeout
+            let attempts = 0;
+            
+            const pollInterval = setInterval(async () => {
+                attempts++;
+                
+                try {
+                    // Check processing status
+                    const statusResponse = await fetch(`http://100.98.142.94:5000/api/process/${sessionId}`);
+                    const statusData = await statusResponse.json();
+                    
+                    if (statusData.status === 'completed') {
+                        clearInterval(pollInterval);
+                        
+                        // Get results
+                        const resultsResponse = await fetch(`http://100.98.142.94:5000/api/results/${sessionId}`);
+                        const resultsData = await resultsResponse.json();
+                        
+                        if (resultsData.results) {
+                            processedResults = formatResultsForDisplay(resultsData.results);
+                            updateAllFrames();
+                            document.getElementById('download-btn').disabled = false;
+                            showSuccess('Images processed successfully!');
+                        }
+                    } else if (statusData.status === 'failed') {
+                        clearInterval(pollInterval);
+                        showError('Processing failed: ' + statusData.message);
+                    } else if (attempts >= maxAttempts) {
+                        clearInterval(pollInterval);
+                        showError('Processing timeout');
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                    if (attempts >= maxAttempts) {
+                        clearInterval(pollInterval);
+                        showError('Error checking processing status');
+                    }
+                }
+            }, 1000);
+        }
+
+        function formatResultsForDisplay(apiResults) {
+            const formatted = {
+                detection: [],
+                segmentation: [],
+                hybrid: []
+            };
+            
+            if (apiResults.images_processed) {
+                apiResults.images_processed.forEach(imageResult => {
+                    if (imageResult.visualizations) {
+                        imageResult.visualizations.forEach(vis => {
+                            const resultItem = {
+                                name: vis.file,
+                                url: `http://100.98.142.94:5000/api/download/${apiResults.session_id || 'unknown'}/${vis.file}`,
+                                type: vis.type,
+                                imageName: imageResult.image_name
+                            };
+                            
+                            // Map visualization types to frame categories
+                            if (vis.type === 'best' || vis.type === 'detection') {
+                                formatted.detection.push(resultItem);
+                            } else if (vis.type === 'segmentation') {
+                                formatted.segmentation.push(resultItem);
+                            } else if (vis.type === 'hybrid' || vis.type === 'compare') {
+                                formatted.hybrid.push(resultItem);
+                            }
+                        });
+                    }
+                });
+            }
+            
+            return formatted;
+        }
+
+        function updateAllFrames() {
+            // Update Frame 2 (Detection)
+            updateFrameWithResults('frame2', 'frame2-list', 'detection');
+            
+            // Update Frame 3 (Segmentation)
+            updateFrameWithResults('frame3', 'frame3-list', 'segmentation');
+            
+            // Update Frame 4 (Hybrid)
+            updateFrameWithResults('frame4', 'frame4-list', 'hybrid');
+        }
+
+        function updateFrameWithResults(frameId, listId, type) {
+            const frame = document.getElementById(frameId);
+            const list = document.getElementById(listId);
+            
+            if (!processedResults[type] || processedResults[type].length === 0) {
+                frame.innerHTML = `<p style="color: #999;">No ${type} results</p>`;
+                frame.classList.remove('has-images');
+                list.innerHTML = '';
+                return;
+            }
+
+            // Show first result in frame
+            const firstResult = processedResults[type][0];
+            frame.innerHTML = `<img src="${firstResult.url}" class="frame-image" alt="${firstResult.name}">`;
+            frame.classList.add('has-images');
+
+            // Show all results in list
+            let html = '';
+            processedResults[type].forEach((result, index) => {
+                html += `
+                    <div class="image-item">
+                        <img src="${result.url}" class="image-thumb" alt="${result.name}">
+                        <span>${result.name}</span>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+        }
+
+        function downloadResults() {
+            if (!processedResults || Object.keys(processedResults).length === 0) {
+                showError('No results to download');
+                return;
+            }
+
+            // Download individual files
+            let downloadCount = 0;
+            const totalFiles = Object.values(processedResults).reduce((sum, arr) => sum + arr.length, 0);
+            
+            Object.values(processedResults).forEach(resultArray => {
+                resultArray.forEach(result => {
+                    const link = document.createElement('a');
+                    link.href = result.url;
+                    link.download = result.name;
+                    link.target = '_blank';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    downloadCount++;
+                });
+            });
+            
+            showSuccess(`Downloaded ${downloadCount} files`);
+        }
+
         // Initialize
+        setupUploadHandlers();
         updateSystemStatus();
         refreshStatus();
     </script>

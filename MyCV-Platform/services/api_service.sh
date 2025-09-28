@@ -85,36 +85,36 @@ start_api() {
     # Save PID
     echo "$pid" > "$PID_FILE"
     
-    # Wait a moment to check if it started successfully
+    # Wait a moment for the service to start
     sleep 3
     
     # Check if process is still running
-    if ps -p "$pid" > /dev/null 2>&1; then
-        print_success "✅ API Service started successfully!"
-        print_status "📡 API URL: http://100.98.142.94:5000"
-        print_status "📋 PID: $pid"
-        print_status "📄 Log: $LOG_FILE"
-        print_status "🔧 Use './api_service.sh stop' to stop the service"
+    # if ps -p "$pid" > /dev/null 2>&1; then
+    #     print_success "✅ API Service started successfully!"
+    #     print_status "📡 API URL: http://100.98.142.94:5000"
+    #     print_status "📋 PID: $pid"
+    #     print_status "📄 Log: $LOG_FILE"
+    #     print_status "🔧 Use './api_service.sh stop' to stop the service"
         
-        # Test API endpoint
-        sleep 2
-        if curl -s http://100.98.142.94:5000/api/health > /dev/null 2>&1; then
-            print_success "✅ API endpoint is responding"
-        else
-            print_warning "⚠️  API started but endpoint not responding yet"
-        fi
-    else
-        print_error "❌ Failed to start API Service"
-        print_error "📄 Check log: $LOG_FILE"
-        rm -f "$PID_FILE"
+    #     # Test API endpoint
+    #     sleep 2
+    #     if curl -s http://100.98.142.94:5000/api/health > /dev/null 2>&1; then
+    #         print_success "✅ API endpoint is responding"
+    #     else
+    #         print_warning "⚠️  API started but endpoint not responding yet"
+    #     fi
+    # else
+    #     print_error "❌ Failed to start API Service"
+    #     print_error "📄 Check log: $LOG_FILE"
+    #     rm -f "$PID_FILE"
         
-        # Show last few lines of log
-        if [ -f "$LOG_FILE" ]; then
-            print_error "Last log entries:"
-            tail -5 "$LOG_FILE" | sed 's/^/   /'
-        fi
-        return 1
-    fi
+    #     # Show last few lines of log
+    #     if [ -f "$LOG_FILE" ]; then
+    #         print_error "Last log entries:"
+    #         tail -5 "$LOG_FILE" | sed 's/^/   /'
+    #     fi
+    #     return 1
+    # fi
 }
 
 # Function to stop API

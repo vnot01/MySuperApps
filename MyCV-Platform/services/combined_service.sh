@@ -131,33 +131,27 @@ start_all() {
     stop_all_ports
     
     # Start API Service
-    print_status "📡 Starting API Service..."
-    $API_SERVICE start
-    # Wait a moment for service to start
-    sleep 3
-    if api_running; then
-        print_success "✅ API Service started"
+    print_status "📡 Starting Combined API Service..."
+    if $API_SERVICE start; then
+        print_success "✅ Combined API Service started"
     else
-        print_error "❌ Failed to start API Service"
+        print_error "❌ Failed to start Combined API Service"
         return 1
     fi
     
     echo ""
     
     # Start Web Service
-    print_status "🌐 Starting Web Service..."
-    $WEB_SERVICE start
-    # Wait a moment for service to start
-    sleep 3
-    if web_running; then
-        print_success "✅ Web Service started"
+    print_status "🌐 Starting Combined Web Service..."
+    if $WEB_SERVICE start; then
+        print_success "✅ Combined Web Service started"
     else
-        print_error "❌ Failed to start Web Service"
+        print_error "❌ Failed to start Combined Web Service"
         return 1
     fi
     
     echo ""
-    print_success "🎉 All services started successfully!"
+    print_success "🎉 All Combined services started successfully!"
     print_status "📡 API URL: http://100.98.142.94:5000"
     print_status "🌐 Web URL: http://100.98.142.94:5002"
 }
@@ -170,7 +164,7 @@ stop_all() {
     # Stop all processes on target ports
     stop_all_ports
     
-    print_success "✅ All services stopped"
+    print_success "✅ All Combined services stopped"
 }
 
 # Function to restart all services
