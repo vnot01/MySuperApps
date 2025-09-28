@@ -594,6 +594,7 @@ def main():
                                          best_dir, segmentasi_dir, hybrid_dir, output_dir, image_path, "best_pt")
         else:
             # log_message("⚠️  No best.pt detections, skipping SAM2", 'warning')
+            pass
         
         # Generate visualizations for this image
         generate_visualizations(image_path, base_name, output_dir, yolo_dir, best_dir, segmentasi_dir, hybrid_dir)
