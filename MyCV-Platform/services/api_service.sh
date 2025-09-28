@@ -120,7 +120,7 @@ start_api() {
 # Function to stop API
 stop_api() {
     if ! is_running; then
-        print_warning "API is not running"
+        print_warning "⚠️ API is not running"
         return 0
     fi
     

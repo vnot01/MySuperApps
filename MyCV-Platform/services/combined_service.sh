@@ -87,14 +87,55 @@ web_running() {
     return 1
 }
 
+# Function to stop all processes on specific ports
+stop_all_ports() {
+    print_status "🛑 Stopping all processes on ports 5000, 5001, 5002..."
+    
+    # Stop processes on port 5000
+    local port5000_pid=$(ss -tlnp 2>/dev/null | grep ":5000" | grep -o 'pid=[0-9]*' | cut -d'=' -f2)
+    if [ -n "$port5000_pid" ]; then
+        print_status "Stopping process on port 5000 (PID: $port5000_pid)..."
+        kill "$port5000_pid" 2>/dev/null || true
+        sleep 1
+    fi
+    
+    # Stop processes on port 5001
+    local port5001_pid=$(ss -tlnp 2>/dev/null | grep ":5001" | grep -o 'pid=[0-9]*' | cut -d'=' -f2)
+    if [ -n "$port5001_pid" ]; then
+        print_status "Stopping process on port 5001 (PID: $port5001_pid)..."
+        kill "$port5001_pid" 2>/dev/null || true
+        sleep 1
+    fi
+    
+    # Stop processes on port 5002
+    local port5002_pid=$(ss -tlnp 2>/dev/null | grep ":5002" | grep -o 'pid=[0-9]*' | cut -d'=' -f2)
+    if [ -n "$port5002_pid" ]; then
+        print_status "Stopping process on port 5002 (PID: $port5002_pid)..."
+        kill "$port5002_pid" 2>/dev/null || true
+        sleep 1
+    fi
+    
+    # Clean up PID files
+    rm -f /tmp/mycv_api.pid /tmp/mycv_web.pid
+    
+    print_success "✅ All processes on ports 5000, 5001, 5002 stopped"
+    echo ""
+}
+
 # Function to start all services
 start_all() {
     print_status "🚀 Starting MyCV-Platform Combined Services..."
     echo ""
     
+    # Stop all processes on target ports first
+    stop_all_ports
+    
     # Start API Service
     print_status "📡 Starting API Service..."
-    if $API_SERVICE start; then
+    $API_SERVICE start
+    # Wait a moment for service to start
+    sleep 3
+    if api_running; then
         print_success "✅ API Service started"
     else
         print_error "❌ Failed to start API Service"
@@ -105,7 +146,10 @@ start_all() {
     
     # Start Web Service
     print_status "🌐 Starting Web Service..."
-    if $WEB_SERVICE start; then
+    $WEB_SERVICE start
+    # Wait a moment for service to start
+    sleep 3
+    if web_running; then
         print_success "✅ Web Service started"
     else
         print_error "❌ Failed to start Web Service"
@@ -123,17 +167,9 @@ stop_all() {
     print_status "🛑 Stopping MyCV-Platform Combined Services..."
     echo ""
     
-    # Stop Web Service
-    print_status "🌐 Stopping Web Service..."
-    $WEB_SERVICE stop
+    # Stop all processes on target ports
+    stop_all_ports
     
-    echo ""
-    
-    # Stop API Service
-    print_status "📡 Stopping API Service..."
-    $API_SERVICE stop
-    
-    echo ""
     print_success "✅ All services stopped"
 }
 
