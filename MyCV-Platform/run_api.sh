@@ -11,3 +11,5 @@ cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection
 
 # Run the API
 ./run_api.sh
+
+

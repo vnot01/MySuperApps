@@ -92,3 +92,67 @@ Karena ada Error:
   "user_id": "test_userrrr"
 }
 ```
+
+```json
+{
+  "detection_summary": [
+    {
+      "detection_count": 2,
+      "detections": [
+        {
+          "id": 0,
+          "images_url": "https://100.98.142.94:5000/20250928_152449/web_user/best/21.mineral-best_pt-best.png",
+          "name": "nama_images-model-detection.json",
+          "datas": [
+            {
+              "bbox": [
+                289.1062316894531,
+                224.7684326171875,
+                368.2486267089844,
+                452.5482177734375
+              ],
+              "class_id": 5,
+              "class_name": "soda",
+              "confidence": 0.28023016452789307
+            },
+            {
+              "bbox": [
+                288.54638671875,
+                223.8448944091797,
+                369.2777099609375,
+                452.61724853515625
+              ],
+              "class_id": 0,
+              "class_name": "dishwasher",
+              "confidence": 0.27135953307151794
+            }
+          ],
+          "object_count": 2
+        },
+        {
+          "id": 1,
+          "name": "nama_images-model-detection.json",
+          "datas": [
+            {
+              "bbox": [
+                289.1062316894531,
+                224.7684326171875,
+                368.2486267089844,
+                452.5482177734375
+              ],
+              "class_id": 5,
+              "class_name": "mineral",
+              "confidence": 0.28023016452789307
+            }
+          ],
+          "object_count": 1
+        }
+      ]
+    }
+  ],
+  "session_id": "session_9eebbca5",
+  "status": "completed",
+  "timestamp": "20250928_135630",
+  "user_id": "test_userrrr"
+}
+```

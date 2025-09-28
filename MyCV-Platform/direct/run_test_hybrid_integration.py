@@ -680,7 +680,6 @@ def create_session_summary(test_images, project_name, project_version):
                     "id": len(detection_summary),
                     "name": filename,
                     "datas": detection_data,
-                    "object_count": len(detection_data),
                     "detection_count": len(detection_data)
                 }
                 
@@ -700,6 +699,7 @@ def create_session_summary(test_images, project_name, project_version):
         # Create summary data according to user's format
         summary_data = {
             "detection_summary": detection_summary,
+            "object_count": len(detection_summary),  # Total number of objects processed in this session
             "session_id": f"session_{timestamp}_{user_id}",
             "status": "completed",
             "timestamp": timestamp,

@@ -144,3 +144,5 @@ echo ""
 
 cd "$API_DIR"
 python3 app.py
+
+

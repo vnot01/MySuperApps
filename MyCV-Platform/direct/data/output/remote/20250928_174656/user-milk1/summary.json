@@ -1,0 +1,28 @@
+{
+  "detection_summary": [
+    {
+      "id": 0,
+      "name": "77.milk-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            198.26275634765625,
+            101.52664947509766,
+            638.0875854492188,
+            364.34716796875
+          ],
+          "confidence": 0.9603502154350281,
+          "class_id": 1,
+          "class_name": "milk"
+        }
+      ],
+      "detection_count": 1,
+      "images_url": "https://100.98.142.94:5000/api/download/20250928_174656/user-milk1/77.milk-best_pt-best.png"
+    }
+  ],
+  "object_count": 1,
+  "session_id": "session_20250928_174656_user-milk1",
+  "status": "completed",
+  "timestamp": "20250928_174656",
+  "user_id": "user-milk1"
+}

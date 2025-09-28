@@ -5,3 +5,5 @@
 
 cd "$(dirname "$0")"
 ./services/combined_service.sh "$@"
+
+
