@@ -17,7 +17,13 @@
         }
       ],
       "detection_count": 1,
-      "images_url": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/1-botol_mineral-best_pt-best.png"
+      "images_url": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/best/1-botol_mineral-best_pt-best.png",
+      "images": {
+        "best": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/best/1-botol_mineral-best_pt-best.png",
+        "yolo": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/yolo/1-botol_mineral-yolo11m-detection.png",
+        "sam": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/segmentasi/1-botol_mineral-best_pt-segmentation.png",
+        "hybrid": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/hybrid/1-botol_mineral-best_pt-hybrid.png"
+      }
     },
     {
       "id": 1,
@@ -36,7 +42,13 @@
         }
       ],
       "detection_count": 1,
-      "images_url": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/21_mineral-best_pt-best.png"
+      "images_url": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/best/21_mineral-best_pt-best.png",
+      "images": {
+        "best": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/best/21_mineral-best_pt-best.png",
+        "yolo": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/yolo/21_mineral-yolo11m-detection.png",
+        "sam": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/segmentasi/21_mineral-best_pt-segmentation.png",
+        "hybrid": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/hybrid/21_mineral-best_pt-hybrid.png"
+      }
     },
     {
       "id": 2,
@@ -55,7 +67,13 @@
         }
       ],
       "detection_count": 1,
-      "images_url": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/244.mineral_crush-best_pt-best.png"
+      "images_url": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/best/244.mineral_crush-best_pt-best.png",
+      "images": {
+        "best": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/best/244.mineral_crush-best_pt-best.png",
+        "yolo": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/yolo/244.mineral_crush-yolo11m-detection.png",
+        "sam": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/segmentasi/244.mineral_crush-best_pt-segmentation.png",
+        "hybrid": "https://100.98.142.94:5000/api/download/20250928_232719/test_user_001/hybrid/244.mineral_crush-best_pt-hybrid.png"
+      }
     }
   ],
   "object_count": 3,

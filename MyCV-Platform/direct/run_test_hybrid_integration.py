@@ -683,12 +683,38 @@ def create_session_summary(test_images, project_name, project_version):
                     "detection_count": len(detection_data)
                 }
                 
-                # Add images_url if the corresponding image exists
+                # Create images object with URLs for all model results
+                images = {}
+                
+                # Best image (best.pt result)
                 best_dir = os.path.join(output_dir, "best")
                 best_image_path = os.path.join(best_dir, f"{image_name}-{model_name}-best.png")
                 if os.path.exists(best_image_path):
-                    # Create relative URL path for API download
-                    detection_entry["images_url"] = f"https://100.98.142.94:5000/api/download/{timestamp}/{user_id}/{os.path.basename(best_image_path)}"
+                    images["best"] = f"https://100.98.142.94:5000/api/download/{timestamp}/{user_id}/best/{os.path.basename(best_image_path)}"
+                    # Keep backward compatibility with images_url
+                    detection_entry["images_url"] = images["best"]
+                
+                # YOLO image (yolo11m result)
+                yolo_dir = os.path.join(output_dir, "yolo")
+                yolo_image_path = os.path.join(yolo_dir, f"{image_name}-yolo11m-detection.png")
+                if os.path.exists(yolo_image_path):
+                    images["yolo"] = f"https://100.98.142.94:5000/api/download/{timestamp}/{user_id}/yolo/{os.path.basename(yolo_image_path)}"
+                
+                # SAM image (segmentation result)
+                segmentasi_dir = os.path.join(output_dir, "segmentasi")
+                sam_image_path = os.path.join(segmentasi_dir, f"{image_name}-{model_name}-segmentation.png")
+                if os.path.exists(sam_image_path):
+                    images["sam"] = f"https://100.98.142.94:5000/api/download/{timestamp}/{user_id}/segmentasi/{os.path.basename(sam_image_path)}"
+                
+                # Hybrid image (combined result)
+                hybrid_dir = os.path.join(output_dir, "hybrid")
+                hybrid_image_path = os.path.join(hybrid_dir, f"{image_name}-{model_name}-hybrid.png")
+                if os.path.exists(hybrid_image_path):
+                    images["hybrid"] = f"https://100.98.142.94:5000/api/download/{timestamp}/{user_id}/hybrid/{os.path.basename(hybrid_image_path)}"
+                
+                # Add images object to detection entry
+                if images:
+                    detection_entry["images"] = images
                 
                 detection_summary.append(detection_entry)
                 
