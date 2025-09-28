@@ -94,11 +94,11 @@ if os.path.exists('sam2_b.pt'):
     print_success "✅ SAM2_b downloaded and cleaned up"
 fi
 
-if [ ! -f "data/models/trained/best.pt" ]; then
+if [ ! -f "data/models/trained/active/best.pt" ]; then
     print_warning "best.pt model not found, downloading from GitHub..."
     print_status "Downloading best.pt from https://github.com/vnot01/MySuperApps/releases/download/v1.0.0/best.pt"
     # cd MyCV-Platform/direct
-    mkdir -p data/models/trained
+    mkdir -p data/models/trained/active
     python3 -c "
 import os
 import requests
@@ -122,15 +122,21 @@ def download_file(url, filename):
     
     print(f'✅ {filename} downloaded successfully')
 
-# Download best.pt
-os.makedirs('data/models/trained', exist_ok=True)
-download_file('https://github.com/vnot01/MySuperApps/releases/download/v1.0.0/best.pt', 'data/models/trained/best.pt')
+# Download best.pt to active directory
+os.makedirs('data/models/trained/active', exist_ok=True)
+download_file('https://github.com/vnot01/MySuperApps/releases/download/v1.0.0/best.pt', 'data/models/trained/active/best.pt')
 "
     # cd ../..
-    print_success "best.pt downloaded from GitHub"
+    print_success "best.pt downloaded from GitHub to active directory"
 fi
 
 print_success "All required models are available"
+echo ""
+echo "📁 Model Directory Structure:"
+echo "  ├── data/models/yolo/active/     (YOLO11m model)"
+echo "  ├── data/models/sam/active/      (SAM2_b model)"
+echo "  └── data/models/trained/active/  (best.pt model)"
+echo ""
 
 # Create test timestamp and user ID
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")

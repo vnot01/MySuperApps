@@ -70,7 +70,7 @@ def load_models(device):
     # Load best.pt
     try:
         log_message("Loading best.pt model...", 'info')
-        best_pt_path = "data/models/trained/best.pt"
+        best_pt_path = "data/models/trained/active/best.pt"
         if os.path.exists(best_pt_path):
             models['best_pt'] = YOLO(best_pt_path)
             log_message("✅ best.pt loaded successfully", 'success')
