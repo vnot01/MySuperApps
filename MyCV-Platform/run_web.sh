@@ -35,7 +35,7 @@ pip install -r requirements.txt
 # Jalankan aplikasi web
 echo "🚀 Menjalankan aplikasi web..."
 echo ""
-echo "🌐 Web application akan tersedia di: http://localhost:5000"
+echo "🌐 Web application akan tersedia di: http://100.98.142.94:5002"
 echo "📱 Buka browser dan navigasi ke URL di atas"
 echo "⚠️  Tekan Ctrl+C untuk menghentikan aplikasi"
 echo ""

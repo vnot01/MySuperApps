@@ -290,7 +290,10 @@
                 <h2>🎮 Controls</h2>
                 
                 <div class="control-group">
-                    <button id="start-btn" class="btn btn-primary">
+                    <button id="init-camera-btn" class="btn btn-info">
+                        📷 Initialize Camera
+                    </button>
+                    <button id="start-btn" class="btn btn-primary" disabled>
                         ▶️ Start Detection
                     </button>
                     <button id="stop-btn" class="btn btn-danger" disabled>
@@ -343,16 +346,19 @@
         let statusInterval;
 
         // DOM elements
+        const initCameraBtn = document.getElementById('init-camera-btn');
         const startBtn = document.getElementById('start-btn');
         const stopBtn = document.getElementById('stop-btn');
         const refreshBtn = document.getElementById('refresh-btn');
         const detectionStatus = document.getElementById('detection-status');
+        const cameraStatus = document.getElementById('camera-status');
         const resultsContainer = document.getElementById('results-container');
         const errorMessage = document.getElementById('error-message');
         const successMessage = document.getElementById('success-message');
         const loading = document.getElementById('loading');
 
         // Event listeners
+        initCameraBtn.addEventListener('click', initializeCamera);
         startBtn.addEventListener('click', startDetection);
         stopBtn.addEventListener('click', stopDetection);
         refreshBtn.addEventListener('click', refreshStatus);
@@ -366,6 +372,37 @@
         document.getElementById('video-feed').addEventListener('load', function() {
             loading.style.display = 'none';
         });
+
+        async function initializeCamera() {
+            try {
+                initCameraBtn.disabled = true;
+                initCameraBtn.textContent = '🔄 Initializing...';
+                
+                const response = await fetch('/initialize_camera', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showSuccess('Camera initialized successfully!');
+                    updateCameraStatus(true);
+                    startBtn.disabled = false;
+                } else {
+                    showError('Failed to initialize camera: ' + data.message);
+                    updateCameraStatus(false);
+                }
+            } catch (error) {
+                showError('Error initializing camera: ' + error.message);
+                updateCameraStatus(false);
+            } finally {
+                initCameraBtn.disabled = false;
+                initCameraBtn.textContent = '📷 Initialize Camera';
+            }
+        }
 
         async function startDetection() {
             try {
@@ -431,9 +468,24 @@
                 
                 document.getElementById('models-status').textContent = data.models_loaded + ' models loaded';
                 document.getElementById('device-status').textContent = data.device.toUpperCase();
-                document.getElementById('camera-status').textContent = data.camera_active ? 'Active' : 'Inactive';
+                updateCameraStatus(data.camera_available);
             } catch (error) {
                 console.error('Error updating system status:', error);
+            }
+        }
+
+        function updateCameraStatus(isAvailable) {
+            if (isAvailable) {
+                cameraStatus.textContent = 'Active';
+                cameraStatus.style.color = '#4CAF50';
+                initCameraBtn.textContent = '✅ Camera Ready';
+                initCameraBtn.disabled = true;
+            } else {
+                cameraStatus.textContent = 'Not Available';
+                cameraStatus.style.color = '#f44336';
+                initCameraBtn.textContent = '📷 Initialize Camera';
+                initCameraBtn.disabled = false;
+                startBtn.disabled = true;
             }
         }
 

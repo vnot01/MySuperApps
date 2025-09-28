@@ -61,7 +61,7 @@ cd ..
 ### 3. Akses Web Application
 ```bash
 # Buka browser dan navigasi ke:
-http://localhost:5000
+http://100.98.142.94:5002
 ```
 
 ### 4. Menghentikan
@@ -91,15 +91,15 @@ graph TD
     K -->|Available| M[Start web app]
     K -->|Not available| N[❌ Error: Camera tidak tersedia]
     
-    M --> O[🌐 Web app running di localhost:5000]
+    M --> O[🌐 Web app running di 100.98.142.94:5002]
     O --> P[📱 Buka browser untuk akses]
 ```
 
 ## 🔧 Konfigurasi
 
 ### Web Application
-- **Port:** 5000
-- **URL:** http://localhost:5000
+- **Port:** 5002
+- **URL:** http://100.98.142.94:5002
 - **Framework:** Flask
 - **Template Engine:** Jinja2
 
@@ -185,10 +185,10 @@ python3 -c "import cv2; print('Camera available:', cv2.VideoCapture(0).isOpened(
 # 3. Cek driver camera
 ```
 
-### Error: Port 5000 sudah digunakan
+### Error: Port 5002 sudah digunakan
 ```bash
-# Cek proses yang menggunakan port 5000
-sudo lsof -i :5000
+# Cek proses yang menggunakan port 5002
+sudo lsof -i :5002
 
 # Kill proses jika perlu
 sudo kill -9 <PID>
@@ -280,7 +280,7 @@ sudo kill -9 <PID>
 ./run_web.sh
 
 # Akses di browser
-# http://localhost:5000
+# http://100.98.142.94:5002
 
 # Stop aplikasi
 # Ctrl+C di terminal

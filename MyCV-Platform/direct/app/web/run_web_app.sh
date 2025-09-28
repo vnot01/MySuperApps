@@ -84,29 +84,28 @@ fi
 
 print_success "✅ All models found"
 
-# Check camera availability
+# Check camera availability (optional)
 print_status "Checking camera availability..."
 python3 -c "
 import cv2
-camera = cv2.VideoCapture(0)
-if camera.isOpened():
-    print('✅ Camera is available')
-    camera.release()
-else:
-    print('❌ Camera is not available')
-    exit(1)
+try:
+    camera = cv2.VideoCapture(0)
+    if camera.isOpened():
+        print('✅ Camera is available')
+        camera.release()
+    else:
+        print('⚠️ Camera is not available - will start without camera')
+    exit(0)
+except Exception as e:
+    print('⚠️ Camera check failed - will start without camera')
+    exit(0)
 "
 
-if [ $? -eq 0 ]; then
-    print_success "✅ Camera is ready"
-else
-    print_error "❌ Camera is not available. Please check camera connection."
-    exit 1
-fi
+print_success "✅ Camera check completed (optional)"
 
 # Start web application
 print_status "Starting web application..."
-print_success "🌐 Web application will be available at: http://localhost:5000"
+print_success "🌐 Web application will be available at: http://100.98.142.94:5002"
 print_success "📱 Open your browser and navigate to the URL above"
 print_warning "⚠️  Press Ctrl+C to stop the application"
 echo ""

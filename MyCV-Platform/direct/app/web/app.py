@@ -29,6 +29,8 @@ is_detecting = False
 detection_results = {}
 models = {}
 device = 'cpu'
+camera_available = False
+camera_initialized = False
 
 def log_message(message, level='info'):
     """Print colored log message"""
@@ -57,7 +59,7 @@ def initialize_models():
     
     try:
         # Load YOLO11m
-        yolo11m_path = "data/models/yolo/active/yolo11m.pt"
+        yolo11m_path = "../../data/models/yolo/active/yolo11m.pt"
         if os.path.exists(yolo11m_path):
             models['yolo11m'] = YOLO(yolo11m_path)
             log_message("✅ YOLO11m loaded successfully", 'success')
@@ -66,7 +68,7 @@ def initialize_models():
             return False
         
         # Load best.pt
-        best_pt_path = "data/models/trained/best.pt"
+        best_pt_path = "../../data/models/trained/best.pt"
         if os.path.exists(best_pt_path):
             models['best_pt'] = YOLO(best_pt_path)
             log_message("✅ best.pt loaded successfully", 'success')
@@ -75,7 +77,7 @@ def initialize_models():
             return False
         
         # Load SAM2_b
-        sam2_path = "data/models/sam/active/sam2_b.pt"
+        sam2_path = "../../data/models/sam/active/sam2_b.pt"
         if os.path.exists(sam2_path):
             models['sam2_b'] = SAM(sam2_path)
             log_message("✅ SAM2_b loaded successfully", 'success')
@@ -212,41 +214,55 @@ def overlay_masks(frame, masks, alpha=0.5):
 
 def generate_frames():
     """Generate video frames with detection"""
-    global camera, is_detecting, detection_results
+    global camera, is_detecting, detection_results, camera_available, camera_initialized
     
     while True:
-        success, frame = camera.read()
-        if not success:
-            break
-        
-        if is_detecting:
-            # Run YOLO11m detection
-            yolo11m_detections = detect_objects(frame, 'yolo11m')
-            
-            # Run best.pt detection
-            best_pt_detections = detect_objects(frame, 'best_pt')
-            
-            # Run SAM2 segmentation for YOLO11m
-            yolo11m_masks = run_sam_segmentation(frame, yolo11m_detections)
-            
-            # Run SAM2 segmentation for best.pt
-            best_pt_masks = run_sam_segmentation(frame, best_pt_detections)
-            
-            # Draw detections
-            frame = draw_detections(frame, yolo11m_detections, (0, 255, 0))  # Green for YOLO11m
-            frame = draw_detections(frame, best_pt_detections, (255, 0, 0))  # Red for best.pt
-            
-            # Overlay masks
-            frame = overlay_masks(frame, yolo11m_masks, 0.3)
-            frame = overlay_masks(frame, best_pt_masks, 0.3)
-            
-            # Update detection results
-            detection_results = {
-                'yolo11m': yolo11m_detections,
-                'best_pt': best_pt_detections,
-                'yolo11m_masks': len(yolo11m_masks),
-                'best_pt_masks': len(best_pt_masks)
-            }
+        if not camera_available or camera is None:
+            # Generate placeholder frame when camera is not available
+            frame = np.zeros((480, 640, 3), dtype=np.uint8)
+            cv2.putText(frame, "Camera Not Available", (150, 200), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            cv2.putText(frame, "Click 'Initialize Camera' to start", (120, 250), 
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        else:
+            success, frame = camera.read()
+            if not success:
+                # Camera disconnected, reset availability
+                camera_available = False
+                camera_initialized = False
+                frame = np.zeros((480, 640, 3), dtype=np.uint8)
+                cv2.putText(frame, "Camera Disconnected", (150, 200), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                cv2.putText(frame, "Click 'Initialize Camera' to reconnect", (100, 250), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+            elif is_detecting:
+                # Run YOLO11m detection
+                yolo11m_detections = detect_objects(frame, 'yolo11m')
+                
+                # Run best.pt detection
+                best_pt_detections = detect_objects(frame, 'best_pt')
+                
+                # Run SAM2 segmentation for YOLO11m
+                yolo11m_masks = run_sam_segmentation(frame, yolo11m_detections)
+                
+                # Run SAM2 segmentation for best.pt
+                best_pt_masks = run_sam_segmentation(frame, best_pt_detections)
+                
+                # Draw detections
+                frame = draw_detections(frame, yolo11m_detections, (0, 255, 0))  # Green for YOLO11m
+                frame = draw_detections(frame, best_pt_detections, (255, 0, 0))  # Red for best.pt
+                
+                # Overlay masks
+                frame = overlay_masks(frame, yolo11m_masks, 0.3)
+                frame = overlay_masks(frame, best_pt_masks, 0.3)
+                
+                # Update detection results
+                detection_results = {
+                    'yolo11m': yolo11m_detections,
+                    'best_pt': best_pt_detections,
+                    'yolo11m_masks': len(yolo11m_masks),
+                    'best_pt_masks': len(best_pt_masks)
+                }
         
         # Encode frame as JPEG
         ret, buffer = cv2.imencode('.jpg', frame)
@@ -288,6 +304,52 @@ def detection_status():
         'results': detection_results
     })
 
+@app.route('/initialize_camera', methods=['POST'])
+def initialize_camera():
+    """Initialize camera manually"""
+    global camera, camera_available, camera_initialized
+    
+    try:
+        # Try to initialize camera
+        camera = cv2.VideoCapture(0)
+        
+        if camera.isOpened():
+            camera_available = True
+            camera_initialized = True
+            log_message("✅ Camera initialized successfully", 'success')
+            return jsonify({
+                'status': 'success',
+                'message': 'Camera initialized successfully',
+                'camera_available': True
+            })
+        else:
+            camera_available = False
+            camera_initialized = False
+            log_message("❌ Failed to initialize camera", 'error')
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to initialize camera',
+                'camera_available': False
+            })
+    except Exception as e:
+        camera_available = False
+        camera_initialized = False
+        log_message(f"❌ Camera initialization error: {e}", 'error')
+        return jsonify({
+            'status': 'error',
+            'message': f'Camera initialization error: {str(e)}',
+            'camera_available': False
+        })
+
+@app.route('/camera_status')
+def camera_status():
+    """Get camera status"""
+    return jsonify({
+        'camera_available': camera_available,
+        'camera_initialized': camera_initialized,
+        'is_detecting': is_detecting
+    })
+
 @app.route('/health')
 def health():
     """Health check"""
@@ -295,12 +357,13 @@ def health():
         'status': 'healthy',
         'models_loaded': len(models),
         'device': device,
-        'camera_active': camera is not None
+        'camera_available': camera_available,
+        'camera_initialized': camera_initialized
     })
 
 def main():
     """Main function"""
-    global camera
+    global camera, camera_available, camera_initialized
     
     log_message("🚀 MyCV-Platform Web Application", 'info')
     log_message("=" * 50, 'info')
@@ -310,19 +373,30 @@ def main():
         log_message("❌ Failed to initialize models", 'error')
         return
     
-    # Initialize camera
-    log_message("📷 Initializing camera...", 'info')
-    camera = cv2.VideoCapture(0)
-    
-    if not camera.isOpened():
-        log_message("❌ Failed to open camera", 'error')
-        return
-    
-    log_message("✅ Camera initialized successfully", 'success')
+    # Try to initialize camera (optional)
+    log_message("📷 Checking camera availability...", 'info')
+    try:
+        camera = cv2.VideoCapture(0)
+        if camera.isOpened():
+            camera_available = True
+            camera_initialized = True
+            log_message("✅ Camera initialized successfully", 'success')
+        else:
+            camera_available = False
+            camera_initialized = False
+            log_message("⚠️ Camera not available - will start without camera", 'warning')
+            log_message("💡 Use 'Initialize Camera' button in web interface to connect camera", 'info')
+    except Exception as e:
+        camera_available = False
+        camera_initialized = False
+        log_message(f"⚠️ Camera initialization failed: {e}", 'warning')
+        log_message("💡 Use 'Initialize Camera' button in web interface to connect camera", 'info')
     
     # Start Flask app
     log_message("🌐 Starting web server...", 'info')
-    app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
+    log_message("🌐 Web application will be available at: http://100.98.142.94:5002", 'success')
+    log_message("📱 Open your browser and navigate to the URL above", 'info')
+    app.run(host='0.0.0.0', port=5002, debug=False, threaded=True)
 
 if __name__ == '__main__':
     main()
