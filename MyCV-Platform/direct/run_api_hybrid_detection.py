@@ -28,38 +28,40 @@ def log_message(message, level='info'):
 
 def check_environment():
     """Check virtual environment and GPU availability"""
-    log_message("🔍 Checking environment...", 'info')
+    # log_message("🔍 Checking environment...", 'info')
     
     # Check virtual environment
     if 'VIRTUAL_ENV' in os.environ:
-        log_message(f"✅ Running in virtual environment: {os.environ['VIRTUAL_ENV']}", 'success')
+        # log_message(f"✅ Running in virtual environment: {os.environ['VIRTUAL_ENV']}", 'success')
+        pass
     else:
-        log_message("⚠️  Not running in virtual environment", 'warning')
+        # log_message("⚠️  Not running in virtual environment", 'warning')
+        pass
     
     # Check GPU
     if torch.cuda.is_available():
-        log_message(f"🚀 GPU MODE: Using CUDA device - {torch.cuda.get_device_name(0)}", 'success')
-        log_message(f"   GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB", 'info')
+        # log_message(f"🚀 GPU MODE: Using CUDA device - {torch.cuda.get_device_name(0)}", 'success')
+        # log_message(f"   GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB", 'info')
         device = 'cuda'
     else:
-        log_message("💻 CPU MODE: Using CPU for inference", 'warning')
+        # log_message("💻 CPU MODE: Using CPU for inference", 'warning')
         device = 'cpu'
     
     return device
 
 def load_models(device):
     """Load YOLO and SAM models"""
-    log_message("📦 Loading models...", 'info')
+    # log_message("📦 Loading models...", 'info')
     
     models = {}
     
     # Load YOLO11m
     try:
-        log_message("Loading YOLO11m model...", 'info')
+        # log_message("Loading YOLO11m model...", 'info')
         yolo11m_path = "data/models/yolo/active/yolo11m.pt"
         if os.path.exists(yolo11m_path):
             models['yolo11m'] = YOLO(yolo11m_path)
-            log_message("✅ YOLO11m loaded successfully", 'success')
+            # log_message("✅ YOLO11m loaded successfully", 'success')
         else:
             log_message("❌ YOLO11m model not found", 'error')
             return None
@@ -69,11 +71,11 @@ def load_models(device):
     
     # Load best.pt
     try:
-        log_message("Loading best.pt model...", 'info')
+        # log_message("Loading best.pt model...", 'info')
         best_pt_path = "data/models/trained/active/best.pt"
         if os.path.exists(best_pt_path):
             models['best_pt'] = YOLO(best_pt_path)
-            log_message("✅ best.pt loaded successfully", 'success')
+            # log_message("✅ best.pt loaded successfully", 'success')
         else:
             log_message("❌ best.pt model not found", 'error')
             return None
@@ -83,11 +85,11 @@ def load_models(device):
     
     # Load SAM2_b
     try:
-        log_message("Loading SAM2_b model...", 'info')
+        # log_message("Loading SAM2_b model...", 'info')
         sam2_path = "data/models/sam/active/sam2_b.pt"
         if os.path.exists(sam2_path):
             models['sam2_b'] = SAM(sam2_path)
-            log_message("✅ SAM2_b loaded successfully", 'success')
+            # log_message("✅ SAM2_b loaded successfully", 'success')
         else:
             log_message("❌ SAM2_b model not found", 'error')
             return None
@@ -99,7 +101,7 @@ def load_models(device):
 
 def run_yolo_detection(model, image_path, model_name, device):
     """Run YOLO detection on image"""
-    log_message(f"🔍 Running {model_name} detection on {os.path.basename(image_path)}...", 'info')
+    # log_message(f"🔍 Running {model_name} detection on {os.path.basename(image_path)}...", 'info')
     
     try:
         # Run detection
@@ -122,9 +124,9 @@ def run_yolo_detection(model, image_path, model_name, device):
                     }
                     detections.append(detection)
         
-        log_message(f"✅ {model_name} found {len(detections)} objects", 'success')
-        for i, det in enumerate(detections):
-            log_message(f"   Object {i+1}: {det['class_name']} (conf: {det['confidence']:.3f})", 'info')
+        # log_message(f"✅ {model_name} found {len(detections)} objects", 'success')
+        # for i, det in enumerate(detections):
+        #     log_message(f"   Object {i+1}: {det['class_name']} (conf: {det['confidence']:.3f})", 'info')
         
         return detections
         
@@ -134,7 +136,7 @@ def run_yolo_detection(model, image_path, model_name, device):
 
 def run_sam_segmentation(sam_model, image_path, bounding_boxes, model_name, device):
     """Run SAM2 segmentation using bounding boxes as prompts"""
-    log_message(f"🎯 Running SAM2 segmentation with {len(bounding_boxes)} bounding boxes...", 'info')
+    # log_message(f"🎯 Running SAM2 segmentation with {len(bounding_boxes)} bounding boxes...", 'info')
     
     try:
         # Load image
@@ -148,7 +150,7 @@ def run_sam_segmentation(sam_model, image_path, bounding_boxes, model_name, devi
             boxes.append([x1, y1, x2, y2])
         
         if not boxes:
-            log_message("⚠️  No bounding boxes provided for SAM2", 'warning')
+            # log_message("⚠️  No bounding boxes provided for SAM2", 'warning')
             return []
         
         # Run SAM2 segmentation
@@ -166,7 +168,7 @@ def run_sam_segmentation(sam_model, image_path, bounding_boxes, model_name, devi
                     'class_name': bounding_boxes[i]['class_name']
                 })
         
-        log_message(f"✅ SAM2 generated {len(masks)} segmentation masks", 'success')
+        # log_message(f"✅ SAM2 generated {len(masks)} segmentation masks", 'success')
         return masks
         
     except Exception as e:
@@ -286,7 +288,7 @@ def overlay_segmentation_masks(image, masks, alpha=0.3):
 
 def save_results_remote_structured(base_name, yolo_detections, sam_masks, model_dir, segmentasi_dir, hybrid_dir, main_output_dir, original_image_path, model_type):
     """Save detection and segmentation results with structured directory organization"""
-    log_message(f"💾 Saving structured remote results for {base_name}...", 'info')
+    # log_message(f"💾 Saving structured remote results for {base_name}...", 'info')
     
     # Load original image for visualization
     original_image = cv2.imread(original_image_path)
@@ -297,7 +299,8 @@ def save_results_remote_structured(base_name, yolo_detections, sam_masks, model_
         json_file = os.path.join(main_output_dir, f"{base_name}-detection.json")
         with open(json_file, 'w') as f:
             json.dump(yolo_detections, f, indent=2)
-        log_message(f"📄 JSON saved for best.pt model", 'info')
+        # log_message(f"📄 JSON saved for best.pt model", 'info')
+        pass
     
     # Create detection visualization (bounding boxes) in model directory
     detection_image = draw_bounding_boxes(original_image_rgb, yolo_detections)
@@ -322,14 +325,15 @@ def save_results_remote_structured(base_name, yolo_detections, sam_masks, model_
         hybrid_file = os.path.join(hybrid_dir, f"{base_name}-hybrid.png")
         cv2.imwrite(hybrid_file, cv2.cvtColor(hybrid_image, cv2.COLOR_RGB2BGR))
         
-        log_message(f"✅ Structured results saved: detection/best, segmentation, hybrid", 'success')
+        # log_message(f"✅ Structured results saved: detection/best, segmentation, hybrid", 'success')
     else:
-        log_message(f"✅ Structured results saved: detection/best only", 'success')
+        # log_message(f"✅ Structured results saved: detection/best only", 'success')
+        pass
     
-    if model_type == "best_pt":
-        log_message(f"📁 Files saved to: {model_dir}, {segmentasi_dir}, {hybrid_dir}, {main_output_dir}", 'info')
-    else:
-        log_message(f"📁 Files saved to: {model_dir}, {segmentasi_dir}, {hybrid_dir}", 'info')
+    # if model_type == "best_pt":
+    #     log_message(f"📁 Files saved to: {model_dir}, {segmentasi_dir}, {hybrid_dir}, {main_output_dir}", 'info')
+    # else:
+    #     log_message(f"📁 Files saved to: {model_dir}, {segmentasi_dir}, {hybrid_dir}", 'info')
 
 def create_visualization(image_path, yolo_detections, sam_masks, output_path):
     """Create comprehensive visualization"""
@@ -430,7 +434,7 @@ def create_compare_visualization(image_path, yolo_detection_path, best_detection
 
 def generate_visualizations(image_path, base_name, output_dir, yolo_dir, best_dir, segmentasi_dir, hybrid_dir):
     """Generate all visualizations for an image"""
-    log_message(f"🎨 Generating visualizations for {base_name}...", 'info')
+    # log_message(f"🎨 Generating visualizations for {base_name}...", 'info')
     
     # Load detection results
     yolo11m_json = os.path.join(output_dir, f"{base_name}-yolo11m-detection.json")
@@ -444,7 +448,7 @@ def generate_visualizations(image_path, base_name, output_dir, yolo_dir, best_di
         # Create comprehensive visualization in yolo directory
         output_path = os.path.join(yolo_dir, f"{base_name}-yolo11m-visualization.png")
         create_visualization(image_path, yolo11m_detections, [], output_path)
-        log_message(f"✅ YOLO11m visualization saved: {output_path}", 'success')
+        # log_message(f"✅ YOLO11m visualization saved: {output_path}", 'success')
     
     # Process best.pt results
     if os.path.exists(best_pt_json):
@@ -454,7 +458,7 @@ def generate_visualizations(image_path, base_name, output_dir, yolo_dir, best_di
         # Create comprehensive visualization in best directory
         output_path = os.path.join(best_dir, f"{base_name}-best_pt-visualization.png")
         create_visualization(image_path, best_pt_detections, [], output_path)
-        log_message(f"✅ best.pt visualization saved: {output_path}", 'success')
+        # log_message(f"✅ best.pt visualization saved: {output_path}", 'success')
     
     # Create compare visualization combining all results
     yolo_detection_path = os.path.join(yolo_dir, f"{base_name}-yolo11m-detection.png")
@@ -477,9 +481,10 @@ def generate_visualizations(image_path, base_name, output_dir, yolo_dir, best_di
         compare_output_path = os.path.join(output_dir, f"{base_name}-best_pt-compare.png")
         create_compare_visualization(image_path, yolo_detection_path, best_detection_path, 
                                    segmentation_path, hybrid_path, compare_output_path)
-        log_message(f"✅ Compare visualization saved: {compare_output_path}", 'success')
+        # log_message(f"✅ Compare visualization saved: {compare_output_path}", 'success')
     else:
-        log_message(f"⚠️  Compare visualization skipped for {base_name} - Missing: {', '.join(missing_files)}", 'warning')
+        # log_message(f"⚠️  Compare visualization skipped for {base_name} - Missing: {', '.join(missing_files)}", 'warning')
+        pass
 
 def main():
     """Main function"""
@@ -519,13 +524,13 @@ def main():
         log_message("❌ No test images found in remote directory", 'error')
         return
     
-    log_message(f"📁 Found {len(test_images)} test images in remote directory", 'info')
+    # log_message(f"📁 Found {len(test_images)} test images in remote directory", 'info')
     
     # Process each image
     for image_path in test_images:
         image_name = os.path.basename(image_path)
-        log_message(f"\n🖼️  Processing: {image_name}", 'info')
-        log_message("-" * 30, 'info')
+        # log_message(f"\n🖼️  Processing: {image_name}", 'info')
+        # log_message("-" * 30, 'info')
         
         # Extract timestamp and user_id from path
         path_parts = image_path.split(os.sep)
@@ -549,19 +554,19 @@ def main():
         base_name = os.path.splitext(image_name)[0]
         
         # 1. Run YOLO11m detection
-        log_message("1️⃣ YOLO11m Detection", 'info')
+        # log_message("1️⃣ YOLO11m Detection", 'info')
         yolo11m_detections = run_yolo_detection(models['yolo11m'], image_path, 'YOLO11m', device)
         
         # 2. Run SAM2 with YOLO11m bounding boxes
         if yolo11m_detections:
-            log_message("2️⃣ SAM2 Segmentation (YOLO11m prompts)", 'info')
+            # log_message("2️⃣ SAM2 Segmentation (YOLO11m prompts)", 'info')
             sam_yolo11m_masks = run_sam_segmentation(
                 models['sam2_b'], image_path, yolo11m_detections, 'SAM2_b', device
             )
             save_results_remote_structured(f"{base_name}-yolo11m", yolo11m_detections, sam_yolo11m_masks, 
                                          yolo_dir, segmentasi_dir, hybrid_dir, output_dir, image_path, "yolo11m")
         else:
-            log_message("⚠️  No YOLO11m detections, creating fallback detection image", 'warning')
+            # log_message("⚠️  No YOLO11m detections, creating fallback detection image", 'warning')
             # Create fallback detection image (original image with "No detections" text)
             original_image = cv2.imread(image_path)
             original_image_rgb = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
@@ -573,28 +578,28 @@ def main():
             # Save fallback detection image
             fallback_file = os.path.join(yolo_dir, f"{base_name}-yolo11m-detection.png")
             cv2.imwrite(fallback_file, original_image)
-            log_message(f"✅ Fallback YOLO11m detection image saved: {fallback_file}", 'success')
+            # log_message(f"✅ Fallback YOLO11m detection image saved: {fallback_file}", 'success')
         
         # 3. Run best.pt detection
-        log_message("3️⃣ best.pt Detection", 'info')
+        # log_message("3️⃣ best.pt Detection", 'info')
         best_pt_detections = run_yolo_detection(models['best_pt'], image_path, 'best.pt', device)
         
         # 4. Run SAM2 with best.pt bounding boxes
         if best_pt_detections:
-            log_message("4️⃣ SAM2 Segmentation (best.pt prompts)", 'info')
+            # log_message("4️⃣ SAM2 Segmentation (best.pt prompts)", 'info')
             sam_best_pt_masks = run_sam_segmentation(
                 models['sam2_b'], image_path, best_pt_detections, 'SAM2_b', device
             )
             save_results_remote_structured(f"{base_name}-best_pt", best_pt_detections, sam_best_pt_masks, 
                                          best_dir, segmentasi_dir, hybrid_dir, output_dir, image_path, "best_pt")
         else:
-            log_message("⚠️  No best.pt detections, skipping SAM2", 'warning')
+            # log_message("⚠️  No best.pt detections, skipping SAM2", 'warning')
         
         # Generate visualizations for this image
         generate_visualizations(image_path, base_name, output_dir, yolo_dir, best_dir, segmentasi_dir, hybrid_dir)
     
     log_message(f"\n🎉 {project_name} completed successfully!", 'success')
-    log_message("📊 Check 'data/output/remote' for results", 'info')
+    # log_message("📊 Check 'data/output/remote' for results", 'info')
 
 if __name__ == "__main__":
     main()
