@@ -1,8 +1,18 @@
 # MyCV-Platform Changelog
 
-## [1.1.0-enhanced] - 2025-09-27
+## [1.2.0-api] - 2025-09-28
 
 ### 🎯 **Major Changes**
+
+#### **API Hybrid Detection Implementation**
+- ✅ **RESTful API** - Implementasi API lengkap untuk public access di port 5000
+- ✅ **Background Processing** - Processing berjalan di background dengan session management
+- ✅ **Multi-file Upload** - Support upload multiple images sekaligus
+- ✅ **Real-time Status** - Monitoring status processing real-time
+- ✅ **File Download** - Download hasil visualisasi dan detection files
+- ✅ **Detection History** - Lihat semua deteksi terbaru (50 terbaru)
+- ✅ **CORS Support** - Support untuk web applications
+- ✅ **Error Handling** - Comprehensive error handling dan validation
 
 #### **Enhanced Copy Version Implementation**
 - ✅ **Copy Version dengan Enhanced Features** - Implementasi versi copy dengan fitur-fitur yang ditingkatkan
@@ -28,6 +38,16 @@
 ---
 
 ### 🆕 **New Features**
+
+#### **API Hybrid Detection Features**
+- `./direct/app/api-hybrid-detection/app.py` - Flask API server dengan 7 endpoints
+- `./direct/app/api-hybrid-detection/run_api.sh` - API launcher script
+- `./direct/app/api-hybrid-detection/requirements.txt` - API dependencies
+- `./direct/app/api-hybrid-detection/README.md` - Comprehensive API documentation
+- `./run_api.sh` - Root level API launcher
+- Public access di http://100.98.142.94:5000
+- Session management dengan unique session IDs
+- Background processing dengan threading
 
 #### **Copy Version Enhanced Features**
 - `run_yolo_sam_integration-copy.py` - Enhanced integration script dengan fitur copy version
@@ -55,19 +75,28 @@
 
 ### 🔧 **Updated Files**
 
+#### **API Files**
+- `./direct/app/api-hybrid-detection/app.py` - Flask API server dengan 7 endpoints
+- `./direct/app/api-hybrid-detection/run_api.sh` - API launcher script
+- `./direct/app/api-hybrid-detection/requirements.txt` - API dependencies
+- `./direct/app/api-hybrid-detection/README.md` - Comprehensive API documentation
+- `./run_api.sh` - Root level API launcher
+
 #### **Enhanced Scripts**
 - `direct/run_yolo_sam_integration-copy.py` - Enhanced dengan structured output dan brightness preservation
 - `direct/visualize_results-copy.py` - Enhanced dengan compare visualization
 - `direct/scripts/run_fresh_integration_test-copy.sh` - Enhanced test script
+- `direct/scripts/run_api_hybrid_detection.sh` - API detection script
+- `direct/run_api_hybrid_detection.py` - API processing script
 - `run_direct.sh` - Direct execution launcher
 - `run_web.sh` - Web application launcher
 - `run_docker.sh` - Docker testing launcher
 
 #### **Documentation**
-- `README.md` - Updated dengan Script Launchers section
+- `README.md` - Updated dengan API Hybrid Detection section
 - `README_run_direct.md` - New comprehensive documentation
 - `README_run_web.md` - New comprehensive documentation
-- `direct/README.md` - Updated dengan Copy Version features
+- `direct/README.md` - Updated dengan API features
 - `CHANGELOG.md` - This file
 
 #### **Configuration**
@@ -84,6 +113,9 @@
 - **File Naming Consistency** - Standardized file naming convention
 - **Directory Structure** - Organized output dengan subfolder structure
 - **GitHub Integration** - Resolved merge conflicts dan authentication issues
+- **API Processing** - Fixed background processing dengan proper threading
+- **File Upload Validation** - Enhanced file type dan size validation
+- **Session Management** - Fixed session ID generation dan tracking
 
 ---
 
@@ -92,13 +124,15 @@
 #### **New Documentation**
 - `README_run_direct.md` - Detailed guide untuk direct execution
 - `README_run_web.md` - Detailed guide untuk web application
+- `./direct/app/api-hybrid-detection/README.md` - Comprehensive API documentation
 - Enhanced main README dengan Script Launchers section
 - Workflow diagrams dengan Mermaid
 
 #### **Updated Documentation**
-- `direct/README.md` - Updated dengan Copy Version features
-- Main README dengan enhanced features documentation
-- Quick start guides dengan launcher options
+- `direct/README.md` - Updated dengan API Hybrid Detection features
+- Main README dengan API features documentation
+- Quick start guides dengan API launcher options
+- API troubleshooting dan usage examples
 
 ---
 
@@ -108,10 +142,22 @@
 - **Brightness Preservation** - Improved SAM2 visualization quality
 - **Structured Output** - Better organization dengan subfolder structure
 - **File Management** - Optimized file naming dan organization
+- **Background Processing** - Non-blocking API processing dengan threading
+- **Session Management** - Efficient session tracking dan cleanup
+- **File Upload** - Optimized multi-file upload handling
+- **API Response** - Faster response times dengan proper error handling
 
 ---
 
 ### 🔧 **Technical Details**
+
+#### **API Implementation**
+- Flask API server dengan 7 endpoints lengkap
+- Background processing menggunakan Python threading
+- Session management dengan unique UUID generation
+- File upload validation dengan werkzeug secure_filename
+- CORS support untuk cross-origin requests
+- Error handling dengan proper HTTP status codes
 
 #### **Copy Version Implementation**
 - Enhanced `run_yolo_sam_integration-copy.py` dengan structured output
@@ -134,6 +180,29 @@
 ---
 
 ### 🎯 **Usage Examples**
+
+#### **API Hybrid Detection**
+```bash
+# Start API server
+cd MyCV-Platform
+./run_api.sh
+
+# Upload images via curl
+curl -X POST \
+  -F 'files=@image1.jpg' \
+  -F 'files=@image2.jpg' \
+  -F 'user_id=my_user' \
+  http://100.98.142.94:5000/api/upload
+
+# Check processing status
+curl http://100.98.142.94:5000/api/process/session_abc123
+
+# Get results
+curl http://100.98.142.94:5000/api/results/session_abc123
+
+# Download files
+curl http://100.98.142.94:5000/api/download/session_abc123/image-best_pt-compare.png
+```
 
 #### **Copy Version Enhanced Features**
 ```bash
@@ -159,6 +228,9 @@ source venv/bin/activate
 # Web application
 ./run_web.sh
 
+# API server
+./run_api.sh
+
 # Docker testing
 ./run_docker.sh
 ```
@@ -168,6 +240,11 @@ source venv/bin/activate
 ### 🔍 **Testing**
 
 #### **Test Coverage**
+- API Hybrid Detection functionality
+- Background processing dengan threading
+- Session management dan tracking
+- File upload validation
+- Multi-file upload handling
 - Copy Version enhanced features
 - Structured output directories
 - File naming convention
@@ -177,9 +254,12 @@ source venv/bin/activate
 
 #### **Test Scripts**
 - `run_fresh_integration_test-copy.sh` - Enhanced testing
+- `run_api_hybrid_detection.sh` - API testing
 - Multiple random images testing
 - Output structure validation
 - File naming validation
+- API endpoint testing
+- Session management testing
 
 ---
 
@@ -202,15 +282,19 @@ source venv/bin/activate
 
 ### 🎉 **Summary**
 
-MyCV-Platform v1.1.0-enhanced sekarang dilengkapi dengan:
+MyCV-Platform v1.2.0-api sekarang dilengkapi dengan:
 
-1. **Copy Version Enhanced Features** - Fitur-fitur yang ditingkatkan dengan structured output
-2. **Script Launchers Documentation** - Dokumentasi lengkap untuk semua launcher
-3. **GitHub Repository Integration** - Koneksi dan manajemen repository yang optimal
-4. **Enhanced File Management** - Organisasi file dan output yang lebih baik
-5. **Improved Visualization** - Kualitas visualisasi yang lebih baik dengan brightness preservation
+1. **API Hybrid Detection** - RESTful API lengkap untuk public access di port 5000
+2. **Background Processing** - Processing berjalan di background dengan session management
+3. **Multi-file Upload** - Support upload multiple images dengan real-time status
+4. **File Download & History** - Download hasil dan lihat detection history
+5. **Copy Version Enhanced Features** - Fitur-fitur yang ditingkatkan dengan structured output
+6. **Script Launchers Documentation** - Dokumentasi lengkap untuk semua launcher
+7. **GitHub Repository Integration** - Koneksi dan manajemen repository yang optimal
+8. **Enhanced File Management** - Organisasi file dan output yang lebih baik
+9. **Improved Visualization** - Kualitas visualisasi yang lebih baik dengan brightness preservation
 
-Semua perubahan ini memastikan bahwa MyCV-Platform memiliki fitur-fitur yang lebih canggih, dokumentasi yang lengkap, dan manajemen file yang lebih terorganisir.
+Semua perubahan ini memastikan bahwa MyCV-Platform memiliki API yang lengkap untuk akses publik, fitur-fitur yang lebih canggih, dokumentasi yang lengkap, dan manajemen file yang lebih terorganisir.
 
 ---
 

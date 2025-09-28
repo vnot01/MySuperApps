@@ -76,7 +76,15 @@ cd MySuperApps/MyCV-Platform
 ./scripts/run_web.sh
 ```
 
-### Option 4: Docker CPU Testing
+### Option 4: API Hybrid Detection (Public Access)
+```bash
+cd MySuperApps/MyCV-Platform
+./run_api.sh
+```
+
+**📖 API Documentation:** [API README](./direct/app/api-hybrid-detection/README.md)
+
+### Option 5: Docker CPU Testing
 ```bash
 cd docker
 docker-compose -f docker-compose.cpu.yml up --build
@@ -84,24 +92,29 @@ docker-compose -f docker-compose.cpu.yml up --build
 
 ## 📊 Perbandingan
 
-| Feature | Direct | Copy Version | Web App | Docker GPU | Docker CPU |
-|---------|--------|--------------|---------|------------|------------|
-| **GPU Support** | ✅ | ✅ | ✅ | ❌ | ❌ |
-| **Real-time** | ❌ | ❌ | ✅ | ❌ | ❌ |
-| **Performance** | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | N/A | ⭐ |
-| **Setup** | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ❌ | ⭐⭐ |
-| **Production** | ✅ | ✅ | ✅ | ❌ | ❌ |
-| **Development** | ✅ | ✅ | ✅ | ❌ | ✅ |
-| **Enhanced Features** | ❌ | ✅ | ❌ | ❌ | ❌ |
-| **Structured Output** | ❌ | ✅ | ❌ | ❌ | ❌ |
-| **Compare Visualization** | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Feature | Direct | Copy Version | Web App | API | Docker GPU | Docker CPU |
+|---------|--------|--------------|---------|-----|------------|------------|
+| **GPU Support** | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **Real-time** | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| **Public Access** | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| **Performance** | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | N/A | ⭐ |
+| **Setup** | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ❌ | ⭐⭐ |
+| **Production** | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **Development** | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+| **Enhanced Features** | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ |
+| **Structured Output** | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ |
+| **Compare Visualization** | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ |
+| **RESTful API** | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| **Background Processing** | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
 
 ## 🎯 Rekomendasi
 
 **Untuk Production**: Gunakan `run_fresh_integration_test-copy.sh` (Copy Version) dengan fitur enhanced
+**Untuk Public API**: Gunakan `./run_api.sh` untuk akses publik via RESTful API
 **Untuk Real-time**: Gunakan `run_web.sh` untuk deteksi kamera
 **Untuk Development**: Gunakan folder `direct/` atau `docker/` (CPU-only)
 **Untuk Testing**: Gunakan Copy Version untuk fitur lengkap dan output terstruktur
+**Untuk External Integration**: Gunakan API Hybrid Detection di port 5000
 
 ## 📦 Backup & Kompresi
 
@@ -128,6 +141,7 @@ docker-compose -f docker-compose.cpu.yml up --build
 ## 📚 Dokumentasi
 
 - [Direct Execution Guide](direct/README.md)
+- [API Hybrid Detection Guide](direct/app/api-hybrid-detection/README.md)
 - [Docker Testing Guide](docker/README.md)
 - [Web Application Guide](direct/app/web/README.md)
 - [Testing Guide](docs/TESTING_GUIDE.md)
@@ -145,6 +159,12 @@ docker-compose -f docker-compose.cpu.yml up --build
 - **JSON Missing**: Hanya best.pt yang menghasilkan JSON (YOLO11m JSON dihapus)
 - **Directory Structure**: Output tersimpan di `data/output/remote/(timestamp)/(user_id)/`
 - **Compare Visualization**: Pastikan semua file detection, segmentation, dan hybrid tersedia
+
+### API Issues
+- **API tidak bisa diakses**: Check firewall `sudo ufw allow 5000`
+- **Upload gagal**: Check file size (max 16MB) dan format (PNG, JPG, JPEG, GIF, BMP)
+- **Processing gagal**: Check models tersedia dan virtual environment
+- **Port conflict**: Check port usage `netstat -tlnp | grep 5000`
 
 ### Docker Issues
 - Docker GPU bermasalah karena bug NVIDIA Container Toolkit
@@ -184,6 +204,17 @@ Jika ada masalah, cek dokumentasi di masing-masing folder atau lihat [Testing Gu
 - ✅ **Model Management System** untuk file model besar (best.pt, dll)
 - ✅ **Cloud Storage Integration** untuk upload/download model
 - ✅ **Local Backup System** untuk backup dan restore model
+
+### **API Features:**
+- ✅ **RESTful API** dengan 7 endpoints lengkap
+- ✅ **Multi-file Upload** dengan background processing
+- ✅ **Session Management** dengan unique session IDs
+- ✅ **Real-time Status** monitoring
+- ✅ **File Download** untuk hasil visualisasi
+- ✅ **Detection History** dengan 50 deteksi terbaru
+- ✅ **CORS Support** untuk web applications
+- ✅ **Error Handling** yang comprehensive
+- ✅ **Public Access** di http://100.98.142.94:5000
 
 ---
 
@@ -427,3 +458,7 @@ python3 app/utils/environment_detector.py
 - ✅ **Improved file naming convention** untuk better organization
 - ✅ **Script Launchers Documentation** - [📖 README_run_direct.md](./README_run_direct.md)
 - ✅ **Web Application Documentation** - [📖 README_run_web.md](./README_run_web.md)
+- ✅ **API Hybrid Detection** - RESTful API untuk public access
+- ✅ **Background Processing** dengan session management
+- ✅ **Multi-file Upload** dengan real-time status monitoring
+- ✅ **File Download** dan detection history features
