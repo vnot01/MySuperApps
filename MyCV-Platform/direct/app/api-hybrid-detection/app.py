@@ -1,0 +1,389 @@
+#!/usr/bin/env python3
+"""
+MyCV-Platform Hybrid Detection API
+RESTful API for YOLO + SAM2 object detection and segmentation
+"""
+
+import os
+import sys
+import json
+import time
+import uuid
+from datetime import datetime
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
+from werkzeug.utils import secure_filename
+import subprocess
+import threading
+from pathlib import Path
+
+# Add parent directory to path to import detection modules
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
+
+app = Flask(__name__)
+CORS(app, origins=["*"])
+
+# Configuration
+UPLOAD_FOLDER = '../../data/input/remote'
+OUTPUT_FOLDER = '../../data/output/remote'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp'}
+MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
+
+# Global variables for tracking processing
+processing_status = {}
+processing_results = {}
+
+def allowed_file(filename):
+    """Check if file extension is allowed"""
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def generate_session_id():
+    """Generate unique session ID"""
+    return f"session_{uuid.uuid4().hex[:8]}"
+
+def create_directory_structure(timestamp, user_id):
+    """Create directory structure for processing"""
+    input_dir = os.path.join(UPLOAD_FOLDER, timestamp, user_id)
+    output_dir = os.path.join(OUTPUT_FOLDER, timestamp, user_id)
+    
+    # Create directories
+    os.makedirs(input_dir, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(os.path.join(output_dir, 'yolo'), exist_ok=True)
+    os.makedirs(os.path.join(output_dir, 'best'), exist_ok=True)
+    os.makedirs(os.path.join(output_dir, 'segmentasi'), exist_ok=True)
+    os.makedirs(os.path.join(output_dir, 'hybrid'), exist_ok=True)
+    
+    return input_dir, output_dir
+
+def run_detection_process(timestamp, user_id, session_id):
+    """Run the detection process in background"""
+    try:
+        # Update status
+        processing_status[session_id] = {
+            'status': 'processing',
+            'message': 'Starting detection process...',
+            'timestamp': timestamp,
+            'user_id': user_id,
+            'start_time': datetime.now().isoformat()
+        }
+        
+        # Change to direct directory
+        direct_dir = os.path.join(os.path.dirname(__file__), '../../')
+        
+        # Run the detection script
+        cmd = [
+            'python3', 'run_api_hybrid_detection.py'
+        ]
+        
+        result = subprocess.run(
+            cmd,
+            cwd=direct_dir,
+            capture_output=True,
+            text=True,
+            timeout=300  # 5 minutes timeout
+        )
+        
+        if result.returncode == 0:
+            # Process completed successfully
+            processing_status[session_id]['status'] = 'completed'
+            processing_status[session_id]['message'] = 'Detection completed successfully'
+            processing_status[session_id]['end_time'] = datetime.now().isoformat()
+            
+            # Collect results
+            output_dir = os.path.join(OUTPUT_FOLDER, timestamp, user_id)
+            results = collect_detection_results(output_dir)
+            processing_results[session_id] = results
+            
+        else:
+            # Process failed
+            processing_status[session_id]['status'] = 'failed'
+            processing_status[session_id]['message'] = f'Detection failed: {result.stderr}'
+            processing_status[session_id]['end_time'] = datetime.now().isoformat()
+            
+    except subprocess.TimeoutExpired:
+        processing_status[session_id]['status'] = 'failed'
+        processing_status[session_id]['message'] = 'Detection process timed out'
+        processing_status[session_id]['end_time'] = datetime.now().isoformat()
+        
+    except Exception as e:
+        processing_status[session_id]['status'] = 'failed'
+        processing_status[session_id]['message'] = f'Detection process error: {str(e)}'
+        processing_status[session_id]['end_time'] = datetime.now().isoformat()
+
+def collect_detection_results(output_dir):
+    """Collect detection results from output directory"""
+    results = {
+        'images_processed': [],
+        'total_files': 0,
+        'detection_summary': {}
+    }
+    
+    try:
+        # Find all JSON files (detection results)
+        json_files = []
+        for root, dirs, files in os.walk(output_dir):
+            for file in files:
+                if file.endswith('.json'):
+                    json_files.append(os.path.join(root, file))
+        
+        results['total_files'] = len(json_files)
+        
+        # Process each JSON file
+        for json_file in json_files:
+            try:
+                with open(json_file, 'r') as f:
+                    detection_data = json.load(f)
+                
+                # Extract image name from file path
+                image_name = os.path.basename(json_file).replace('-best_pt-detection.json', '')
+                
+                image_result = {
+                    'image_name': image_name,
+                    'detections': detection_data,
+                    'detection_count': len(detection_data),
+                    'json_file': json_file.replace(output_dir, ''),
+                    'visualizations': []
+                }
+                
+                # Find related visualization files
+                base_name = image_name
+                vis_files = [
+                    f"{base_name}-best_pt-compare.png",
+                    f"{base_name}-best_pt-best.png",
+                    f"{base_name}-best_pt-segmentation.png",
+                    f"{base_name}-best_pt-hybrid.png"
+                ]
+                
+                for vis_file in vis_files:
+                    vis_path = os.path.join(output_dir, vis_file)
+                    if os.path.exists(vis_path):
+                        image_result['visualizations'].append({
+                            'type': vis_file.split('-')[-1].replace('.png', ''),
+                            'file': vis_file,
+                            'path': vis_path.replace(output_dir, '')
+                        })
+                
+                results['images_processed'].append(image_result)
+                
+                # Update detection summary
+                for detection in detection_data:
+                    class_name = detection.get('class_name', 'unknown')
+                    if class_name not in results['detection_summary']:
+                        results['detection_summary'][class_name] = 0
+                    results['detection_summary'][class_name] += 1
+                    
+            except Exception as e:
+                print(f"Error processing {json_file}: {e}")
+                continue
+                
+    except Exception as e:
+        print(f"Error collecting results: {e}")
+    
+    return results
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Health check endpoint"""
+    return jsonify({
+        'status': 'healthy',
+        'service': 'MyCV-Platform Hybrid Detection API',
+        'version': '1.0.0',
+        'timestamp': datetime.now().isoformat(),
+        'uptime': time.time()
+    })
+
+@app.route('/api/status', methods=['GET'])
+def api_status():
+    """API status endpoint"""
+    return jsonify({
+        'api_status': 'online',
+        'service': 'MyCV-Platform Hybrid Detection API',
+        'version': '1.0.0',
+        'endpoints': [
+            '/api/health',
+            '/api/status', 
+            '/api/upload',
+            '/api/process/<session_id>',
+            '/api/results/<session_id>',
+            '/api/download/<session_id>/<filename>'
+        ],
+        'timestamp': datetime.now().isoformat()
+    })
+
+@app.route('/api/upload', methods=['POST'])
+def upload_files():
+    """Upload images for detection processing"""
+    try:
+        # Check if files are present
+        if 'files' not in request.files:
+            return jsonify({'error': 'No files provided'}), 400
+        
+        files = request.files.getlist('files')
+        
+        if not files or files[0].filename == '':
+            return jsonify({'error': 'No files selected'}), 400
+        
+        # Generate session info
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        user_id = request.form.get('user_id', 'public_user')
+        session_id = generate_session_id()
+        
+        # Create directory structure
+        input_dir, output_dir = create_directory_structure(timestamp, user_id)
+        
+        # Save uploaded files
+        uploaded_files = []
+        for file in files:
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(input_dir, filename)
+                file.save(file_path)
+                uploaded_files.append({
+                    'original_name': file.filename,
+                    'saved_name': filename,
+                    'path': file_path
+                })
+        
+        if not uploaded_files:
+            return jsonify({'error': 'No valid files uploaded'}), 400
+        
+        # Start detection process in background
+        thread = threading.Thread(
+            target=run_detection_process,
+            args=(timestamp, user_id, session_id)
+        )
+        thread.daemon = True
+        thread.start()
+        
+        return jsonify({
+            'success': True,
+            'session_id': session_id,
+            'timestamp': timestamp,
+            'user_id': user_id,
+            'uploaded_files': uploaded_files,
+            'message': 'Files uploaded successfully. Processing started.',
+            'status_url': f'/api/process/{session_id}',
+            'results_url': f'/api/results/{session_id}'
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Upload failed: {str(e)}'}), 500
+
+@app.route('/api/process/<session_id>', methods=['GET'])
+def get_process_status(session_id):
+    """Get processing status for a session"""
+    if session_id not in processing_status:
+        return jsonify({'error': 'Session not found'}), 404
+    
+    return jsonify(processing_status[session_id])
+
+@app.route('/api/results/<session_id>', methods=['GET'])
+def get_results(session_id):
+    """Get detection results for a session"""
+    if session_id not in processing_status:
+        return jsonify({'error': 'Session not found'}), 404
+    
+    if processing_status[session_id]['status'] != 'completed':
+        return jsonify({
+            'error': 'Processing not completed yet',
+            'status': processing_status[session_id]['status']
+        }), 202
+    
+    if session_id not in processing_results:
+        return jsonify({'error': 'Results not available'}), 404
+    
+    return jsonify({
+        'session_id': session_id,
+        'status': 'completed',
+        'results': processing_results[session_id],
+        'timestamp': processing_status[session_id]['timestamp'],
+        'user_id': processing_status[session_id]['user_id']
+    })
+
+@app.route('/api/download/<session_id>/<filename>', methods=['GET'])
+def download_file(session_id, filename):
+    """Download result files"""
+    if session_id not in processing_status:
+        return jsonify({'error': 'Session not found'}), 404
+    
+    if processing_status[session_id]['status'] != 'completed':
+        return jsonify({'error': 'Processing not completed yet'}), 202
+    
+    # Construct file path
+    timestamp = processing_status[session_id]['timestamp']
+    user_id = processing_status[session_id]['user_id']
+    output_dir = os.path.join(OUTPUT_FOLDER, timestamp, user_id)
+    file_path = os.path.join(output_dir, filename)
+    
+    if not os.path.exists(file_path):
+        return jsonify({'error': 'File not found'}), 404
+    
+    return send_file(file_path, as_attachment=True)
+
+@app.route('/api/detections', methods=['GET'])
+def get_all_detections():
+    """Get all recent detection results"""
+    try:
+        recent_results = []
+        
+        # Get all output directories
+        if os.path.exists(OUTPUT_FOLDER):
+            for timestamp_dir in os.listdir(OUTPUT_FOLDER):
+                timestamp_path = os.path.join(OUTPUT_FOLDER, timestamp_dir)
+                if os.path.isdir(timestamp_path):
+                    for user_dir in os.listdir(timestamp_path):
+                        user_path = os.path.join(timestamp_path, user_dir)
+                        if os.path.isdir(user_path):
+                            # Find JSON files
+                            for root, dirs, files in os.walk(user_path):
+                                for file in files:
+                                    if file.endswith('.json'):
+                                        json_path = os.path.join(root, file)
+                                        try:
+                                            with open(json_path, 'r') as f:
+                                                detection_data = json.load(f)
+                                            
+                                            recent_results.append({
+                                                'timestamp': timestamp_dir,
+                                                'user_id': user_dir,
+                                                'image_name': file.replace('-best_pt-detection.json', ''),
+                                                'detections': detection_data,
+                                                'detection_count': len(detection_data)
+                                            })
+                                        except:
+                                            continue
+        
+        # Sort by timestamp (newest first)
+        recent_results.sort(key=lambda x: x['timestamp'], reverse=True)
+        
+        return jsonify({
+            'total_sessions': len(recent_results),
+            'recent_detections': recent_results[:50]  # Limit to 50 most recent
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to get detections: {str(e)}'}), 500
+
+if __name__ == '__main__':
+    # Ensure directories exist
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+    
+    print("🚀 Starting MyCV-Platform Hybrid Detection API")
+    print("📡 API will be available at: http://100.98.142.94:5000")
+    print("📋 Available endpoints:")
+    print("   GET  /api/health - Health check")
+    print("   GET  /api/status - API status")
+    print("   POST /api/upload - Upload images for detection")
+    print("   GET  /api/process/<session_id> - Get processing status")
+    print("   GET  /api/results/<session_id> - Get detection results")
+    print("   GET  /api/download/<session_id>/<filename> - Download result files")
+    print("   GET  /api/detections - Get all recent detections")
+    print("=" * 60)
+    
+    app.run(host='0.0.0.0', port=5000, debug=True)
