@@ -1082,7 +1082,7 @@
                 html += `
                     <div class="image-item">
                         <img src="${file.data}" class="image-thumb" alt="${file.name}">
-                        <span>${file.name} (${(file.size / 1024).toFixed(1)} KB)</span>
+                        <span style="cursor:pointer" onclick="setFrameImage('frame1','${file.data}','${file.name}')">${file.name} (${(file.size / 1024).toFixed(1)} KB)</span>
                         <button onclick="removeFile(${index})" style="margin-left: auto; background: #f44336; color: white; border: none; padding: 2px 8px; border-radius: 3px; cursor: pointer;">×</button>
                     </div>
                 `;
@@ -1123,7 +1123,7 @@
                 html += `
                     <div class="image-item">
                         <img src="${file.data}" class="image-thumb" alt="${file.name}">
-                        <span>${file.name}</span>
+                        <span style="cursor:pointer" onclick="setFrameImage('frame1','${file.data}','${file.name}')">${file.name}</span>
                     </div>
                 `;
             });
@@ -1362,11 +1362,19 @@
                 html += `
                     <div class="image-item">
                         <img src="${thumbSrc}" class="image-thumb" alt="${result.name}">
-                        <span>${result.name}</span>
+                        <span style="cursor:pointer" onclick="setFrameImage('${frameId}','${result.url}','${result.name}')">${result.name}</span>
                     </div>
                 `;
             }
             list.innerHTML = html;
+        }
+
+        // Helper: set main image for a frame when a list item is selected
+        function setFrameImage(frameId, url, name) {
+            const frame = document.getElementById(frameId);
+            if (!frame) return;
+            frame.innerHTML = `<img src="${url}" class="frame-image" alt="${name}">`;
+            frame.classList.add('has-images');
         }
 
         function downloadResults() {
