@@ -41,7 +41,8 @@ cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection
         "/api/process/<session_id>",
         "/api/results/<session_id>",
         "/api/download/<session_id>/<filename>",
-        "/api/detections"
+        "/api/detections",
+        "/api/backup/<session_id>"
     ],
     "gpu_info": {
         "available_gpus": 1,
@@ -185,8 +186,9 @@ cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection
 }
 ```
 
-### Download & History
+### Download, Backup & History
 - `GET /api/download/<session_id>/<filename>` - Download file hasil
+- `GET /api/backup/<session_id>` - Buat dan unduh TAR.GZ backup satu sesi
 - `GET /api/detections` - Semua deteksi terbaru
 #### Response: `GET /api/detections`
 ```json

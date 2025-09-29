@@ -136,6 +136,7 @@ data/output/remote/(timestamp)/(user_id)/
 - `GET /api/process/<session_id>` - Status pemrosesan
 - `GET /api/results/<session_id>` - Hasil deteksi dari summary.json
 - `GET /api/download/<session_id>/<filename>` - Download file hasil
+- `GET /api/backup/<session_id>` - Download TAR.GZ backup hasil satu sesi
 - `GET /api/detections` - Semua deteksi terbaru
 
 ### **Cara Menjalankan API:**
@@ -170,6 +171,7 @@ curl -X POST \
 - ✅ **Image URLs**: Direct download links untuk semua jenis visualisasi (best, yolo, sam, hybrid)
 - ✅ **Compare Visualization**: Summary image yang menggabungkan semua hasil
 - ✅ **GPU Detection**: Real-time GPU information dengan memory details
+- ✅ **Backup Per-Session**: Endpoint `GET /api/backup/<session_id>` untuk mengunduh seluruh hasil dalam satu arsip TAR.GZ
 
 ### **API Documentation:**
 - **README**: `./app/api-hybrid-detection/README.md`

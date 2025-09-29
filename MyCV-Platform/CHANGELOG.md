@@ -1,5 +1,24 @@
 # MyCV-Platform Changelog
 
+## [1.4.1-ui-ux-backup] - 2025-09-29
+
+### 🎯 UI/UX & API Enhancements
+
+- ✅ Web: Heartbeat polling 2s tanpa timeout; loader tampil hingga selesai
+- ✅ Web: Tombol baru "Load Last Results" dan "New Session"
+- ✅ Web: Galleries per frame dengan thumbnail clickable
+- ✅ Web: Buttons disabled selama processing, re-enable otomatis setelah selesai/gagal
+- ✅ API: Endpoint baru `GET /api/backup/<session_id>` untuk unduh TAR.GZ hasil satu sesi
+- ✅ API: `GET /api/results/<session_id>` membaca langsung `summary.json` (struktur baru)
+
+### 🔧 Documentation
+- Updated `direct/README.md` (endpoint backup, fitur summary.json)
+- Updated `direct/app/web/README.md` (heartbeat, galleries, tombol baru)
+- Updated `direct/app/api-hybrid-detection/README.md` (endpoint backup)
+- Updated root `README.md` (ringkasan fitur terbaru)
+
+---
+
 ## [1.4.0-summary-json] - 2025-09-29
 
 ### 🎯 **Major Changes**

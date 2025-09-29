@@ -234,7 +234,7 @@ Jika ada masalah, cek dokumentasi di masing-masing folder atau lihat [Testing Gu
 - ✅ **RESTful API** dengan 7 endpoints lengkap
 - ✅ **Multi-file Upload** dengan background processing
 - ✅ **Session Management** dengan unique session IDs
-- ✅ **Real-time Status** monitoring
+- ✅ **Real-time Status** monitoring (heartbeat polling di Web UI)
 - ✅ **File Download** untuk hasil visualisasi
 - ✅ **Detection History** dengan 50 deteksi terbaru
 - ✅ **CORS Support** untuk web applications
@@ -243,7 +243,7 @@ Jika ada masalah, cek dokumentasi di masing-masing folder atau lihat [Testing Gu
 - ✅ **Summary JSON** dengan detection_summary, class_summary, object_count
 - ✅ **Image URLs** direct download links untuk semua visualisasi
 - ✅ **Compare Visualization** summary image yang menggabungkan semua hasil
-- ✅ **GPU Detection** real-time GPU information dengan memory details
+- ✅ **Backup Endpoint** `GET /api/backup/<session_id>` untuk unduh seluruh hasil sesi
 
 ### **Service Manager Features:**
 - ✅ **Toggle On/Off** API dengan `./api_service.sh`
@@ -498,7 +498,7 @@ python3 app/utils/environment_detector.py
 - ✅ **Web Application Documentation** - [📖 README_run_web.md](./README_run_web.md)
 - ✅ **API Hybrid Detection** - RESTful API untuk public access
 - ✅ **Background Processing** dengan session management
-- ✅ **Multi-file Upload** dengan real-time status monitoring
+- ✅ **Multi-file Upload** dengan real-time status monitoring (heartbeat polling)
 - ✅ **File Download** dan detection history features
 - ✅ **API Service Manager** - Toggle on/off dengan background running
 - ✅ **Auto-Start on Boot** - API otomatis start setelah VM restart

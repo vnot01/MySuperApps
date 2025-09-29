@@ -10,6 +10,10 @@ Aplikasi web real-time untuk deteksi objek menggunakan kamera dengan YOLO + SAM2
 - **Live Visualization**: Tampilan langsung dengan bounding box dan mask
 - **Web Interface**: Antarmuka web yang user-friendly
 - **GPU Support**: Mendukung GPU acceleration
+- **Heartbeat Polling**: Loader dengan polling status tiap 2 detik sampai selesai
+- **Galleries & Thumbnails**: Keempat frame menampilkan list gambar yang bisa diklik
+- **Load Last Results**: Memuat ulang hasil sesi sebelumnya via `/api/results/<session_id>`
+- **New Session**: Reset UI untuk mulai sesi baru
 
 ## 📋 Requirements
 
@@ -62,8 +66,8 @@ python3 app.py
 ## 🌐 Access
 
 Setelah aplikasi berjalan, buka browser dan akses:
-- **URL**: http://localhost:5000
-- **Port**: 5000 (default)
+- **URL**: http://100.98.142.94:5002
+- Frontend akan berkomunikasi dengan API di http://100.98.142.94:5000
 
 ## 🎮 Controls
 
@@ -72,6 +76,12 @@ Setelah aplikasi berjalan, buka browser dan akses:
 - **Stop Detection**: Hentikan deteksi
 - **Refresh Status**: Update status sistem
 - **Live Feed**: Tampilan kamera real-time
+  
+### Upload & Process Tab
+- **Proses Computer Vision**: Upload dan mulai proses; tombol otomatis disabled saat processing
+- **Download All Result**: Mengunduh backup sesi via `/api/backup/<session_id>`
+- **Load Last Results**: Memuat hasil dari `session_id` tertentu
+- **New Session**: Membersihkan file, hasil, dan state UI
 
 ### Detection Results
 - **YOLO11m Detections**: Hasil deteksi dari model YOLO11m
