@@ -210,9 +210,7 @@ for f in "${COPIED_FILES[@]}"; do
   UPLOAD_FORM+=(-F "files=@${INPUT_DIR}/$f")
 done
 API_UPLOAD_RESP=$(curl -s -X POST "http://100.98.142.94:5000/api/upload" "${UPLOAD_FORM[@]}")
-SESSION_ID=$(echo "${API_UPLOAD_RESP}" | python3 -c "import sys,json;\nimport sys,json;\n\
-import sys,json;\n\
-data=json.load(sys.stdin);\nprint(data.get('session_id',''))")
+SESSION_ID=$(echo "${API_UPLOAD_RESP}" | python3 -c "import sys,json; data=json.load(sys.stdin); print(data.get('session_id',''))")
 
 if [ -z "$SESSION_ID" ]; then
   print_error "Failed to get session_id from API upload"
