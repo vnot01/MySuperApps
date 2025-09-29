@@ -14,6 +14,8 @@ from termcolor import colored
 import json
 from pathlib import Path
 import matplotlib.pyplot as plt
+import argparse
+import shutil
 
 def log_message(message, level='info'):
     """Print colored log message"""
@@ -483,6 +485,12 @@ def generate_visualizations(image_path, base_name, output_dir, yolo_dir, best_di
 
 def main():
     """Main function"""
+    # Parse optional args for API session-aware URL writing
+    parser = argparse.ArgumentParser(description='Hybrid integration test runner')
+    parser.add_argument('--session_id', help='API session_id for download URLs', default=None)
+    parser.add_argument('--timestamp', help='Specific timestamp for session', default=None)
+    parser.add_argument('--user_id', help='Specific user_id for session', default=None)
+    args = parser.parse_args()
     # Load project info from model_info.json
     try:
         with open('/data/models/model_info.json', 'r') as f:
@@ -611,12 +619,12 @@ def main():
         generate_visualizations(image_path, base_name, output_dir, yolo_dir, best_dir, segmentasi_dir, hybrid_dir)
     
     # Create summary.json for each session
-    create_session_summary(test_images, project_name, project_version)
+    create_session_summary(test_images, project_name, project_version, session_id=args.session_id)
     
     log_message(f"\n🎉 {project_name} completed successfully!", 'success')
     log_message("📊 Check 'data/output/remote' for results", 'info')
 
-def create_session_summary(test_images, project_name, project_version):
+def create_session_summary(test_images, project_name, project_version, session_id=None):
     """Create summary.json for each session (timestamp/user_id)"""
     log_message("📋 Creating session summaries...", 'info')
     
@@ -686,34 +694,65 @@ def create_session_summary(test_images, project_name, project_version):
                 # Create images object with URLs for all model results
                 images = {}
                 
+                # Helper to maybe copy file to root for API /api/download/<session_id>/<filename>
+                def ensure_in_root(src_path: str, output_dir: str) -> str:
+                    base = os.path.basename(src_path)
+                    dst = os.path.join(output_dir, base)
+                    try:
+                        if os.path.exists(src_path) and not os.path.exists(dst):
+                            shutil.copy2(src_path, dst)
+                    except Exception as e:
+                        log_message(f"⚠️  Failed to copy {src_path} -> {dst}: {e}", 'warning')
+                    return base
+
                 # Best image (best.pt result)
                 best_dir = os.path.join(output_dir, "best")
                 best_image_path = os.path.join(best_dir, f"{image_name}-{model_name}-best.png")
                 if os.path.exists(best_image_path):
-                    images["best"] = f"http://100.98.142.94:5000/api/download/{timestamp}/{user_id}/best/{os.path.basename(best_image_path)}"
+                    if session_id:
+                        fname = ensure_in_root(best_image_path, output_dir)
+                        images["best"] = f"http://100.98.142.94:5000/api/download/{session_id}/{fname}"
+                    else:
+                        images["best"] = f"http://100.98.142.94:5000/api/download/{timestamp}/{user_id}/best/{os.path.basename(best_image_path)}"
                 
                 # Summary image (compare result) - located in root output directory
                 compare_image_path = os.path.join(output_dir, f"{image_name}-{model_name}-compare.png")
                 if os.path.exists(compare_image_path):
-                    detection_entry["summary_images_url"] = f"http://100.98.142.94:5000/api/download/{timestamp}/{user_id}/{os.path.basename(compare_image_path)}"
+                    if session_id:
+                        fname = os.path.basename(compare_image_path)
+                        detection_entry["summary_images_url"] = f"http://100.98.142.94:5000/api/download/{session_id}/{fname}"
+                    else:
+                        detection_entry["summary_images_url"] = f"http://100.98.142.94:5000/api/download/{timestamp}/{user_id}/{os.path.basename(compare_image_path)}"
                 
                 # YOLO image (yolo11m result)
                 yolo_dir = os.path.join(output_dir, "yolo")
                 yolo_image_path = os.path.join(yolo_dir, f"{image_name}-yolo11m-detection.png")
                 if os.path.exists(yolo_image_path):
-                    images["yolo"] = f"http://100.98.142.94:5000/api/download/{timestamp}/{user_id}/yolo/{os.path.basename(yolo_image_path)}"
+                    if session_id:
+                        fname = ensure_in_root(yolo_image_path, output_dir)
+                        images["yolo"] = f"http://100.98.142.94:5000/api/download/{session_id}/{fname}"
+                    else:
+                        images["yolo"] = f"http://100.98.142.94:5000/api/download/{timestamp}/{user_id}/yolo/{os.path.basename(yolo_image_path)}"
                 
                 # SAM image (segmentation result)
                 segmentasi_dir = os.path.join(output_dir, "segmentasi")
                 sam_image_path = os.path.join(segmentasi_dir, f"{image_name}-{model_name}-segmentation.png")
                 if os.path.exists(sam_image_path):
-                    images["sam"] = f"http://100.98.142.94:5000/api/download/{timestamp}/{user_id}/segmentasi/{os.path.basename(sam_image_path)}"
+                    if session_id:
+                        fname = ensure_in_root(sam_image_path, output_dir)
+                        images["sam"] = f"http://100.98.142.94:5000/api/download/{session_id}/{fname}"
+                    else:
+                        images["sam"] = f"http://100.98.142.94:5000/api/download/{timestamp}/{user_id}/segmentasi/{os.path.basename(sam_image_path)}"
                 
                 # Hybrid image (combined result)
                 hybrid_dir = os.path.join(output_dir, "hybrid")
                 hybrid_image_path = os.path.join(hybrid_dir, f"{image_name}-{model_name}-hybrid.png")
                 if os.path.exists(hybrid_image_path):
-                    images["hybrid"] = f"http://100.98.142.94:5000/api/download/{timestamp}/{user_id}/hybrid/{os.path.basename(hybrid_image_path)}"
+                    if session_id:
+                        fname = ensure_in_root(hybrid_image_path, output_dir)
+                        images["hybrid"] = f"http://100.98.142.94:5000/api/download/{session_id}/{fname}"
+                    else:
+                        images["hybrid"] = f"http://100.98.142.94:5000/api/download/{timestamp}/{user_id}/hybrid/{os.path.basename(hybrid_image_path)}"
                 
                 # Add images object to detection entry
                 if images:

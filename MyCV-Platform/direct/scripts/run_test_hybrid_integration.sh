@@ -204,10 +204,52 @@ print_status "Cleaning previous test results..."
 rm -rf "${OUTPUT_DIR}"/*
 print_success "Previous results cleaned"
 
-# Run integration test with integrated script (includes visualizations)
-print_status "Running YOLO + SAM2 integration test with visualizations (integrated version)..."
-# cd MyCV-Platform/direct
-python3 run_test_hybrid_integration.py
+print_status "Uploading test images via API..."
+UPLOAD_FORM=(-F "user_id=${USER_ID}")
+for f in "${COPIED_FILES[@]}"; do
+  UPLOAD_FORM+=(-F "files=@${INPUT_DIR}/$f")
+done
+API_UPLOAD_RESP=$(curl -s -X POST "http://100.98.142.94:5000/api/upload" "${UPLOAD_FORM[@]}")
+SESSION_ID=$(python3 - <<PY
+import json,sys
+try:
+  data=json.loads(open(0).read())
+  print(data.get('session_id',''))
+except Exception:
+  print('')
+PY <<<"${API_UPLOAD_RESP}")
+
+if [ -z "$SESSION_ID" ]; then
+  print_error "Failed to get session_id from API upload"
+  echo "$API_UPLOAD_RESP"
+  exit 1
+fi
+
+print_success "Session: $SESSION_ID"
+print_status "Waiting for processing to complete..."
+ATTEMPTS=0
+MAX_ATTEMPTS=60
+while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+  STATUS=$(curl -s "http://100.98.142.94:5000/api/process/${SESSION_ID}" | python3 -c "import sys,json;print(json.load(sys.stdin).get('status',''))")
+  if [ "$STATUS" = "completed" ]; then
+    print_success "Processing completed"
+    break
+  elif [ "$STATUS" = "failed" ]; then
+    print_error "Processing failed"
+    exit 1
+  fi
+  ATTEMPTS=$((ATTEMPTS+1))
+  sleep 1
+done
+
+if [ $ATTEMPTS -ge $MAX_ATTEMPTS ]; then
+  print_error "Timeout waiting for processing"
+  exit 1
+fi
+
+# Generate summary.json with session-aware URLs
+print_status "Generating session summary with session-aware URLs..."
+python3 run_test_hybrid_integration.py --session_id "$SESSION_ID"
 
 if [ $? -eq 0 ]; then
     print_success "✅ Integration test and visualizations completed successfully"
