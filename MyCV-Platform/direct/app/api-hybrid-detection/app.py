@@ -148,7 +148,7 @@ def run_detection_process(timestamp, user_id, session_id):
             cwd=direct_dir,
             capture_output=True,
             text=True,
-            timeout=300  # 5 minutes timeout
+            timeout=900  # 15 minutes timeout to handle many images
         )
         
         if result.returncode == 0:

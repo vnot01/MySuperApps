@@ -338,6 +338,12 @@
             box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
         }
 
+        .btn.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
         .status {
             background: #f8f9fa;
             border-radius: 8px;
@@ -574,6 +580,9 @@
                         </button>
                         <button id="download-btn" class="btn btn-info" disabled>
                             📥 Download All Result
+                        </button>
+                        <button id="load-last-btn" class="btn btn-info" disabled>
+                            📂 Load Last Results
                         </button>
                     </div>
                 <div class="processing" id="processing-banner" style="display:none; margin-top:10px;">⏳ Processing images... please wait</div>
@@ -1010,6 +1019,7 @@
             const uploadArea = document.querySelector('.upload-area');
             const processBtn = document.getElementById('process-btn');
             const downloadBtn = document.getElementById('download-btn');
+            const loadLastBtn = document.getElementById('load-last-btn');
 
             // File input change handler
             fileInput.addEventListener('change', handleFileSelect);
@@ -1022,6 +1032,7 @@
             // Button handlers
             processBtn.addEventListener('click', processImages);
             downloadBtn.addEventListener('click', downloadResults);
+            loadLastBtn.addEventListener('click', loadLastResults);
         }
 
         function handleFileSelect(event) {
@@ -1140,8 +1151,12 @@
             const downloadBtn = document.getElementById('download-btn');
             const processingBanner = document.getElementById('processing-banner');
             processBtn.disabled = true;
+            processBtn.classList.add('disabled');
             processBtn.textContent = '🔄 Processing...';
             downloadBtn.disabled = true;
+            downloadBtn.classList.add('disabled');
+            document.getElementById('load-last-btn').disabled = true;
+            document.getElementById('load-last-btn').classList.add('disabled');
             processingBanner.style.display = 'block';
 
             try {
@@ -1206,18 +1221,25 @@
                             processedResults = formatResultsForDisplay(resultsData.results, sessionId);
                             updateAllFrames();
                             downloadBtn.disabled = false;
+                            downloadBtn.classList.remove('disabled');
                             processBtn.disabled = false;
+                            processBtn.classList.remove('disabled');
+                            const llb = document.getElementById('load-last-btn');
+                            llb.disabled = false;
+                            llb.classList.remove('disabled');
                             showSuccess('Images processed successfully!');
                         }
                     } else if (statusData.status === 'failed') {
                         clearInterval(pollInterval);
                         processingBanner.style.display = 'none';
                         processBtn.disabled = false;
+                        processBtn.classList.remove('disabled');
                         showError('Processing failed: ' + statusData.message);
                     } else if (attempts >= maxAttempts) {
                         clearInterval(pollInterval);
                         processingBanner.style.display = 'none';
                         processBtn.disabled = false;
+                        processBtn.classList.remove('disabled');
                         showError('Processing timeout');
                     }
                 } catch (error) {
@@ -1226,6 +1248,7 @@
                         clearInterval(pollInterval);
                         processingBanner.style.display = 'none';
                         processBtn.disabled = false;
+                        processBtn.classList.remove('disabled');
                         showError('Error checking processing status');
                     }
                 }
@@ -1314,6 +1337,44 @@
             }
 
             return formatted;
+        }
+
+        async function loadLastResults() {
+            try {
+                // Heuristic: get latest session by requesting status history via /api/status (sessions_processed is only a count)
+                // So we parse from an existing URL if available; otherwise ask user
+                let sessionId = null;
+                try {
+                    const any = (processedResults.detection?.[0] || processedResults.segmentation?.[0] || processedResults.hybrid?.[0]);
+                    if (any && any.url) {
+                        const parts = any.url.split('/');
+                        const idx = parts.findIndex(p => p === 'api');
+                        if (idx >= 0 && parts[idx+1] === 'download') {
+                            sessionId = parts[idx+2];
+                        }
+                    }
+                } catch (e) {}
+                if (!sessionId) {
+                    const manual = prompt('Enter session_id to load (e.g., session_abcd1234):');
+                    if (!manual) return;
+                    sessionId = manual.trim();
+                }
+                const res = await fetch(`http://100.98.142.94:5000/api/results/${sessionId}`);
+                if (!res.ok) {
+                    showError('Failed to fetch last results');
+                    return;
+                }
+                const data = await res.json();
+                if (data.results) {
+                    processedResults = formatResultsForDisplay(data.results, sessionId);
+                    updateAllFrames();
+                    showSuccess('Last results loaded');
+                    document.getElementById('download-btn').disabled = false;
+                    document.getElementById('download-btn').classList.remove('disabled');
+                }
+            } catch (e) {
+                showError('Error loading last results');
+            }
         }
 
         async function updateAllFrames() {
