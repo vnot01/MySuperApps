@@ -1304,21 +1304,27 @@
             return formatted;
         }
 
-        function updateAllFrames() {
-            // Update Frame 1 (Original)
-            updateFrameWithResults('frame1', 'frame1-list', 'original');
-
-            // Update Frame 2 (Detection - best)
-            updateFrameWithResults('frame2', 'frame2-list', 'detection');
-            
-            // Update Frame 3 (Segmentation - sam)
-            updateFrameWithResults('frame3', 'frame3-list', 'segmentation');
-            
-            // Update Frame 4 (Hybrid)
-            updateFrameWithResults('frame4', 'frame4-list', 'hybrid');
+        async function updateAllFrames() {
+            await Promise.all([
+                updateFrameWithResults('frame1', 'frame1-list', 'original'),
+                updateFrameWithResults('frame2', 'frame2-list', 'detection'),
+                updateFrameWithResults('frame3', 'frame3-list', 'segmentation'),
+                updateFrameWithResults('frame4', 'frame4-list', 'hybrid')
+            ]);
         }
 
-        function updateFrameWithResults(frameId, listId, type) {
+        async function getImageObjectURL(url) {
+            try {
+                const resp = await fetch(url, { cache: 'no-store' });
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const blob = await resp.blob();
+                return URL.createObjectURL(blob);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function updateFrameWithResults(frameId, listId, type) {
             const frame = document.getElementById(frameId);
             const list = document.getElementById(listId);
             
@@ -1331,19 +1337,23 @@
 
             // Show first result in frame
             const firstResult = processedResults[type][0];
-            frame.innerHTML = `<img src="${firstResult.url}" class="frame-image" alt="${firstResult.name}">`;
+            let firstSrc = await getImageObjectURL(firstResult.url);
+            if (!firstSrc) firstSrc = firstResult.url; // fallback
+            frame.innerHTML = `<img src="${firstSrc}" class="frame-image" alt="${firstResult.name}">`;
             frame.classList.add('has-images');
 
             // Show all results in list
             let html = '';
-            processedResults[type].forEach((result, index) => {
+            for (const result of processedResults[type]) {
+                let thumbSrc = await getImageObjectURL(result.url);
+                if (!thumbSrc) thumbSrc = result.url;
                 html += `
                     <div class="image-item">
-                        <img src="${result.url}" class="image-thumb" alt="${result.name}">
+                        <img src="${thumbSrc}" class="image-thumb" alt="${result.name}">
                         <span>${result.name}</span>
                     </div>
                 `;
-            });
+            }
             list.innerHTML = html;
         }
 
