@@ -1,87 +1,44 @@
-sekarang kita modif ./run_api_hybrid_detection.py dan ./app/api-hybrid-detection/app.py
-untuk endpoint GET /api/results/<session_id>
-
-Mememiliki tampilan JSON payload seperti ini:
-
-
-
-
 ```json
 {
   "results": {
-    "detection_summary": {  // <== di ambil dari class_name
-      "dishwasher": 1, // <== di hitung ada berapa dishwasher yang di detection_processed.detections.datas.class_name
-      "soda": 1, // <== di hitung ada berapa soda yang di detection_processed.detections.datas.class_name
-      "mineral": 1, // <== di hitung ada berapa soda yang di detection_processed.detections.datas.class_name
-      "class_name" : "n",
-      "visualizations": [
-          {
-            "file_name": "21.mineral-best_pt-compare.png",
-            "images_url": "https://100.98.142.94:5000/20250928_152449/web_user/21.mineral-best_pt-compare.png",
-            "type": "compare"
-          }
-        ]
-    },
-    "detection_processed": [
+    "detection_summary": [
       {
-        "detection_count": 2, // <== hitung ada berapa images yang di proses
-        "detections": [
+        "id": 0,
+        "name": "1-botol_mineral-best_pt-detection.json",
+        "datas": [
           {
-            "id": 0,
-            "images_url":"https://100.98.142.94:5000/20250928_152449/web_user/best/21.mineral-best_pt-best.png",
-            "name" : "nama_images-model-detection.json", // <== json dari hasil deteksi best.pt + sam atau hybrid
-            "datas": [
-              {
-                "bbox": [
-                  289.1062316894531,
-                  224.7684326171875,
-                  368.2486267089844,
-                  452.5482177734375
-                ],
-                "class_id": 5,
-                "class_name": "soda",
-                "confidence": 0.28023016452789307
-              },
-              {
-                "bbox": [
-                  288.54638671875,
-                  223.8448944091797,
-                  369.2777099609375,
-                  452.61724853515625
-                ],
-                "class_id": 0,
-                "class_name": "dishwasher",
-                "confidence": 0.27135953307151794
-              }
-            ],
-            "object_count": 2 // <== menghitung object yang terdeteksi di gambar atau melihat ada berapa class_name dari datas nya
-          },
-          {
-          "id": 1,
-            "name" : "nama_images-model-detection.json", // <== json dari hasil deteksi best.pt + sam atau hybrid
-            "datas": [
-              {
-                "bbox": [
-                  289.1062316894531,
-                  224.7684326171875,
-                  368.2486267089844,
-                  452.5482177734375
-                ],
-                "class_id": 5,
-                "class_name": "mineral",
-                "confidence": 0.28023016452789307
-              }
-            ],
-            "object_count": 1 // <== menghitung object yang terdeteksi di gambar atau melihat ada berapa class_name dari datas nya
+            "bbox": [57.36, 62.23, 344.09, 577.80],
+            "confidence": 0.878,
+            "class_id": 2,
+            "class_name": "mineral"
           }
-        ]
+        ],
+        "detection_count": 1,
+        "summary_images_url": "https://100.98.142.94:5000/api/download/.../compare.png",
+        "images": {
+          "best": "https://100.98.142.94:5000/api/download/.../best.png",
+          "yolo": "https://100.98.142.94:5000/api/download/.../yolo.png",
+          "sam": "https://100.98.142.94:5000/api/download/.../sam.png",
+          "hybrid": "https://100.98.142.94:5000/api/download/.../hybrid.png"
+        }
       }
-    ]
+    ],
+    "class_summary": [
+      {
+        "class_name": "mineral",
+        "count": 3
+      },
+      {
+        "class_name": "not_empty", 
+        "count": 1
+      }
+    ],
+    "object_count": 3
   },
-  "session_id": "session_9eebbca5",
+  "session_id": "session_a88aa433",
   "status": "completed",
-  "timestamp": "20250928_135630",
-  "user_id": "test_userrrr"
+  "timestamp": "20250929_023747",
+  "user_id": "test_user_multi"
 }
 ```
 

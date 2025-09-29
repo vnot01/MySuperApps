@@ -98,59 +98,90 @@ cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection
     "user_id": "test_userrrr"
 }
 ```
-- `GET /api/results/<session_id>` - Hasil deteksi
-#### Response: `GET /api/results/session_9eebbca5`
+- `GET /api/results/<session_id>` - Hasil deteksi dari summary.json
+#### Response: `GET /api/results/session_a88aa433`
 ```json
 {
     "results": {
-        "detection_summary": {
-            "dishwasher": 1,
-            "soda": 1
-        },
-        "images_processed": [
+        "detection_summary": [
             {
-                "detection_count": 2,
-                "detections": [
+                "id": 0,
+                "name": "1-botol_mineral-best_pt-detection.json",
+                "datas": [
                     {
                         "bbox": [
-                            289.1062316894531,
-                            224.7684326171875,
-                            368.2486267089844,
-                            452.5482177734375
+                            57.36895751953125,
+                            62.235107421875,
+                            344.09259033203125,
+                            577.8096923828125
                         ],
-                        "class_id": 5,
-                        "class_name": "soda",
-                        "confidence": 0.28023016452789307
+                        "confidence": 0.8787883520126343,
+                        "class_id": 2,
+                        "class_name": "mineral"
+                    }
+                ],
+                "detection_count": 1,
+                "summary_images_url": "https://100.98.142.94:5000/api/download/20250929_023747/test_user_multi/1-botol_mineral-best_pt-compare.png",
+                "images": {
+                    "best": "https://100.98.142.94:5000/api/download/20250929_023747/test_user_multi/best/1-botol_mineral-best_pt-best.png",
+                    "yolo": "https://100.98.142.94:5000/api/download/20250929_023747/test_user_multi/yolo/1-botol_mineral-yolo11m-detection.png",
+                    "sam": "https://100.98.142.94:5000/api/download/20250929_023747/test_user_multi/segmentasi/1-botol_mineral-best_pt-segmentation.png",
+                    "hybrid": "https://100.98.142.94:5000/api/download/20250929_023747/test_user_multi/hybrid/1-botol_mineral-best_pt-hybrid.png"
+                }
+            },
+            {
+                "id": 1,
+                "name": "24_mineral-best_pt-detection.json",
+                "datas": [
+                    {
+                        "bbox": [
+                            103.0361328125,
+                            117.67948150634766,
+                            713.5864868164062,
+                            283.5408630371094
+                        ],
+                        "confidence": 0.8873822689056396,
+                        "class_id": 2,
+                        "class_name": "mineral"
                     },
                     {
                         "bbox": [
-                            288.54638671875,
-                            223.8448944091797,
-                            369.2777099609375,
-                            452.61724853515625
+                            549.1739501953125,
+                            188.59642028808594,
+                            646.7528686523438,
+                            271.01678466796875
                         ],
-                        "class_id": 0,
-                        "class_name": "dishwasher",
-                        "confidence": 0.27135953307151794
+                        "confidence": 0.6350509524345398,
+                        "class_id": 4,
+                        "class_name": "not_empty"
                     }
                 ],
-                "image_name": "27_not_mineral",
-                "json_file": "/27_not_mineral-best_pt-detection.json",
-                "visualizations": [
-                    {
-                        "file": "27_not_mineral-best_pt-compare.png",
-                        "path": "/27_not_mineral-best_pt-compare.png",
-                        "type": "compare"
-                    }
-                ]
+                "detection_count": 2,
+                "summary_images_url": "https://100.98.142.94:5000/api/download/20250929_023747/test_user_multi/24_mineral-best_pt-compare.png",
+                "images": {
+                    "best": "https://100.98.142.94:5000/api/download/20250929_023747/test_user_multi/best/24_mineral-best_pt-best.png",
+                    "yolo": "https://100.98.142.94:5000/api/download/20250929_023747/test_user_multi/yolo/24_mineral-yolo11m-detection.png",
+                    "sam": "https://100.98.142.94:5000/api/download/20250929_023747/test_user_multi/segmentasi/24_mineral-best_pt-segmentation.png",
+                    "hybrid": "https://100.98.142.94:5000/api/download/20250929_023747/test_user_multi/hybrid/24_mineral-best_pt-hybrid.png"
+                }
             }
         ],
-        "total_files": 1
+        "class_summary": [
+            {
+                "class_name": "mineral",
+                "count": 3
+            },
+            {
+                "class_name": "not_empty",
+                "count": 1
+            }
+        ],
+        "object_count": 3
     },
-    "session_id": "session_9eebbca5",
+    "session_id": "session_a88aa433",
     "status": "completed",
-    "timestamp": "20250928_135630",
-    "user_id": "test_userrrr"
+    "timestamp": "20250929_023747",
+    "user_id": "test_user_multi"
 }
 ```
 
@@ -326,10 +357,11 @@ curl http://100.98.142.94:5000/api/results/session_abc123
   "session_id": "session_abc123",
   "status": "completed",
   "results": {
-    "images_processed": [
+    "detection_summary": [
       {
-        "image_name": "image1",
-        "detections": [
+        "id": 0,
+        "name": "image1-best_pt-detection.json",
+        "datas": [
           {
             "bbox": [100, 200, 300, 400],
             "confidence": 0.85,
@@ -338,19 +370,22 @@ curl http://100.98.142.94:5000/api/results/session_abc123
           }
         ],
         "detection_count": 1,
-        "visualizations": [
-          {
-            "type": "compare",
-            "file": "image1-best_pt-compare.png",
-            "path": "/image1-best_pt-compare.png"
-          }
-        ]
+        "summary_images_url": "https://100.98.142.94:5000/api/download/20250929_023747/test_user_multi/image1-best_pt-compare.png",
+        "images": {
+          "best": "https://100.98.142.94:5000/api/download/20250929_023747/test_user_multi/best/image1-best_pt-best.png",
+          "yolo": "https://100.98.142.94:5000/api/download/20250929_023747/test_user_multi/yolo/image1-yolo11m-detection.png",
+          "sam": "https://100.98.142.94:5000/api/download/20250929_023747/test_user_multi/segmentasi/image1-best_pt-segmentation.png",
+          "hybrid": "https://100.98.142.94:5000/api/download/20250929_023747/test_user_multi/hybrid/image1-best_pt-hybrid.png"
+        }
       }
     ],
-    "total_files": 1,
-    "detection_summary": {
-      "mineral": 1
-    }
+    "class_summary": [
+      {
+        "class_name": "mineral",
+        "count": 1
+      }
+    ],
+    "object_count": 1
   }
 }
 ```
@@ -398,6 +433,9 @@ curl http://100.98.142.94:5000/api/results/session_abc123
 - ✅ **Error Handling**: Comprehensive error handling
 - ✅ **GPU Detection**: Real-time GPU information dengan memory details
 - ✅ **System Monitoring**: Total sessions processed tracking
+- ✅ **Summary JSON**: Structured results dengan detection_summary, class_summary, dan object_count
+- ✅ **Image URLs**: Direct download links untuk semua jenis visualisasi (best, yolo, sam, hybrid)
+- ✅ **Compare Visualization**: Summary image yang menggabungkan semua hasil
 
 ## 🔍 Detection Models
 
@@ -499,11 +537,13 @@ Web application menampilkan informasi real dari API:
 
 Untuk setiap gambar yang diproses:
 
-- `{image}-best_pt-detection.json` - Detection results
-- `{image}-best_pt-compare.png` - Compare visualization
-- `{image}-best_pt-best.png` - Best detection
-- `{image}-best_pt-segmentation.png` - SAM2 segmentation
-- `{image}-best_pt-hybrid.png` - Combined result
+- `{image}-best_pt-detection.json` - Detection results (JSON)
+- `{image}-best_pt-compare.png` - Compare visualization (4-panel)
+- `{image}-best_pt-best.png` - Best detection (best/ folder)
+- `{image}-yolo11m-detection.png` - YOLO11m detection (yolo/ folder)
+- `{image}-best_pt-segmentation.png` - SAM2 segmentation (segmentasi/ folder)
+- `{image}-best_pt-hybrid.png` - Combined result (hybrid/ folder)
+- `summary.json` - Session summary dengan detection_summary, class_summary, object_count
 
 ## 🚨 Troubleshooting
 

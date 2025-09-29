@@ -240,6 +240,10 @@ Jika ada masalah, cek dokumentasi di masing-masing folder atau lihat [Testing Gu
 - ✅ **CORS Support** untuk web applications
 - ✅ **Error Handling** yang comprehensive
 - ✅ **Public Access** di http://100.98.142.94:5000
+- ✅ **Summary JSON** dengan detection_summary, class_summary, object_count
+- ✅ **Image URLs** direct download links untuk semua visualisasi
+- ✅ **Compare Visualization** summary image yang menggabungkan semua hasil
+- ✅ **GPU Detection** real-time GPU information dengan memory details
 
 ### **Service Manager Features:**
 - ✅ **Toggle On/Off** API dengan `./api_service.sh`

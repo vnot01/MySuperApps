@@ -1,5 +1,98 @@
 # MyCV-Platform Changelog
 
+## [1.4.0-summary-json] - 2025-09-29
+
+### 🎯 **Major Changes**
+
+#### **API Endpoint `/api/results/<session_id>` Enhancement**
+- ✅ **Summary JSON Integration** - Endpoint sekarang membaca data dari `summary.json` yang terstruktur
+- ✅ **Structured Response Format** - Response dengan `detection_summary`, `class_summary`, dan `object_count`
+- ✅ **Image URLs Integration** - Direct download links untuk semua jenis visualisasi (best, yolo, sam, hybrid)
+- ✅ **Compare Visualization URLs** - URL untuk summary image yang menggabungkan semua hasil
+- ✅ **Session-specific Processing** - API hanya memproses session yang diminta, bukan semua session
+- ✅ **Consistent Data Structure** - Struktur JSON yang konsisten antara test script dan API
+
+#### **Enhanced Detection Script Integration**
+- ✅ **create_session_summary Function** - Ditambahkan ke `run_api_hybrid_detection.py`
+- ✅ **Session Isolation** - Script hanya memproses session yang ditentukan via command line arguments
+- ✅ **Command Line Arguments** - Support `--timestamp`, `--user_id`, `--session_id` parameters
+- ✅ **Backward Compatibility** - Fallback untuk memproses semua images jika tidak ada arguments
+
+#### **JSON Structure Improvements**
+- ✅ **Detection Summary Array** - Array berisi semua detection results dengan detail lengkap
+- ✅ **Class Summary Array** - Ringkasan jumlah setiap class yang terdeteksi
+- ✅ **Object Count** - Total jumlah objek yang diproses dalam session
+- ✅ **Individual Detection Count** - Jumlah class yang terdeteksi per file JSON
+- ✅ **Image URLs Object** - Object berisi URL untuk best, yolo, sam, hybrid visualizations
+
+### 🔧 **Technical Details**
+
+#### **API Response Structure:**
+```json
+{
+  "results": {
+    "detection_summary": [
+      {
+        "id": 0,
+        "name": "image-best_pt-detection.json",
+        "datas": [...],
+        "detection_count": 1,
+        "summary_images_url": "https://...compare.png",
+        "images": {
+          "best": "https://...best.png",
+          "yolo": "https://...yolo.png", 
+          "sam": "https://...sam.png",
+          "hybrid": "https://...hybrid.png"
+        }
+      }
+    ],
+    "class_summary": [
+      {"class_name": "mineral", "count": 3},
+      {"class_name": "not_empty", "count": 1}
+    ],
+    "object_count": 3
+  },
+  "session_id": "session_abc123",
+  "status": "completed",
+  "timestamp": "20250929_023747",
+  "user_id": "test_user_multi"
+}
+```
+
+#### **Script Integration:**
+- **Modified Files**: `app.py`, `run_api_hybrid_detection.py`
+- **New Function**: `create_session_summary()` di `run_api_hybrid_detection.py`
+- **Command Line Support**: `argparse` untuk session-specific processing
+- **File Generation**: `summary.json` di setiap session output directory
+
+### 📊 **Testing Results**
+- ✅ **Single Image Processing** - Berhasil dengan 1 detection
+- ✅ **Multiple Images Processing** - Berhasil dengan 3 detections, 2 class types
+- ✅ **Class Summary Accuracy** - Menghitung dengan benar (mineral: 3, not_empty: 1)
+- ✅ **Image URLs Validation** - Semua URL mengarah ke endpoint download yang benar
+- ✅ **API Integration** - Endpoint merespons dengan struktur JSON yang konsisten
+
+### 📚 **Documentation Updates**
+- ✅ **API README** - Updated dengan struktur response baru
+- ✅ **Direct README** - Updated dengan API features terbaru
+- ✅ **Main README** - Updated dengan API features summary
+- ✅ **CHANGELOG** - Comprehensive changelog entry
+
+### 🚀 **Usage Examples**
+
+#### **API Call:**
+```bash
+curl -s "http://100.98.142.94:5000/api/results/session_abc123" | jq '.'
+```
+
+#### **Response Features:**
+- **Detection Summary**: Array berisi semua hasil deteksi dengan detail lengkap
+- **Class Summary**: Ringkasan jumlah setiap class yang terdeteksi
+- **Object Count**: Total jumlah objek yang diproses
+- **Image URLs**: URL untuk semua jenis visualisasi (best, yolo, sam, hybrid)
+- **Summary Image URL**: URL untuk gambar compare yang menggabungkan semua hasil
+- **Session Metadata**: session_id, status, timestamp, user_id
+
 ## [1.3.0-service] - 2025-09-28
 
 ### 🎯 **Major Changes**

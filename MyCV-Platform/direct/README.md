@@ -131,10 +131,10 @@ data/output/remote/(timestamp)/(user_id)/
 
 ### **API Endpoints:**
 - `GET /api/health` - Health check
-- `GET /api/status` - API status
+- `GET /api/status` - API status dengan GPU information
 - `POST /api/upload` - Upload images untuk deteksi
 - `GET /api/process/<session_id>` - Status pemrosesan
-- `GET /api/results/<session_id>` - Hasil deteksi
+- `GET /api/results/<session_id>` - Hasil deteksi dari summary.json
 - `GET /api/download/<session_id>/<filename>` - Download file hasil
 - `GET /api/detections` - Semua deteksi terbaru
 
@@ -166,6 +166,10 @@ curl -X POST \
 - ✅ **Detection History**: Lihat semua deteksi terbaru
 - ✅ **CORS Support**: Support untuk web applications
 - ✅ **Error Handling**: Comprehensive error handling
+- ✅ **Summary JSON**: Structured results dengan detection_summary, class_summary, object_count
+- ✅ **Image URLs**: Direct download links untuk semua jenis visualisasi (best, yolo, sam, hybrid)
+- ✅ **Compare Visualization**: Summary image yang menggabungkan semua hasil
+- ✅ **GPU Detection**: Real-time GPU information dengan memory details
 
 ### **API Documentation:**
 - **README**: `./app/api-hybrid-detection/README.md`
