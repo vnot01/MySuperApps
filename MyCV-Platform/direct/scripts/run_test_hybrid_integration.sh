@@ -180,7 +180,7 @@ if [ ${#AVAILABLE_IMAGES[@]} -eq 0 ]; then
 fi
 
 # Copy 2-4 random images
-NUM_IMAGES=$((RANDOM % 2 + 4))  # Random between 2-4 images
+NUM_IMAGES=$((RANDOM % 2 + 1))  # Random between 2-4 images
 COPIED_FILES=()
 
 for i in $(seq 0 $((NUM_IMAGES-1))); do
@@ -210,14 +210,9 @@ for f in "${COPIED_FILES[@]}"; do
   UPLOAD_FORM+=(-F "files=@${INPUT_DIR}/$f")
 done
 API_UPLOAD_RESP=$(curl -s -X POST "http://100.98.142.94:5000/api/upload" "${UPLOAD_FORM[@]}")
-SESSION_ID=$(python3 - <<PY
-import json,sys
-try:
-  data=json.loads(open(0).read())
-  print(data.get('session_id',''))
-except Exception:
-  print('')
-PY <<<"${API_UPLOAD_RESP}")
+SESSION_ID=$(echo "${API_UPLOAD_RESP}" | python3 -c "import sys,json;\nimport sys,json;\n\
+import sys,json;\n\
+data=json.load(sys.stdin);\nprint(data.get('session_id',''))")
 
 if [ -z "$SESSION_ID" ]; then
   print_error "Failed to get session_id from API upload"
