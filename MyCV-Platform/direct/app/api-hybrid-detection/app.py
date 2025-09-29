@@ -11,6 +11,8 @@ import time
 import uuid
 from datetime import datetime
 from flask import Flask, request, jsonify, send_file
+import tarfile
+import tempfile
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import subprocess
@@ -426,6 +428,43 @@ def download_file(session_id, filename):
         return jsonify({'error': 'File not found'}), 404
     
     return send_file(file_path, as_attachment=True)
+
+@app.route('/api/backup/<session_id>', methods=['GET'])
+def backup_session(session_id):
+    """Create and download TAR.GZ backup for a session output directory."""
+    if session_id not in processing_status:
+        return jsonify({'error': 'Session not found'}), 404
+    if processing_status[session_id]['status'] != 'completed':
+        return jsonify({'error': 'Processing not completed yet'}), 202
+
+    timestamp = processing_status[session_id]['timestamp']
+    user_id = processing_status[session_id]['user_id']
+    output_dir = os.path.join(OUTPUT_FOLDER, timestamp, user_id)
+    if not os.path.exists(output_dir):
+        return jsonify({'error': 'Output directory not found'}), 404
+
+    backup_name = f"session_backup_{timestamp}_{user_id}.tar.gz"
+    final_path = os.path.join(output_dir, backup_name)
+
+    try:
+        # Create tar.gz in a temp file then move to session dir to avoid read-while-writing issues
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.tar.gz') as tmpf:
+            tmp_path = tmpf.name
+        with tarfile.open(tmp_path, 'w:gz') as tar:
+            tar.add(output_dir, arcname='.', filter=lambda x: None if x.name.endswith('.tar.gz') else x)
+        # Move over existing
+        if os.path.exists(final_path):
+            os.remove(final_path)
+        os.replace(tmp_path, final_path)
+    except Exception as e:
+        try:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+        except Exception:
+            pass
+        return jsonify({'error': f'Failed to create backup: {str(e)}'}), 500
+
+    return send_file(final_path, as_attachment=True)
 
 @app.route('/api/detections', methods=['GET'])
 def get_all_detections():

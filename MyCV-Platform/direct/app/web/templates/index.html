@@ -1383,10 +1383,36 @@
                 return;
             }
 
-            // Download individual files
+            // Prefer downloading a single backup from API if sessionId is known
+            const sessionIdSpan = document.querySelector('[data-session-id]');
+            let sessionId = null;
+            // We stored sessionId implicitly during polling; reuse last known from results
+            // As a robust fallback, parse from one of the URLs
+            try {
+                const any = (processedResults.detection[0] || processedResults.segmentation[0] || processedResults.hybrid[0]);
+                if (any && any.url) {
+                    const parts = any.url.split('/');
+                    const idx = parts.findIndex(p => p === 'api');
+                    if (idx >= 0 && parts[idx+1] === 'download') {
+                        sessionId = parts[idx+2];
+                    }
+                }
+            } catch (e) {}
+
+            if (sessionId) {
+                const backupUrl = `http://100.98.142.94:5000/api/backup/${sessionId}`;
+                const link = document.createElement('a');
+                link.href = backupUrl;
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showSuccess('Preparing backup download...');
+                return;
+            }
+
+            // Fallback: download individual files
             let downloadCount = 0;
-            const totalFiles = Object.values(processedResults).reduce((sum, arr) => sum + arr.length, 0);
-            
             Object.values(processedResults).forEach(resultArray => {
                 resultArray.forEach(result => {
                     const link = document.createElement('a');
@@ -1399,7 +1425,6 @@
                     downloadCount++;
                 });
             });
-            
             showSuccess(`Downloaded ${downloadCount} files`);
         }
 
