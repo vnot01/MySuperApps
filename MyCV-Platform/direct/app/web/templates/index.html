@@ -1195,17 +1195,12 @@
         }
 
         async function pollForResults(sessionId) {
-            const maxAttempts = 30; // 30 seconds timeout
-            let attempts = 0;
             const processingBanner = document.getElementById('processing-banner');
             const processBtn = document.getElementById('process-btn');
             const downloadBtn = document.getElementById('download-btn');
             
             const pollInterval = setInterval(async () => {
-                attempts++;
-                
                 try {
-                    // Check processing status
                     const statusResponse = await fetch(`http://100.98.142.94:5000/api/process/${sessionId}`);
                     const statusData = await statusResponse.json();
                     
@@ -1213,7 +1208,6 @@
                         clearInterval(pollInterval);
                         processingBanner.style.display = 'none';
                         
-                        // Get results
                         const resultsResponse = await fetch(`http://100.98.142.94:5000/api/results/${sessionId}`);
                         const resultsData = await resultsResponse.json();
                         
@@ -1234,25 +1228,16 @@
                         processingBanner.style.display = 'none';
                         processBtn.disabled = false;
                         processBtn.classList.remove('disabled');
-                        showError('Processing failed: ' + statusData.message);
-                    } else if (attempts >= maxAttempts) {
-                        clearInterval(pollInterval);
-                        processingBanner.style.display = 'none';
-                        processBtn.disabled = false;
-                        processBtn.classList.remove('disabled');
-                        showError('Processing timeout');
+                        showError('Processing failed: ' + (statusData.message || 'unknown error'));
+                    } else {
+                        // still processing: keep banner visible indefinitely
+                        processingBanner.style.display = 'block';
                     }
                 } catch (error) {
-                    console.error('Polling error:', error);
-                    if (attempts >= maxAttempts) {
-                        clearInterval(pollInterval);
-                        processingBanner.style.display = 'none';
-                        processBtn.disabled = false;
-                        processBtn.classList.remove('disabled');
-                        showError('Error checking processing status');
-                    }
+                    // transient errors: keep polling
+                    console.warn('Polling error:', error);
                 }
-            }, 1000);
+            }, 2000);
         }
 
         function normalizeUrl(url) {
