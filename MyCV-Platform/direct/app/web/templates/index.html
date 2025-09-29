@@ -448,6 +448,17 @@
             display: none;
         }
 
+        .processing {
+            display: none;
+            text-align: center;
+            background: #fff3cd;
+            color: #856404;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ffeeba;
+            margin: 10px 0;
+        }
+
         @media (max-width: 768px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -661,6 +672,7 @@
 
         <div class="error" id="error-message"></div>
         <div class="success" id="success-message"></div>
+        <div class="processing" id="processing-banner">⏳ Processing images... please wait</div>
 
         <div class="footer">
             <p>Powered by MyCV-Platform | YOLO + SAM2 Integration</p>
@@ -1125,8 +1137,12 @@
             }
 
             const processBtn = document.getElementById('process-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const processingBanner = document.getElementById('processing-banner');
             processBtn.disabled = true;
             processBtn.textContent = '🔄 Processing...';
+            downloadBtn.disabled = true;
+            processingBanner.style.display = 'block';
 
             try {
                 // Create FormData for file upload to API
@@ -1158,7 +1174,7 @@
             } catch (error) {
                 showError('Error processing images: ' + error.message);
             } finally {
-                processBtn.disabled = false;
+                // do not re-enable here; will be enabled after processing completes
                 processBtn.textContent = '🔍 Proses Computer Vision';
             }
         }
@@ -1166,6 +1182,9 @@
         async function pollForResults(sessionId) {
             const maxAttempts = 30; // 30 seconds timeout
             let attempts = 0;
+            const processingBanner = document.getElementById('processing-banner');
+            const processBtn = document.getElementById('process-btn');
+            const downloadBtn = document.getElementById('download-btn');
             
             const pollInterval = setInterval(async () => {
                 attempts++;
@@ -1177,6 +1196,7 @@
                     
                     if (statusData.status === 'completed') {
                         clearInterval(pollInterval);
+                        processingBanner.style.display = 'none';
                         
                         // Get results
                         const resultsResponse = await fetch(`http://100.98.142.94:5000/api/results/${sessionId}`);
@@ -1185,24 +1205,41 @@
                         if (resultsData.results) {
                             processedResults = formatResultsForDisplay(resultsData.results);
                             updateAllFrames();
-                            document.getElementById('download-btn').disabled = false;
+                            downloadBtn.disabled = false;
+                            processBtn.disabled = false;
                             showSuccess('Images processed successfully!');
                         }
                     } else if (statusData.status === 'failed') {
                         clearInterval(pollInterval);
+                        processingBanner.style.display = 'none';
+                        processBtn.disabled = false;
                         showError('Processing failed: ' + statusData.message);
                     } else if (attempts >= maxAttempts) {
                         clearInterval(pollInterval);
+                        processingBanner.style.display = 'none';
+                        processBtn.disabled = false;
                         showError('Processing timeout');
                     }
                 } catch (error) {
                     console.error('Polling error:', error);
                     if (attempts >= maxAttempts) {
                         clearInterval(pollInterval);
+                        processingBanner.style.display = 'none';
+                        processBtn.disabled = false;
                         showError('Error checking processing status');
                     }
                 }
             }, 1000);
+        }
+
+        function normalizeUrl(url) {
+            try {
+                if (!url) return url;
+                // Force http to avoid mixed content/invalid cert issues
+                return url.replace(/^https:\/\//, 'http://');
+            } catch (_) {
+                return url;
+            }
         }
 
         function formatResultsForDisplay(apiResults) {
@@ -1233,7 +1270,7 @@
                     } else if (entry.summary_images_url) {
                         formatted.original.push({
                             name: name.replace('-best_pt-detection.json', '') + '-compare.png',
-                            url: entry.summary_images_url,
+                            url: normalizeUrl(entry.summary_images_url),
                             type: 'original'
                         });
                     }
@@ -1242,21 +1279,21 @@
                         if (entry.images.best) {
                             formatted.detection.push({
                                 name: name.replace('-detection.json', '') + '-best.png',
-                                url: entry.images.best,
+                                url: normalizeUrl(entry.images.best),
                                 type: 'best'
                             });
                         }
                         if (entry.images.sam) {
                             formatted.segmentation.push({
                                 name: name.replace('-detection.json', '') + '-segmentation.png',
-                                url: entry.images.sam,
+                                url: normalizeUrl(entry.images.sam),
                                 type: 'segmentation'
                             });
                         }
                         if (entry.images.hybrid) {
                             formatted.hybrid.push({
                                 name: name.replace('-detection.json', '') + '-hybrid.png',
-                                url: entry.images.hybrid,
+                                url: normalizeUrl(entry.images.hybrid),
                                 type: 'hybrid'
                             });
                         }
