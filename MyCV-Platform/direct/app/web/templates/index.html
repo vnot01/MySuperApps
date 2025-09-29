@@ -584,6 +584,9 @@
                         <button id="load-last-btn" class="btn btn-info" disabled>
                             📂 Load Last Results
                         </button>
+                        <button id="new-session-btn" class="btn btn-danger">
+                            🆕 New Session
+                        </button>
                     </div>
                 <div class="processing" id="processing-banner" style="display:none; margin-top:10px;">⏳ Processing images... please wait</div>
                 </div>
@@ -1020,6 +1023,7 @@
             const processBtn = document.getElementById('process-btn');
             const downloadBtn = document.getElementById('download-btn');
             const loadLastBtn = document.getElementById('load-last-btn');
+            const newSessionBtn = document.getElementById('new-session-btn');
 
             // File input change handler
             fileInput.addEventListener('change', handleFileSelect);
@@ -1033,6 +1037,7 @@
             processBtn.addEventListener('click', processImages);
             downloadBtn.addEventListener('click', downloadResults);
             loadLastBtn.addEventListener('click', loadLastResults);
+            newSessionBtn.addEventListener('click', startNewSession);
         }
 
         function handleFileSelect(event) {
@@ -1421,6 +1426,44 @@
             if (!frame) return;
             frame.innerHTML = `<img src="${url}" class="frame-image" alt="${name}">`;
             frame.classList.add('has-images');
+        }
+
+        // Start fresh session: reset UI state
+        function startNewSession() {
+            // Clear files and results
+            uploadedFiles = [];
+            processedResults = {};
+            window.lastSessionId = null;
+
+            // Reset lists and frames
+            document.getElementById('uploaded-files').innerHTML = '';
+            document.getElementById('frame1').innerHTML = '<p style="color: #999;">No images uploaded</p>';
+            document.getElementById('frame2').innerHTML = '<p style="color: #999;">No detection results</p>';
+            document.getElementById('frame3').innerHTML = '<p style="color: #999;">No segmentation results</p>';
+            document.getElementById('frame4').innerHTML = '<p style="color: #999;">No hybrid results</p>';
+            document.getElementById('frame1-list').innerHTML = '';
+            document.getElementById('frame2-list').innerHTML = '';
+            document.getElementById('frame3-list').innerHTML = '';
+            document.getElementById('frame4-list').innerHTML = '';
+            document.getElementById('processing-banner').style.display = 'none';
+
+            // Reset buttons
+            const processBtn = document.getElementById('process-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            const loadLastBtn = document.getElementById('load-last-btn');
+            processBtn.disabled = true;
+            processBtn.classList.remove('disabled');
+            processBtn.textContent = '🔍 Proses Computer Vision';
+            downloadBtn.disabled = true;
+            downloadBtn.classList.add('disabled');
+            loadLastBtn.disabled = false;
+            loadLastBtn.classList.remove('disabled');
+
+            // Clear file input
+            const fileInput = document.getElementById('file-input');
+            if (fileInput) fileInput.value = '';
+
+            showSuccess('Started a new session.');
         }
 
         function downloadResults() {
