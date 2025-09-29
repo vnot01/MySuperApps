@@ -1206,44 +1206,75 @@
         }
 
         function formatResultsForDisplay(apiResults) {
+            // Adapt to new API structure: results.detection_summary[*].images.{best,yolo,sam,hybrid}
             const formatted = {
+                original: [],
                 detection: [],
                 segmentation: [],
                 hybrid: []
             };
-            
-            if (apiResults.images_processed) {
-                apiResults.images_processed.forEach(imageResult => {
-                    if (imageResult.visualizations) {
-                        imageResult.visualizations.forEach(vis => {
-                            const resultItem = {
-                                name: vis.file,
-                                url: `http://100.98.142.94:5000/api/download/${apiResults.session_id || 'unknown'}/${vis.file}`,
-                                type: vis.type,
-                                imageName: imageResult.image_name
-                            };
-                            
-                            // Map visualization types to frame categories
-                            if (vis.type === 'best' || vis.type === 'detection') {
-                                formatted.detection.push(resultItem);
-                            } else if (vis.type === 'segmentation') {
-                                formatted.segmentation.push(resultItem);
-                            } else if (vis.type === 'hybrid' || vis.type === 'compare') {
-                                formatted.hybrid.push(resultItem);
-                            }
+
+            if (apiResults && Array.isArray(apiResults.detection_summary)) {
+                apiResults.detection_summary.forEach(entry => {
+                    const name = entry.name || '';
+
+                    // Frame 1 (Original): use uploaded previews if available; else use compare image as proxy
+                    if (uploadedFiles && uploadedFiles.length > 0) {
+                        // push previews for originals once
+                        if (formatted.original.length === 0) {
+                            uploadedFiles.forEach(file => {
+                                formatted.original.push({
+                                    name: file.name,
+                                    url: file.data,
+                                    type: 'original'
+                                });
+                            });
+                        }
+                    } else if (entry.summary_images_url) {
+                        formatted.original.push({
+                            name: name.replace('-best_pt-detection.json', '') + '-compare.png',
+                            url: entry.summary_images_url,
+                            type: 'original'
                         });
+                    }
+
+                    if (entry.images) {
+                        if (entry.images.best) {
+                            formatted.detection.push({
+                                name: name.replace('-detection.json', '') + '-best.png',
+                                url: entry.images.best,
+                                type: 'best'
+                            });
+                        }
+                        if (entry.images.sam) {
+                            formatted.segmentation.push({
+                                name: name.replace('-detection.json', '') + '-segmentation.png',
+                                url: entry.images.sam,
+                                type: 'segmentation'
+                            });
+                        }
+                        if (entry.images.hybrid) {
+                            formatted.hybrid.push({
+                                name: name.replace('-detection.json', '') + '-hybrid.png',
+                                url: entry.images.hybrid,
+                                type: 'hybrid'
+                            });
+                        }
                     }
                 });
             }
-            
+
             return formatted;
         }
 
         function updateAllFrames() {
-            // Update Frame 2 (Detection)
+            // Update Frame 1 (Original)
+            updateFrameWithResults('frame1', 'frame1-list', 'original');
+
+            // Update Frame 2 (Detection - best)
             updateFrameWithResults('frame2', 'frame2-list', 'detection');
             
-            // Update Frame 3 (Segmentation)
+            // Update Frame 3 (Segmentation - sam)
             updateFrameWithResults('frame3', 'frame3-list', 'segmentation');
             
             // Update Frame 4 (Hybrid)
