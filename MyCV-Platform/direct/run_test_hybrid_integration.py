@@ -691,8 +691,11 @@ def create_session_summary(test_images, project_name, project_version):
                 best_image_path = os.path.join(best_dir, f"{image_name}-{model_name}-best.png")
                 if os.path.exists(best_image_path):
                     images["best"] = f"https://100.98.142.94:5000/api/download/{timestamp}/{user_id}/best/{os.path.basename(best_image_path)}"
-                    # Keep backward compatibility with images_url
-                    detection_entry["images_url"] = images["best"]
+                
+                # Summary image (compare result) - located in root output directory
+                compare_image_path = os.path.join(output_dir, f"{image_name}-{model_name}-compare.png")
+                if os.path.exists(compare_image_path):
+                    detection_entry["summary_images_url"] = f"https://100.98.142.94:5000/api/download/{timestamp}/{user_id}/{os.path.basename(compare_image_path)}"
                 
                 # YOLO image (yolo11m result)
                 yolo_dir = os.path.join(output_dir, "yolo")
