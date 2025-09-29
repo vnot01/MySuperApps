@@ -273,25 +273,46 @@ def save_results_remote(base_name, yolo_detections, sam_masks, output_dir, origi
     log_message(f"📁 Files saved to {output_dir}", 'info')
 
 def draw_bounding_boxes(image, detections, color=(0, 255, 0), thickness=2):
-    """Draw bounding boxes on image"""
+    """Draw bounding boxes on image with labels always visible (clamped inside)."""
     result_image = image.copy()
-    
-    for i, detection in enumerate(detections):
+
+    height, width = result_image.shape[:2]
+    # Dynamic font scale based on image size for readability
+    base_scale = max(width, height) / 800.0
+    font_scale = max(0.5, min(1.2, 0.6 * base_scale))
+    font_thickness = 2
+
+    for detection in detections:
         x1, y1, x2, y2 = map(int, detection['bbox'])
         confidence = detection['confidence']
         class_name = detection['class_name']
-        
+
+        # Clamp coordinates
+        x1 = max(0, min(x1, width - 1))
+        y1 = max(0, min(y1, height - 1))
+        x2 = max(0, min(x2, width - 1))
+        y2 = max(0, min(y2, height - 1))
+
         # Draw bounding box
         cv2.rectangle(result_image, (x1, y1), (x2, y2), color, thickness)
-        
-        # Draw label
-        label = f"{class_name}: {confidence:.3f}"
-        label_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 2)[0]
-        cv2.rectangle(result_image, (x1, y1 - label_size[1] - 10), 
-                     (x1 + label_size[0], y1), color, -1)
-        cv2.putText(result_image, label, (x1, y1 - 5), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-    
+
+        # Prepare label
+        label = f"{class_name}: {confidence:.2f}"
+        (label_w, label_h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, font_scale, font_thickness)
+
+        # Place label inside the box (top-left), clamp to image boundaries
+        box_x = x1 + 2
+        box_y = y1 + 2
+        rect_pt1 = (box_x, box_y)
+        rect_pt2 = (min(box_x + label_w + 6, width - 1), min(box_y + label_h + 6, height - 1))
+
+        # Background rectangle for readability
+        cv2.rectangle(result_image, rect_pt1, rect_pt2, color, -1)
+
+        # Text baseline inside the rectangle
+        text_org = (box_x + 3, box_y + label_h + 1)
+        cv2.putText(result_image, label, text_org, cv2.FONT_HERSHEY_SIMPLEX, font_scale, (255, 255, 255), font_thickness)
+
     return result_image
 
 def overlay_segmentation_masks(image, masks, alpha=0.3):
