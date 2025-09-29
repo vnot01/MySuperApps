@@ -747,11 +747,7 @@ def create_session_summary(test_images, project_name, project_version):
         summary_data = {
             "detection_summary": detection_summary,
             "class_summary": class_summary,
-            "object_count": len(detection_summary),  # Total number of objects processed in this session
-            "session_id": f"session_{timestamp}_{user_id}",
-            "status": "completed",
-            "timestamp": timestamp,
-            "user_id": user_id
+            "object_count": len(detection_summary)  # Total number of objects processed in this session
         }
         
         # Save summary.json

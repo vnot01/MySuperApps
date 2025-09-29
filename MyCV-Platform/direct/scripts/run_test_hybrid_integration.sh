@@ -179,8 +179,8 @@ if [ ${#AVAILABLE_IMAGES[@]} -eq 0 ]; then
     exit 1
 fi
 
-# Copy 2-3 random images
-NUM_IMAGES=$((RANDOM % 2 + 2))  # Random between 2-3 images
+# Copy 2-4 random images
+NUM_IMAGES=$((RANDOM % 2 + 4))  # Random between 2-4 images
 COPIED_FILES=()
 
 for i in $(seq 0 $((NUM_IMAGES-1))); do
