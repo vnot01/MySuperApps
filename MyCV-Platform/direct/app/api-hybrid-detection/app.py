@@ -155,10 +155,8 @@ def run_detection_process(timestamp, user_id, session_id):
             processing_status[session_id]['message'] = 'Detection completed successfully'
             processing_status[session_id]['end_time'] = datetime.now().isoformat()
             
-            # Collect results
-            output_dir = os.path.join(OUTPUT_FOLDER, timestamp, user_id)
-            results = collect_detection_results(output_dir)
-            processing_results[session_id] = results
+            # Results will be read from summary.json when requested
+            processing_results[session_id] = {'status': 'completed'}
             
         else:
             # Process failed
@@ -371,7 +369,7 @@ def get_process_status(session_id):
 
 @app.route('/api/results/<session_id>', methods=['GET'])
 def get_results(session_id):
-    """Get detection results for a session"""
+    """Get detection results for a session from summary.json"""
     if session_id not in processing_status:
         return jsonify({'error': 'Session not found'}), 404
     
@@ -381,16 +379,33 @@ def get_results(session_id):
             'status': processing_status[session_id]['status']
         }), 202
     
-    if session_id not in processing_results:
-        return jsonify({'error': 'Results not available'}), 404
-    
-    return jsonify({
-        'session_id': session_id,
-        'status': 'completed',
-        'results': processing_results[session_id],
-        'timestamp': processing_status[session_id]['timestamp'],
-        'user_id': processing_status[session_id]['user_id']
-    })
+    try:
+        # Get session info
+        timestamp = processing_status[session_id]['timestamp']
+        user_id = processing_status[session_id]['user_id']
+        
+        # Look for summary.json in the output directory
+        output_dir = os.path.join(OUTPUT_FOLDER, timestamp, user_id)
+        summary_file = os.path.join(output_dir, 'summary.json')
+        
+        if not os.path.exists(summary_file):
+            return jsonify({'error': 'Summary file not found'}), 404
+        
+        # Read summary.json
+        with open(summary_file, 'r') as f:
+            summary_data = json.load(f)
+        
+        # Return the data in the requested format
+        return jsonify({
+            'results': summary_data,
+            'session_id': session_id,
+            'status': 'completed',
+            'timestamp': timestamp,
+            'user_id': user_id
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to read results: {str(e)}'}), 500
 
 @app.route('/api/download/<session_id>/<filename>', methods=['GET'])
 def download_file(session_id, filename):

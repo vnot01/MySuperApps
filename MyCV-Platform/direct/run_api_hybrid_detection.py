@@ -654,8 +654,155 @@ def main():
         # Generate visualizations for this image
         generate_visualizations(image_path, base_name, output_dir, yolo_dir, best_dir, segmentasi_dir, hybrid_dir)
     
-    # log_message(f"🎉 {project_name} completed successfully!", 'success')
-    # log_message("📊 Check 'data/output/remote' for results", 'info')
+    # Create summary.json for the session
+    create_session_summary(test_images, project_name, project_version)
+    
+    log_message(f"🎉 {project_name} completed successfully!", 'success')
+    log_message("📊 Check 'data/output/remote' for results", 'info')
+
+def create_session_summary(test_images, project_name, project_version):
+    """Create summary.json for each session (timestamp/user_id)"""
+    log_message("📋 Creating session summaries...", 'info')
+    
+    # Group images by session (timestamp/user_id)
+    sessions = {}
+    for image_path in test_images:
+        path_parts = image_path.split(os.sep)
+        timestamp = path_parts[-3] if len(path_parts) >= 3 else "unknown"
+        user_id = path_parts[-2] if len(path_parts) >= 2 else "unknown"
+        
+        session_key = f"{timestamp}/{user_id}"
+        if session_key not in sessions:
+            sessions[session_key] = {
+                'timestamp': timestamp,
+                'user_id': user_id,
+                'images': []
+            }
+        sessions[session_key]['images'].append(image_path)
+    
+    # Create summary for each session
+    for session_key, session_data in sessions.items():
+        timestamp = session_data['timestamp']
+        user_id = session_data['user_id']
+        
+        log_message(f"📝 Creating summary for session: {session_key}", 'info')
+        
+        # Output directory for this session
+        output_dir = f"data/output/remote/{timestamp}/{user_id}"
+        
+        # Collect all detection results for this session
+        detection_summary = []
+        
+        # Find all JSON files in the session directory (only for current session)
+        json_files = []
+        if os.path.exists(output_dir):
+            for root, dirs, files in os.walk(output_dir):
+                for file in files:
+                    if file.endswith('-detection.json'):
+                        # Only include files from current session
+                        json_files.append(os.path.join(root, file))
+        
+        # Process each JSON file
+        for json_file in json_files:
+            try:
+                with open(json_file, 'r') as f:
+                    detection_data = json.load(f)
+                
+                # Extract image name and model from filename
+                filename = os.path.basename(json_file)
+                # Format: image_name-model-detection.json
+                parts = filename.replace('-detection.json', '').split('-')
+                if len(parts) >= 2:
+                    image_name = '-'.join(parts[:-1])  # Everything except last part (model)
+                    model_name = parts[-1]  # Last part is model name
+                else:
+                    image_name = filename.replace('-detection.json', '')
+                    model_name = 'unknown'
+                
+                # Create detection entry according to user's format
+                detection_entry = {
+                    "id": len(detection_summary),
+                    "name": filename,
+                    "datas": detection_data,
+                    "detection_count": len(detection_data)
+                }
+                
+                # Create images object with URLs for all model results
+                images = {}
+                
+                # Best image (best.pt result)
+                best_dir = os.path.join(output_dir, "best")
+                best_image_path = os.path.join(best_dir, f"{image_name}-{model_name}-best.png")
+                if os.path.exists(best_image_path):
+                    images["best"] = f"https://100.98.142.94:5000/api/download/{timestamp}/{user_id}/best/{os.path.basename(best_image_path)}"
+                
+                # Summary image (compare result) - located in root output directory
+                compare_image_path = os.path.join(output_dir, f"{image_name}-{model_name}-compare.png")
+                if os.path.exists(compare_image_path):
+                    detection_entry["summary_images_url"] = f"https://100.98.142.94:5000/api/download/{timestamp}/{user_id}/{os.path.basename(compare_image_path)}"
+                
+                # YOLO image (yolo11m result)
+                yolo_dir = os.path.join(output_dir, "yolo")
+                yolo_image_path = os.path.join(yolo_dir, f"{image_name}-yolo11m-detection.png")
+                if os.path.exists(yolo_image_path):
+                    images["yolo"] = f"https://100.98.142.94:5000/api/download/{timestamp}/{user_id}/yolo/{os.path.basename(yolo_image_path)}"
+                
+                # SAM image (segmentation result)
+                segmentasi_dir = os.path.join(output_dir, "segmentasi")
+                sam_image_path = os.path.join(segmentasi_dir, f"{image_name}-{model_name}-segmentation.png")
+                if os.path.exists(sam_image_path):
+                    images["sam"] = f"https://100.98.142.94:5000/api/download/{timestamp}/{user_id}/segmentasi/{os.path.basename(sam_image_path)}"
+                
+                # Hybrid image (combined result)
+                hybrid_dir = os.path.join(output_dir, "hybrid")
+                hybrid_image_path = os.path.join(hybrid_dir, f"{image_name}-{model_name}-hybrid.png")
+                if os.path.exists(hybrid_image_path):
+                    images["hybrid"] = f"https://100.98.142.94:5000/api/download/{timestamp}/{user_id}/hybrid/{os.path.basename(hybrid_image_path)}"
+                
+                # Add images object to detection entry
+                if images:
+                    detection_entry["images"] = images
+                
+                detection_summary.append(detection_entry)
+                
+            except Exception as e:
+                log_message(f"⚠️  Error processing {json_file}: {e}", 'warning')
+                continue
+        
+        # Create class summary by counting all class_name occurrences
+        class_counts = {}
+        for detection_entry in detection_summary:
+            for detection_data in detection_entry["datas"]:
+                class_name = detection_data["class_name"]
+                class_counts[class_name] = class_counts.get(class_name, 0) + 1
+        
+        # Convert to class_summary array format
+        class_summary = []
+        for class_name, count in class_counts.items():
+            class_summary.append({
+                "class_name": class_name,
+                "count": count
+            })
+        
+        # Sort by count (descending) then by class_name (ascending)
+        class_summary.sort(key=lambda x: (-x["count"], x["class_name"]))
+        
+        # Create summary data according to user's format
+        summary_data = {
+            "detection_summary": detection_summary,
+            "class_summary": class_summary,
+            "object_count": len(detection_summary)  # Total number of objects processed in this session
+        }
+        
+        # Save summary.json
+        summary_file = os.path.join(output_dir, "summary.json")
+        try:
+            with open(summary_file, 'w') as f:
+                json.dump(summary_data, f, indent=2)
+            log_message(f"✅ Summary saved: {summary_file}", 'success')
+            log_message(f"   📊 {len(detection_summary)} detections from {len(session_data['images'])} images", 'info')
+        except Exception as e:
+            log_message(f"❌ Error saving summary: {e}", 'error')
 
 if __name__ == "__main__":
     main()
