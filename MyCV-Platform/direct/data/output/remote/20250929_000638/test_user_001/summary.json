@@ -76,6 +76,12 @@
       }
     }
   ],
+  "class_summary": [
+    {
+      "class_name": "mineral",
+      "count": 3
+    }
+  ],
   "object_count": 3,
   "session_id": "session_20250929_000638_test_user_001",
   "status": "completed",

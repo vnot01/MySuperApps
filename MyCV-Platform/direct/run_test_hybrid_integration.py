@@ -725,9 +725,28 @@ def create_session_summary(test_images, project_name, project_version):
                 log_message(f"⚠️  Error processing {json_file}: {e}", 'warning')
                 continue
         
+        # Create class summary by counting all class_name occurrences
+        class_counts = {}
+        for detection_entry in detection_summary:
+            for detection_data in detection_entry["datas"]:
+                class_name = detection_data["class_name"]
+                class_counts[class_name] = class_counts.get(class_name, 0) + 1
+        
+        # Convert to class_summary array format
+        class_summary = []
+        for class_name, count in class_counts.items():
+            class_summary.append({
+                "class_name": class_name,
+                "count": count
+            })
+        
+        # Sort by count (descending) then by class_name (ascending)
+        class_summary.sort(key=lambda x: (-x["count"], x["class_name"]))
+        
         # Create summary data according to user's format
         summary_data = {
             "detection_summary": detection_summary,
+            "class_summary": class_summary,
             "object_count": len(detection_summary),  # Total number of objects processed in this session
             "session_id": f"session_{timestamp}_{user_id}",
             "status": "completed",

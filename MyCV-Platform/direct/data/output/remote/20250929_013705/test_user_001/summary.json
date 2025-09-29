@@ -1,0 +1,65 @@
+{
+  "detection_summary": [
+    {
+      "id": 0,
+      "name": "1-botol_mineral-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            57.36895751953125,
+            62.235107421875,
+            344.09259033203125,
+            577.8096923828125
+          ],
+          "confidence": 0.8787883520126343,
+          "class_id": 2,
+          "class_name": "mineral"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "https://100.98.142.94:5000/api/download/20250929_013705/test_user_001/1-botol_mineral-best_pt-compare.png",
+      "images": {
+        "best": "https://100.98.142.94:5000/api/download/20250929_013705/test_user_001/best/1-botol_mineral-best_pt-best.png",
+        "yolo": "https://100.98.142.94:5000/api/download/20250929_013705/test_user_001/yolo/1-botol_mineral-yolo11m-detection.png",
+        "sam": "https://100.98.142.94:5000/api/download/20250929_013705/test_user_001/segmentasi/1-botol_mineral-best_pt-segmentation.png",
+        "hybrid": "https://100.98.142.94:5000/api/download/20250929_013705/test_user_001/hybrid/1-botol_mineral-best_pt-hybrid.png"
+      }
+    },
+    {
+      "id": 1,
+      "name": "21_mineral-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            294.4569091796875,
+            308.8126220703125,
+            363.95751953125,
+            448.69964599609375
+          ],
+          "confidence": 0.8424936532974243,
+          "class_id": 2,
+          "class_name": "mineral"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "https://100.98.142.94:5000/api/download/20250929_013705/test_user_001/21_mineral-best_pt-compare.png",
+      "images": {
+        "best": "https://100.98.142.94:5000/api/download/20250929_013705/test_user_001/best/21_mineral-best_pt-best.png",
+        "yolo": "https://100.98.142.94:5000/api/download/20250929_013705/test_user_001/yolo/21_mineral-yolo11m-detection.png",
+        "sam": "https://100.98.142.94:5000/api/download/20250929_013705/test_user_001/segmentasi/21_mineral-best_pt-segmentation.png",
+        "hybrid": "https://100.98.142.94:5000/api/download/20250929_013705/test_user_001/hybrid/21_mineral-best_pt-hybrid.png"
+      }
+    }
+  ],
+  "class_summary": [
+    {
+      "class_name": "mineral",
+      "count": 2
+    }
+  ],
+  "object_count": 2,
+  "session_id": "session_20250929_013705_test_user_001",
+  "status": "completed",
+  "timestamp": "20250929_013705",
+  "user_id": "test_user_001"
+}
