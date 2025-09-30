@@ -37,7 +37,7 @@ print_error() {
 }
 
 # Check if we're in the right directory
-if [ ! -f "run_test_hybrid_integration-jetson.py" ]; thene
+if [ ! -f "run_test_hybrid_integration-jetson.py" ]; then
     print_error "Please run this script from the MySuperApps/MyCV-Platform/direct directory"
     exit 1
 fi
