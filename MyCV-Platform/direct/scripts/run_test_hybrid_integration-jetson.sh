@@ -51,12 +51,23 @@ print(f'PyTorch version: {torch.__version__}')
 print(f'CUDA available: {torch.cuda.is_available()}')
 print(f'CUDA version: {torch.version.cuda}')
 print(f'TorchVision version: {torchvision.__version__}')
-print(f'CUDA device - {torch.cuda.get_device_name(0)}')
-print(f'GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB')
+if torch.cuda.is_available():
+    print(f'CUDA device - {torch.cuda.get_device_name(0)}')
+    print(f'GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB')
+else:
+    print('CUDA device - Not available')
+    print('GPU Memory - Not available')
 " 2>/dev/null)
 
-if [ $? -ne 0 ] || [[ "$PYTORCH_CHECK" == *"CUDA available: False"* ]] || [[ "$PYTORCH_CHECK" == *"None"* ]]; then
+# Check if CUDA is available and PyTorch version is correct
+CUDA_AVAILABLE=$(echo "$PYTORCH_CHECK" | grep "CUDA available: True" | wc -l)
+PYTORCH_VERSION=$(echo "$PYTORCH_CHECK" | grep "PyTorch version:" | cut -d' ' -f3)
+
+if [ $? -ne 0 ] || [ "$CUDA_AVAILABLE" -eq 0 ] || [[ "$PYTORCH_VERSION" != "2.5.0a0+872d972e41.nv24.08" ]]; then
     print_warning "PyTorch/CUDA not properly installed for Jetson. Installing..."
+    
+    print_status "Uninstalling existing PyTorch packages..."
+    pip uninstall -y torch torchvision torchaudio 2>/dev/null || true
     
     print_status "Installing PyTorch 2.5.0 for Jetson Platform 6.1..."
     pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.5.0a0+872d972e41.nv24.08-cp310-cp310-linux_aarch64.whl
@@ -72,14 +83,40 @@ print(f'PyTorch version: {torch.__version__}')
 print(f'CUDA available: {torch.cuda.is_available()}')
 print(f'CUDA version: {torch.version.cuda}')
 print(f'TorchVision version: {torchvision.__version__}')
-print(f'CUDA device - {torch.cuda.get_device_name(0)}')
-print(f'GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB')
+if torch.cuda.is_available():
+    print(f'CUDA device - {torch.cuda.get_device_name(0)}')
+    print(f'GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB')
+else:
+    print('CUDA device - Not available')
+    print('GPU Memory - Not available')
 "
     
-    if [ $? -ne 0 ]; then
-        print_error "Failed to install PyTorch for Jetson. Please check system requirements."
+    # Verify again after installation
+    FINAL_CHECK=$(python3 -c "
+import torch
+import torchvision
+print(f'PyTorch version: {torch.__version__}')
+print(f'CUDA available: {torch.cuda.is_available()}')
+print(f'CUDA version: {torch.version.cuda}')
+print(f'TorchVision version: {torchvision.__version__}')
+if torch.cuda.is_available():
+    print(f'CUDA device - {torch.cuda.get_device_name(0)}')
+    print(f'GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB')
+else:
+    print('CUDA device - Not available')
+    print('GPU Memory - Not available')
+" 2>/dev/null)
+    
+    FINAL_CUDA_AVAILABLE=$(echo "$FINAL_CHECK" | grep "CUDA available: True" | wc -l)
+    
+    if [ $? -ne 0 ] || [ "$FINAL_CUDA_AVAILABLE" -eq 0 ]; then
+        print_error "Failed to install PyTorch with CUDA support for Jetson."
         print_error "Required: Jetson Orin with Ubuntu 22.04, Jetpack 6.1, L4T 36.4.2"
+        print_error "Please check system requirements and try again."
         exit 1
+    else
+        print_success "PyTorch with CUDA support installed successfully for Jetson"
+        echo "$FINAL_CHECK"
     fi
 else
     print_success "PyTorch and CUDA verified for Jetson"

@@ -38,13 +38,29 @@ def check_environment():
     else:
         log_message("⚠️  Not running in virtual environment", 'warning')
     
-    # Check GPU
+    # Check PyTorch and CUDA installation
+    log_message(f"📦 PyTorch version: {torch.__version__}", 'info')
+    log_message(f"📦 CUDA available: {torch.cuda.is_available()}", 'info')
+    
     if torch.cuda.is_available():
-        log_message(f"🚀 GPU MODE: Using CUDA device - {torch.cuda.get_device_name(0)}", 'success')
-        log_message(f"   GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB", 'info')
-        device = 'cuda'
+        try:
+            device_name = torch.cuda.get_device_name(0)
+            gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1024**3
+            cuda_version = torch.version.cuda
+            
+            log_message(f"🚀 GPU MODE: Using CUDA device - {device_name}", 'success')
+            log_message(f"   GPU Memory: {gpu_memory:.1f} GB", 'info')
+            log_message(f"   CUDA version: {cuda_version}", 'info')
+            device = 'cuda'
+        except Exception as e:
+            log_message(f"❌ CUDA device error: {e}", 'error')
+            log_message("💻 Falling back to CPU mode", 'warning')
+            device = 'cpu'
     else:
+        log_message("❌ CUDA not available - PyTorch not compiled with CUDA support", 'error')
         log_message("💻 CPU MODE: Using CPU for inference", 'warning')
+        log_message("⚠️  For Jetson, please install PyTorch with CUDA support:", 'warning')
+        log_message("   pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.5.0a0+872d972e41.nv24.08-cp310-cp310-linux_aarch64.whl", 'info')
         device = 'cpu'
     
     return device
