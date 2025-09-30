@@ -1,5 +1,30 @@
 # MyCV-Platform Changelog
 
+## [1.4.2-jetson-edge] - 2025-09-29
+
+### 🎯 Edge Devices (NVIDIA Jetson) Support
+
+- ✅ **Jetson Script**: `run_test_hybrid_integration-jetson.sh` untuk NVIDIA Jetson Orin
+- ✅ **PyTorch Auto-Install**: Verifikasi dan instalasi otomatis PyTorch 2.5.0 untuk Jetson Platform 6.1
+- ✅ **CUDA Verification**: Pengecekan CUDA availability dengan auto-installation jika diperlukan
+- ✅ **Edge-Specific Paths**: Menggunakan `data-jetson/` directory terpisah dari main installation
+- ✅ **Jetson API Integration**: IP address 100.117.234.2:5000 untuk komunikasi dengan main server
+- ✅ **Memory Optimization**: Support untuk 16GB swap configuration dan Jetson memory constraints
+
+### 🔧 Documentation
+- **New**: `README-Edge.md` - Comprehensive guide untuk Jetson installation dan configuration
+- **Updated**: `direct/README.md` - Added Edge Devices section dengan link ke README-Edge.md
+- **Updated**: `run_test_hybrid_integration-jetson.sh` - Modified untuk Jetson-specific paths dan PyTorch verification
+
+### 🎯 System Requirements (Jetson)
+- **Hardware**: NVIDIA Jetson Orin Nano/NX/AGX
+- **Software**: Ubuntu 22.04, Jetpack 6.1, L4T 36.4.2
+- **Memory**: 16GB swap file configuration
+- **PyTorch**: 2.5.0 optimized for Jetson Platform 6.1
+- **CUDA**: Automatic verification dan installation
+
+---
+
 ## [1.4.1-ui-ux-backup] - 2025-09-29
 
 ### 🎯 UI/UX & API Enhancements

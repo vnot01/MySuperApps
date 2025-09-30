@@ -177,3 +177,32 @@ curl -X POST \
 - **README**: `./app/api-hybrid-detection/README.md`
 - **Requirements**: `./app/api-hybrid-detection/requirements.txt`
 - **Launcher**: `./app/api-hybrid-detection/run_api.sh`
+
+## 🚀 Edge Devices (NVIDIA Jetson)
+
+### **Jetson Integration:**
+- **Target Devices**: NVIDIA Jetson Orin Nano, Orin NX, Orin AGX
+- **Script**: `./scripts/run_test_hybrid_integration-jetson.sh`
+- **Data Directory**: `data-jetson/` (separate from main data)
+- **API URL**: `http://100.117.234.2:5000`
+
+### **Quick Start for Jetson:**
+```bash
+# Run Jetson-specific integration test
+./scripts/run_test_hybrid_integration-jetson.sh
+```
+
+### **Features:**
+- ✅ **PyTorch 2.5.0** optimized for Jetson Platform 6.1
+- ✅ **CUDA Support** dengan automatic verification
+- ✅ **Memory Optimization** dengan 16GB swap configuration
+- ✅ **Edge-Specific Paths** menggunakan `data-jetson/` directory
+- ✅ **Auto-Installation** PyTorch jika tidak terdeteksi
+
+### **Requirements:**
+- **Hardware**: NVIDIA Jetson Orin (Nano/NX/AGX)
+- **Software**: Ubuntu 22.04, Jetpack 6.1, L4T 36.4.2
+- **Memory**: 16GB swap file configuration
+- **Network**: Connectivity ke API server
+
+**📖 Detailed Guide:** [README-Edge.md](../README-Edge.md)
