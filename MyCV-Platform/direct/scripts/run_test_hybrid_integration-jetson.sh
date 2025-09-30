@@ -59,12 +59,17 @@ else:
     print('GPU Memory - Not available')
 " 2>/dev/null)
 
-# Check if CUDA is available and PyTorch version is correct
+# Check if CUDA is available and PyTorch/TorchVision versions are correct
 CUDA_AVAILABLE=$(echo "$PYTORCH_CHECK" | grep "CUDA available: True" | wc -l)
 PYTORCH_VERSION=$(echo "$PYTORCH_CHECK" | grep "PyTorch version:" | cut -d' ' -f3)
+TORCHVISION_VERSION=$(echo "$PYTORCH_CHECK" | grep "TorchVision version:" | cut -d' ' -f3)
 
-if [ $? -ne 0 ] || [ "$CUDA_AVAILABLE" -eq 0 ] || [[ "$PYTORCH_VERSION" != "2.5.0a0+872d972e41.nv24.08" ]]; then
-    print_warning "PyTorch/CUDA not properly installed for Jetson. Installing..."
+if [ $? -ne 0 ] || [ "$CUDA_AVAILABLE" -eq 0 ] || [[ "$PYTORCH_VERSION" != "2.5.0a0+872d972e41.nv24.08" ]] || [[ "$TORCHVISION_VERSION" != "0.20.0a0+afc54f7" ]]; then
+    print_warning "PyTorch/TorchVision versions incompatible for Jetson. Installing correct versions..."
+    print_status "Current versions:"
+    print_status "  PyTorch: $PYTORCH_VERSION (required: 2.5.0a0+872d972e41.nv24.08)"
+    print_status "  TorchVision: $TORCHVISION_VERSION (required: 0.20.0a0+afc54f7)"
+    print_status "  CUDA Available: $([ "$CUDA_AVAILABLE" -eq 1 ] && echo "True" || echo "False")"
     
     print_status "Uninstalling existing PyTorch packages..."
     pip uninstall -y torch torchvision torchaudio 2>/dev/null || true
@@ -108,14 +113,20 @@ else:
 " 2>/dev/null)
     
     FINAL_CUDA_AVAILABLE=$(echo "$FINAL_CHECK" | grep "CUDA available: True" | wc -l)
+    FINAL_PYTORCH_VERSION=$(echo "$FINAL_CHECK" | grep "PyTorch version:" | cut -d' ' -f3)
+    FINAL_TORCHVISION_VERSION=$(echo "$FINAL_CHECK" | grep "TorchVision version:" | cut -d' ' -f3)
     
-    if [ $? -ne 0 ] || [ "$FINAL_CUDA_AVAILABLE" -eq 0 ]; then
-        print_error "Failed to install PyTorch with CUDA support for Jetson."
+    if [ $? -ne 0 ] || [ "$FINAL_CUDA_AVAILABLE" -eq 0 ] || [[ "$FINAL_PYTORCH_VERSION" != "2.5.0a0+872d972e41.nv24.08" ]] || [[ "$FINAL_TORCHVISION_VERSION" != "0.20.0a0+afc54f7" ]]; then
+        print_error "Failed to install compatible PyTorch/TorchVision versions for Jetson."
+        print_error "Installed versions:"
+        print_error "  PyTorch: $FINAL_PYTORCH_VERSION (required: 2.5.0a0+872d972e41.nv24.08)"
+        print_error "  TorchVision: $FINAL_TORCHVISION_VERSION (required: 0.20.0a0+afc54f7)"
+        print_error "  CUDA Available: $([ "$FINAL_CUDA_AVAILABLE" -eq 1 ] && echo "True" || echo "False")"
         print_error "Required: Jetson Orin with Ubuntu 22.04, Jetpack 6.1, L4T 36.4.2"
         print_error "Please check system requirements and try again."
         exit 1
     else
-        print_success "PyTorch with CUDA support installed successfully for Jetson"
+        print_success "Compatible PyTorch/TorchVision versions installed successfully for Jetson"
         echo "$FINAL_CHECK"
     fi
 else
