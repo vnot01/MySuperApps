@@ -780,7 +780,7 @@ def create_session_summary(test_images, project_name, project_version, session_i
                         fname = os.path.basename(compare_image_path)
                         detection_entry["summary_images_url"] = f"http://100.117.234.2:5000/api/download/{session_id}/{fname}"
                     else:
-                        detection_entry["summary_images_url"] = f"http://:5000/api/download/{timestamp}/{user_id}/{os.path.basename(compare_image_path)}"
+                        detection_entry["summary_images_url"] = f"http://100.117.234.2:5000/api/download/{timestamp}/{user_id}/{os.path.basename(compare_image_path)}"
                 
                 # YOLO image (yolo11m result)
                 yolo_dir = os.path.join(output_dir, "yolo")
@@ -790,7 +790,7 @@ def create_session_summary(test_images, project_name, project_version, session_i
                         fname = ensure_in_root(yolo_image_path, output_dir)
                         images["yolo"] = f"http://100.117.234.2:5000/api/download/{session_id}/{fname}"
                     else:
-                        images["yolo"] = f"http://:5000/api/download/{timestamp}/{user_id}/yolo/{os.path.basename(yolo_image_path)}"
+                        images["yolo"] = f"http://100.117.234.2:5000/api/download/{timestamp}/{user_id}/yolo/{os.path.basename(yolo_image_path)}"
                 
                 # SAM image (segmentation result)
                 segmentasi_dir = os.path.join(output_dir, "segmentasi")
@@ -800,7 +800,7 @@ def create_session_summary(test_images, project_name, project_version, session_i
                         fname = ensure_in_root(sam_image_path, output_dir)
                         images["sam"] = f"http://100.117.234.2:5000/api/download/{session_id}/{fname}"
                     else:
-                        images["sam"] = f"http://:5000/api/download/{timestamp}/{user_id}/segmentasi/{os.path.basename(sam_image_path)}"
+                        images["sam"] = f"http://100.117.234.2:5000/api/download/{timestamp}/{user_id}/segmentasi/{os.path.basename(sam_image_path)}"
                 
                 # Hybrid image (combined result)
                 hybrid_dir = os.path.join(output_dir, "hybrid")
@@ -810,7 +810,7 @@ def create_session_summary(test_images, project_name, project_version, session_i
                         fname = ensure_in_root(hybrid_image_path, output_dir)
                         images["hybrid"] = f"http://100.117.234.2:5000/api/download/{session_id}/{fname}"
                     else:
-                        images["hybrid"] = f"http://:5000/api/download/{timestamp}/{user_id}/hybrid/{os.path.basename(hybrid_image_path)}"
+                        images["hybrid"] = f"http://100.117.234.2:5000/api/download/{timestamp}/{user_id}/hybrid/{os.path.basename(hybrid_image_path)}"
                 
                 # Add images object to detection entry
                 if images:
