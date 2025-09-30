@@ -28,7 +28,7 @@ cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection-jetson
 ### Download, Backup & History
 - `GET /api/download/<session_id>/<filename>` - Download file hasil
 - `GET /api/backup/<session_id>` - Buat dan unduh TAR.GZ backup satu sesi
-- `GET /api/detections` - Semua deteksi terbaru
+- `GET /api/detections` - Semua deteksi terbaru dengan pagination
 
 ## 📤 Upload Images
 
@@ -159,6 +159,64 @@ Web application menampilkan informasi real dari API Jetson:
 - Web App: `http://100.117.234.2:5002`
 - API Service: `http://100.117.234.2:5000`
 - Real-time data exchange antara Web App dan API
+
+## 📊 API Detections dengan Pagination
+
+### Endpoint: `GET /api/detections`
+
+Mengambil semua deteksi terbaru dengan pagination dan filtering.
+
+#### Query Parameters:
+- `page` (optional): Halaman yang diminta (default: 1)
+- `limit` (optional): Jumlah item per halaman (default: 20, max: 100)
+- `user_id` (optional): Filter berdasarkan user ID
+
+#### Contoh Request:
+```bash
+# Halaman pertama, 20 items
+curl "http://100.117.234.2:5000/api/detections"
+
+# Halaman kedua, 10 items per halaman
+curl "http://100.117.234.2:5000/api/detections?page=2&limit=10"
+
+# Filter berdasarkan user_id
+curl "http://100.117.234.2:5000/api/detections?user_id=my_user&page=1&limit=5"
+```
+
+#### Response Format:
+```json
+{
+    "pagination": {
+        "current_page": 1,
+        "total_pages": 5,
+        "total_items": 95,
+        "items_per_page": 20,
+        "has_next": true,
+        "has_prev": false,
+        "next_page": 2,
+        "prev_page": null
+    },
+    "filters": {
+        "user_id": "my_user"
+    },
+    "recent_detections": [
+        {
+            "timestamp": "20250930_201225",
+            "user_id": "my_user",
+            "image_name": "image1",
+            "detections": [...],
+            "detection_count": 3
+        }
+    ]
+}
+```
+
+#### Pagination Features:
+- ✅ **Page Navigation**: `current_page`, `total_pages`
+- ✅ **Item Count**: `total_items`, `items_per_page`
+- ✅ **Navigation Helpers**: `has_next`, `has_prev`, `next_page`, `prev_page`
+- ✅ **User Filtering**: Filter berdasarkan `user_id`
+- ✅ **Performance**: Max 100 items per page untuk performa optimal
 
 ## 📊 Output Files
 

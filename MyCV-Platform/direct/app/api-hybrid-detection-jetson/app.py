@@ -468,8 +468,19 @@ def backup_session(session_id):
 
 @app.route('/api/detections', methods=['GET'])
 def get_all_detections():
-    """Get all recent detection results"""
+    """Get all recent detection results with pagination"""
     try:
+        # Get pagination parameters from query string
+        page = int(request.args.get('page', 1))
+        limit = int(request.args.get('limit', 20))
+        user_id_filter = request.args.get('user_id', None)
+        
+        # Validate parameters
+        if page < 1:
+            page = 1
+        if limit < 1 or limit > 100:  # Max 100 items per page
+            limit = 20
+        
         recent_results = []
         
         # Get all output directories
@@ -478,6 +489,10 @@ def get_all_detections():
                 timestamp_path = os.path.join(OUTPUT_FOLDER, timestamp_dir)
                 if os.path.isdir(timestamp_path):
                     for user_dir in os.listdir(timestamp_path):
+                        # Apply user_id filter if provided
+                        if user_id_filter and user_dir != user_id_filter:
+                            continue
+                            
                         user_path = os.path.join(timestamp_path, user_dir)
                         if os.path.isdir(user_path):
                             # Find JSON files
@@ -502,9 +517,30 @@ def get_all_detections():
         # Sort by timestamp (newest first)
         recent_results.sort(key=lambda x: x['timestamp'], reverse=True)
         
+        # Calculate pagination
+        total_items = len(recent_results)
+        total_pages = (total_items + limit - 1) // limit  # Ceiling division
+        start_index = (page - 1) * limit
+        end_index = start_index + limit
+        
+        # Get paginated results
+        paginated_results = recent_results[start_index:end_index]
+        
         return jsonify({
-            'total_sessions': len(recent_results),
-            'recent_detections': recent_results[:50]  # Limit to 50 most recent
+            'pagination': {
+                'current_page': page,
+                'total_pages': total_pages,
+                'total_items': total_items,
+                'items_per_page': limit,
+                'has_next': page < total_pages,
+                'has_prev': page > 1,
+                'next_page': page + 1 if page < total_pages else None,
+                'prev_page': page - 1 if page > 1 else None
+            },
+            'filters': {
+                'user_id': user_id_filter
+            },
+            'recent_detections': paginated_results
         })
         
     except Exception as e:
