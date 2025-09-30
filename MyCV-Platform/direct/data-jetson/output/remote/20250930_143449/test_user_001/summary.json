@@ -1,0 +1,36 @@
+{
+  "detection_summary": [
+    {
+      "id": 0,
+      "name": "116.dishwasher-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            256.1818542480469,
+            107.72953033447266,
+            593.7510986328125,
+            363.1800537109375
+          ],
+          "confidence": 0.9641722440719604,
+          "class_id": 0,
+          "class_name": "dishwasher"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.117.234.2:5000/api/download/session_02454326/116.dishwasher-best_pt-compare.png",
+      "images": {
+        "best": "http://100.117.234.2:5000/api/download/session_02454326/116.dishwasher-best_pt-best.png",
+        "yolo": "http://100.117.234.2:5000/api/download/session_02454326/116.dishwasher-yolo11m-detection.png",
+        "sam": "http://100.117.234.2:5000/api/download/session_02454326/116.dishwasher-best_pt-segmentation.png",
+        "hybrid": "http://100.117.234.2:5000/api/download/session_02454326/116.dishwasher-best_pt-hybrid.png"
+      }
+    }
+  ],
+  "class_summary": [
+    {
+      "class_name": "dishwasher",
+      "count": 1
+    }
+  ],
+  "object_count": 1
+}
