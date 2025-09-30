@@ -559,7 +559,7 @@ def search_detections():
         page = int(data.get('page', 1))
         limit = int(data.get('limit', 20))
         user_id_filter = data.get('user_id', None)
-        timestamp_filter = data.get('timestamp', None)
+        when_filter = data.get('when', None)
         class_name_filter = data.get('class_name', None)
         
         # Validate parameters
@@ -573,8 +573,8 @@ def search_detections():
         # Get all output directories
         if os.path.exists(OUTPUT_FOLDER):
             for timestamp_dir in os.listdir(OUTPUT_FOLDER):
-                # Apply timestamp filter if provided
-                if timestamp_filter and timestamp_filter not in timestamp_dir:
+                # Apply when filter if provided
+                if when_filter and when_filter not in timestamp_dir:
                     continue
                     
                 timestamp_path = os.path.join(OUTPUT_FOLDER, timestamp_dir)
@@ -640,7 +640,7 @@ def search_detections():
             },
             'filters': {
                 'user_id': user_id_filter,
-                'timestamp': timestamp_filter,
+                'when': when_filter,
                 'class_name': class_name_filter
             },
             'recent_detections': paginated_results
