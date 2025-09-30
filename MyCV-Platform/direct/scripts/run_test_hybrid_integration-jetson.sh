@@ -37,7 +37,7 @@ print_error() {
 }
 
 # Check if we're in the right directory
-if [ ! -f "run_test_hybrid_integration.py" ]; thent
+if [ ! -f "run_test_hybrid_integration-jetson.py" ]; thene
     print_error "Please run this script from the MySuperApps/MyCV-Platform/direct directory"
     exit 1
 fi
@@ -51,6 +51,8 @@ print(f'PyTorch version: {torch.__version__}')
 print(f'CUDA available: {torch.cuda.is_available()}')
 print(f'CUDA version: {torch.version.cuda}')
 print(f'TorchVision version: {torchvision.__version__}')
+print(f'CUDA device - {torch.cuda.get_device_name(0)}')
+print(f'GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB')
 " 2>/dev/null)
 
 if [ $? -ne 0 ] || [[ "$PYTORCH_CHECK" == *"CUDA available: False"* ]] || [[ "$PYTORCH_CHECK" == *"None"* ]]; then
@@ -70,6 +72,8 @@ print(f'PyTorch version: {torch.__version__}')
 print(f'CUDA available: {torch.cuda.is_available()}')
 print(f'CUDA version: {torch.version.cuda}')
 print(f'TorchVision version: {torchvision.__version__}')
+print(f'CUDA device - {torch.cuda.get_device_name(0)}')
+print(f'GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB')
 "
     
     if [ $? -ne 0 ]; then
@@ -84,7 +88,7 @@ fi
 
 # Check virtual environment
 if [ ! -d "venv" ]; then
-    print_error "Virtual environment not found! Please run ./scripts/setup.sh first"
+    print_error "Virtual environment not found! Please run ./scripts/setup-jetson.sh first"
     exit 1
 fi
 
@@ -282,7 +286,7 @@ fi
 
 # Generate summary.json with session-aware URLs
 print_status "Generating session summary with session-aware URLs..."
-python3 run_test_hybrid_integration.py --session_id "$SESSION_ID"
+python3 run_test_hybrid_integration-jetson.py --session_id "$SESSION_ID"
 
 if [ $? -eq 0 ]; then
     print_success "✅ Integration test and visualizations completed successfully"

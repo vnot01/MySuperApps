@@ -94,6 +94,8 @@ print(f'PyTorch version: {torch.__version__}')
 print(f'CUDA available: {torch.cuda.is_available()}')
 print(f'CUDA version: {torch.version.cuda}')
 print(f'TorchVision version: {torchvision.__version__}')
+print(f'CUDA device - {torch.cuda.get_device_name(0)}')
+print(f'GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB')
 "
 ```
 
@@ -103,6 +105,8 @@ PyTorch version: 2.5.0a0+872d972e41.nv24.08
 CUDA available: True
 CUDA version: 12.6
 TorchVision version: 0.20.0a0+afc54f7
+CUDA device - Orin
+GPU Memory: 7.4 GB
 ```
 
 ### 3. MyCV-Platform Setup
