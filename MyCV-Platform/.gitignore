@@ -19,6 +19,13 @@ data/models/cloud/
 data/models/active/
 data/models/downloads/
 
+# Jetson model directories
+data-jetson/models/trained/
+data-jetson/models/backups/
+data-jetson/models/cloud/
+data-jetson/models/active/
+data-jetson/models/downloads/
+
 # Training outputs
 runs/
 weights/
@@ -114,6 +121,12 @@ data/input/
 data/output/
 data/raw/
 data/processed/
+
+# Jetson datasets
+data-jetson/input/
+data-jetson/output/
+data-jetson/raw/
+data-jetson/processed/
 
 # Model checkpoints
 checkpoints/
