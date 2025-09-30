@@ -28,7 +28,8 @@ cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection-jetson
 ### Download, Backup & History
 - `GET /api/download/<session_id>/<filename>` - Download file hasil
 - `GET /api/backup/<session_id>` - Buat dan unduh TAR.GZ backup satu sesi
-- `GET /api/detections` - Semua deteksi terbaru dengan pagination
+- `GET /api/detections` - Semua deteksi terbaru dengan pagination (Query Parameters)
+- `POST /api/detections/search` - Search detections dengan JSON body
 
 ## 📤 Upload Images
 
@@ -217,6 +218,134 @@ curl "http://100.117.234.2:5000/api/detections?user_id=my_user&page=1&limit=5"
 - ✅ **Navigation Helpers**: `has_next`, `has_prev`, `next_page`, `prev_page`
 - ✅ **User Filtering**: Filter berdasarkan `user_id`
 - ✅ **Performance**: Max 100 items per page untuk performa optimal
+
+## 📊 API Detections dengan JSON Body
+
+### Endpoint: `POST /api/detections/search`
+
+Search detections menggunakan JSON body dengan filtering yang lebih advanced.
+
+#### Request Body (JSON):
+```json
+{
+    "page": 1,
+    "limit": 20,
+    "user_id": "my_user",
+    "timestamp": "20250930",
+    "class_name": "person"
+}
+```
+
+#### Field Descriptions:
+- `page` (optional): Halaman yang diminta (default: 1)
+- `limit` (optional): Jumlah item per halaman (default: 20, max: 100)
+- `user_id` (optional): Filter berdasarkan user ID
+- `timestamp` (optional): Filter berdasarkan timestamp (partial match)
+- `class_name` (optional): Filter berdasarkan class name detection
+
+#### Contoh Request di Postman:
+
+**Method**: `POST`  
+**URL**: `http://100.117.234.2:5000/api/detections/search`  
+**Headers**:
+```
+Content-Type: application/json
+Accept: application/json
+```
+
+**Body (raw JSON)**:
+```json
+{
+    "page": 1,
+    "limit": 10,
+    "user_id": "my_user",
+    "class_name": "person"
+}
+```
+
+#### Response Format:
+```json
+{
+    "pagination": {
+        "current_page": 1,
+        "total_pages": 3,
+        "total_items": 25,
+        "items_per_page": 10,
+        "has_next": true,
+        "has_prev": false,
+        "next_page": 2,
+        "prev_page": null
+    },
+    "filters": {
+        "user_id": "my_user",
+        "timestamp": null,
+        "class_name": "person"
+    },
+    "recent_detections": [
+        {
+            "timestamp": "20250930_201225",
+            "user_id": "my_user",
+            "image_name": "image1",
+            "detections": [
+                {
+                    "class_name": "person",
+                    "confidence": 0.95,
+                    "bbox": [100, 200, 300, 400]
+                }
+            ],
+            "detection_count": 1
+        }
+    ]
+}
+```
+
+#### Advanced Filtering Examples:
+
+**1. Filter by User dan Class:**
+```json
+{
+    "page": 1,
+    "limit": 20,
+    "user_id": "test_user",
+    "class_name": "car"
+}
+```
+
+**2. Filter by Timestamp:**
+```json
+{
+    "page": 1,
+    "limit": 50,
+    "timestamp": "20250930"
+}
+```
+
+**3. Complex Filter:**
+```json
+{
+    "page": 2,
+    "limit": 15,
+    "user_id": "admin",
+    "timestamp": "20250930",
+    "class_name": "person"
+}
+```
+
+#### Error Responses:
+
+**400 Bad Request (No JSON Body):**
+```json
+{
+    "error": "JSON body required"
+}
+```
+
+**500 Internal Server Error:**
+```json
+{
+    "error": "Failed to search detections: [error message]"
+}
+```
 
 ## 📊 Output Files
 
