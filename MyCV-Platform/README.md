@@ -84,6 +84,14 @@ cd MySuperApps/MyCV-Platform
 
 **📖 API Documentation:** [API README](./direct/app/api-hybrid-detection/README.md)
 
+### Option 5: Edge Devices (NVIDIA Jetson)
+```bash
+cd MySuperApps/MyCV-Platform/direct
+./scripts/run_test_hybrid_integration-jetson.sh
+```
+
+**📖 Jetson Documentation:** [README-Edge.md](./README-Edge.md)
+
 ### Option 4b: API Service Manager (Background + Auto-Start)
 ```bash
 cd MySuperApps/MyCV-Platform
@@ -107,22 +115,23 @@ docker-compose -f docker-compose.cpu.yml up --build
 
 ## 📊 Perbandingan
 
-| Feature | Direct | Copy Version | Web App | API | Service Manager | Docker GPU | Docker CPU |
-|---------|--------|--------------|---------|-----|----------------|------------|------------|
-| **GPU Support** | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
-| **Real-time** | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **Public Access** | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| **Background Running** | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| **Auto-Start on Boot** | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| **Performance** | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | N/A | ⭐ |
-| **Setup** | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ❌ | ⭐⭐ |
-| **Production** | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
-| **Development** | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
-| **Enhanced Features** | ❌ | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| **Structured Output** | ❌ | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| **Compare Visualization** | ❌ | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| **RESTful API** | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| **Background Processing** | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ |
+| Feature | Direct | Copy Version | Web App | API | Service Manager | Jetson | Docker GPU | Docker CPU |
+|---------|--------|--------------|---------|-----|----------------|--------|------------|------------|
+| **GPU Support** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **Real-time** | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Public Access** | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Background Running** | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| **Auto-Start on Boot** | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
+| **Edge Device** | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| **Performance** | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | N/A | ⭐ |
+| **Setup** | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ❌ | ⭐⭐ |
+| **Production** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **Development** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ |
+| **Enhanced Features** | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **Structured Output** | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **Compare Visualization** | ❌ | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **RESTful API** | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Background Processing** | ❌ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
 
 ## 🎯 Rekomendasi
 
@@ -131,6 +140,7 @@ docker-compose -f docker-compose.cpu.yml up --build
 **Untuk Background Service**: Gunakan `./api_service.sh` untuk API yang berjalan di background
 **Untuk Auto-Start**: Setup crontab untuk auto-start API setelah VM restart
 **Untuk Real-time**: Gunakan `run_web.sh` untuk deteksi kamera
+**Untuk Edge Devices**: Gunakan `./scripts/run_test_hybrid_integration-jetson.sh` untuk NVIDIA Jetson
 **Untuk Development**: Gunakan folder `direct/` atau `docker/` (CPU-only)
 **Untuk Testing**: Gunakan Copy Version untuk fitur lengkap dan output terstruktur
 **Untuk External Integration**: Gunakan API Hybrid Detection di port 5000
@@ -163,6 +173,7 @@ docker-compose -f docker-compose.cpu.yml up --build
 - [API Hybrid Detection Guide](direct/app/api-hybrid-detection/README.md)
 - [Docker Testing Guide](docker/README.md)
 - [Web Application Guide](direct/app/web/README.md)
+- [Edge Devices (NVIDIA Jetson) Guide](README-Edge.md)
 - [Testing Guide](docs/TESTING_GUIDE.md)
 - [Model Management](docs/MODEL_MANAGEMENT.md)
 
@@ -503,3 +514,7 @@ python3 app/utils/environment_detector.py
 - ✅ **API Service Manager** - Toggle on/off dengan background running
 - ✅ **Auto-Start on Boot** - API otomatis start setelah VM restart
 - ✅ **Production Mode** - Disabled debug mode untuk production ready
+- ✅ **Edge Devices Support** - NVIDIA Jetson Orin integration dengan PyTorch 2.5.0
+- ✅ **Jetson Documentation** - [📖 README-Edge.md](./README-Edge.md) untuk edge deployment
+- ✅ **Jetson API Integration** - Separate API server untuk edge devices (100.117.234.2:5000)
+- ✅ **Memory Optimization** - 16GB swap configuration untuk Jetson devices

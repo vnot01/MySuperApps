@@ -172,6 +172,9 @@ curl -X POST \
 - ✅ **Compare Visualization**: Summary image yang menggabungkan semua hasil
 - ✅ **GPU Detection**: Real-time GPU information dengan memory details
 - ✅ **Backup Per-Session**: Endpoint `GET /api/backup/<session_id>` untuk mengunduh seluruh hasil dalam satu arsip TAR.GZ
+- ✅ **Web UI Integration**: Enhanced UI dengan loading indicators, button states, dan image galleries
+- ✅ **Load Last Results**: Button untuk memuat hasil session sebelumnya
+- ✅ **New Session**: Button untuk reset UI dan mulai session baru
 
 ### **API Documentation:**
 - **README**: `./app/api-hybrid-detection/README.md`
@@ -194,10 +197,12 @@ curl -X POST \
 
 ### **Features:**
 - ✅ **PyTorch 2.5.0** optimized for Jetson Platform 6.1
-- ✅ **CUDA Support** dengan automatic verification
+- ✅ **CUDA Support** dengan automatic verification dan device name display
 - ✅ **Memory Optimization** dengan 16GB swap configuration
 - ✅ **Edge-Specific Paths** menggunakan `data-jetson/` directory
 - ✅ **Auto-Installation** PyTorch jika tidak terdeteksi
+- ✅ **Jetson API Integration** dengan IP 100.117.234.2:5000
+- ✅ **Enhanced Verification** dengan GPU memory dan device name info
 
 ### **Requirements:**
 - **Hardware**: NVIDIA Jetson Orin (Nano/NX/AGX)

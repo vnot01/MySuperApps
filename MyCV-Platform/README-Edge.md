@@ -162,12 +162,14 @@ data-jetson/
 
 ### **Jetson-Optimized Features:**
 - ✅ **PyTorch 2.5.0** optimized for Jetson Platform 6.1
-- ✅ **CUDA Support** dengan automatic verification
+- ✅ **CUDA Support** dengan automatic verification dan device name display
 - ✅ **Memory Optimization** dengan 16GB swap configuration
 - ✅ **Edge-Specific Paths** menggunakan `data-jetson/` directory
 - ✅ **API Integration** dengan Jetson IP (100.117.234.2:5000)
 - ✅ **Auto-Installation** PyTorch jika tidak terdeteksi
 - ✅ **Model Management** terpisah dari main installation
+- ✅ **Enhanced Verification** dengan GPU memory dan device name info
+- ✅ **Python Script Integration** dengan `run_test_hybrid_integration-jetson.py`
 
 ### **Performance Optimizations:**
 - **Swap Configuration**: 16GB swap dengan swappiness=10
@@ -299,6 +301,6 @@ Untuk bantuan atau laporan bug pada Jetson deployment:
 ---
 
 **Status**: ✅ **JETSON READY**  
-**Version**: 1.4.1-edge  
+**Version**: 1.4.2-edge  
 **Last Updated**: 29 September 2025  
 **Target Devices**: NVIDIA Jetson Orin Series
