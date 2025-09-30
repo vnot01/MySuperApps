@@ -45,7 +45,7 @@ cd MySuperApps/MyCV-Platform
 ./run_direct.sh
 ```
 
-**📖 Detailed Guide:** [README_run_direct.md](./README_run_direct.md)
+**📖 Detailed Guide:** [README_run_direct.md](./README_run_direct.md) - Khusus untuk Server/Computer dengan GPU Computing
 
 ### Option 1b: Manual Setup
 ```bash
@@ -90,7 +90,7 @@ cd MySuperApps/MyCV-Platform/direct
 ./scripts/run_test_hybrid_integration-jetson.sh
 ```
 
-**📖 Jetson Documentation:** [README-Edge.md](./README-Edge.md)
+**📖 Jetson Documentation:** [README-Edge.md](./README-Edge.md) - Khusus untuk NVIDIA Jetson dan Edge Devices
 
 ### Option 4b: API Service Manager (Background + Auto-Start)
 ```bash
@@ -173,7 +173,8 @@ docker-compose -f docker-compose.cpu.yml up --build
 - [API Hybrid Detection Guide](direct/app/api-hybrid-detection/README.md)
 - [Docker Testing Guide](docker/README.md)
 - [Web Application Guide](direct/app/web/README.md)
-- [Edge Devices (NVIDIA Jetson) Guide](README-Edge.md)
+- [Edge Devices (NVIDIA Jetson) Guide](README-Edge.md) - Khusus untuk Edge Devices
+- [Server/GPU Computing Guide](README_run_direct.md) - Khusus untuk Server dengan GPU
 - [Testing Guide](docs/TESTING_GUIDE.md)
 - [Model Management](docs/MODEL_MANAGEMENT.md)
 

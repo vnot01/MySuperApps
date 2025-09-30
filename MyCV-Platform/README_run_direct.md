@@ -2,7 +2,11 @@
 
 ## 📋 Overview
 
-Script `run_direct.sh` adalah launcher utama untuk menjalankan MyCV-Platform secara langsung di VM tanpa menggunakan Docker. Script ini mengatur virtual environment, menginstall dependencies, dan menjalankan fresh integration test dengan YOLO + SAM2.
+Script `run_direct.sh` adalah launcher utama untuk menjalankan MyCV-Platform secara langsung di **Server/Computer** dengan **GPU Computing** tanpa menggunakan Docker. Script ini mengatur virtual environment, menginstall dependencies, dan menjalankan fresh integration test dengan YOLO + SAM2.
+
+**Target Environment**: Server/Computer dengan GPU Computing capabilities  
+**Purpose**: High-performance computer vision processing untuk production server  
+**Integration**: MyRVM-Platform (VM 100) via API
 
 ## 🔗 File Location
 
@@ -10,10 +14,12 @@ Script `run_direct.sh` adalah launcher utama untuk menjalankan MyCV-Platform sec
 
 ## 🎯 Fungsi Utama
 
-1. **Environment Setup** - Membuat dan mengaktifkan virtual environment
-2. **Dependency Management** - Menginstall semua dependencies yang diperlukan
-3. **Integration Testing** - Menjalankan fresh integration test dengan YOLO + SAM2
-4. **Output Management** - Menyimpan hasil di folder `data/output/`
+1. **Environment Setup** - Membuat dan mengaktifkan virtual environment untuk server
+2. **Dependency Management** - Menginstall semua dependencies yang diperlukan untuk GPU computing
+3. **GPU Detection** - Otomatis deteksi dan konfigurasi GPU untuk optimal performance
+4. **Integration Testing** - Menjalankan fresh integration test dengan YOLO + SAM2
+5. **Output Management** - Menyimpan hasil di folder `data/output/` dengan struktur terorganisir
+6. **Performance Optimization** - Optimasi untuk server environment dengan resource yang memadai
 
 ## 📁 Dependencies
 
@@ -140,23 +146,44 @@ pip install termcolor
 - ✅ Git (untuk model download)
 
 ### Hardware Requirements:
-- ✅ CPU: Multi-core recommended
-- ✅ RAM: 8GB+ recommended
-- ✅ Storage: 10GB+ free space
-- ⚠️ GPU: Optional (CPU-only mode supported)
+- ✅ **CPU**: Multi-core recommended (8+ cores untuk optimal performance)
+- ✅ **RAM**: 16GB+ recommended (32GB+ untuk production)
+- ✅ **Storage**: 50GB+ free space (untuk models dan data)
+- ✅ **GPU**: **REQUIRED** - NVIDIA GPU dengan CUDA support (RTX 3060+ atau Tesla V100+)
+- ✅ **Network**: Stable internet connection untuk model download
 
 ## 🎯 Use Cases
 
-1. **Development Testing** - Test cepat tanpa Docker
-2. **Local Development** - Development environment setup
-3. **CI/CD Pipeline** - Automated testing
-4. **Production Deployment** - Direct VM deployment
+1. **Production Server Deployment** - High-performance server dengan GPU computing
+2. **Development Environment** - Development setup untuk server development
+3. **CI/CD Pipeline** - Automated testing di server environment
+4. **GPU Computing** - Optimal performance untuk computer vision tasks
+5. **API Server** - Backend processing untuk web applications
+6. **Batch Processing** - Large-scale image processing dengan GPU acceleration
+
+## 🔄 Perbedaan dengan Edge Devices
+
+### **Server/GPU Computing (README_run_direct.md):**
+- ✅ **High Performance**: Resource unlimited, optimal GPU utilization
+- ✅ **Large Models**: Support untuk model besar (YOLO11x, SAM2.1_l)
+- ✅ **Batch Processing**: Concurrent processing multiple images
+- ✅ **Production Ready**: Stable, reliable untuk production server
+- ✅ **API Integration**: Full REST API dengan background processing
+- ✅ **Resource Intensive**: Memory dan storage tidak terbatas
+
+### **Edge Devices (README-Edge.md):**
+- ⚠️ **Resource Constrained**: Memory dan storage terbatas
+- ⚠️ **Optimized Models**: Model size terbatas untuk edge constraints
+- ⚠️ **Single Processing**: Sequential processing untuk memory efficiency
+- ⚠️ **Edge Optimized**: PyTorch 2.5.0 khusus Jetson Platform 6.1
+- ⚠️ **Independent Operation**: Tidak bergantung pada main server
 
 ## 📚 Documentation
 
 - **Main README:** [`README.md`](./README.md)
 - **Direct Folder:** [`direct/README.md`](./direct/README.md)
 - **Scripts Guide:** [`direct/scripts/`](./direct/scripts/)
+- **Edge Devices:** [`README-Edge.md`](./README-Edge.md) - Khusus untuk Edge Devices
 
 ## 🔗 Quick Links
 

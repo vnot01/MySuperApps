@@ -5,8 +5,9 @@
 **Target Devices**: NVIDIA Jetson Orin Nano, Orin NX, Orin AGX  
 **Purpose**: Real YOLO11 + SAM2 processing untuk edge deployment  
 **Integration**: MyRVM-Platform (VM 100) via API  
+**Environment**: Edge Computing dengan resource constraints
 
-Platform Computer Vision dengan YOLO + SAM2 Integration untuk NVIDIA Jetson devices.
+Platform Computer Vision dengan YOLO + SAM2 Integration khusus untuk **Edge Devices** dan **NVIDIA Jetson** dengan optimasi memory dan performance.
 
 ## 📋 System Requirements
 
@@ -160,16 +161,18 @@ data-jetson/
 
 ## 🎯 Features
 
-### **Jetson-Optimized Features:**
+### **Edge Device Optimized Features:**
 - ✅ **PyTorch 2.5.0** optimized for Jetson Platform 6.1
 - ✅ **CUDA Support** dengan automatic verification dan device name display
-- ✅ **Memory Optimization** dengan 16GB swap configuration
+- ✅ **Memory Optimization** dengan 16GB swap configuration untuk edge constraints
 - ✅ **Edge-Specific Paths** menggunakan `data-jetson/` directory
 - ✅ **API Integration** dengan Jetson IP (100.117.234.2:5000)
 - ✅ **Auto-Installation** PyTorch jika tidak terdeteksi
 - ✅ **Model Management** terpisah dari main installation
 - ✅ **Enhanced Verification** dengan GPU memory dan device name info
 - ✅ **Python Script Integration** dengan `run_test_hybrid_integration-jetson.py`
+- ✅ **Resource Constraint Handling** untuk edge computing environment
+- ✅ **Independent Operation** tanpa dependency ke main server
 
 ### **Performance Optimizations:**
 - **Swap Configuration**: 16GB swap dengan swappiness=10
