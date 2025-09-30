@@ -1,0 +1,65 @@
+{
+  "detection_summary": [
+    {
+      "id": 0,
+      "name": "2-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            19.61334228515625,
+            95.25968933105469,
+            180.70230102539062,
+            149.99090576171875
+          ],
+          "confidence": 0.865796685218811,
+          "class_id": 3,
+          "class_name": "non_mineral"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_1009e315/2-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_1009e315/2-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_1009e315/2-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_1009e315/2-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_1009e315/2-best_pt-hybrid.png"
+      }
+    },
+    {
+      "id": 1,
+      "name": "3-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            86.64531707763672,
+            176.4845733642578,
+            374.3604431152344,
+            629.4055786132812
+          ],
+          "confidence": 0.8809738159179688,
+          "class_id": 2,
+          "class_name": "mineral"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_1009e315/3-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_1009e315/3-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_1009e315/3-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_1009e315/3-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_1009e315/3-best_pt-hybrid.png"
+      }
+    }
+  ],
+  "class_summary": [
+    {
+      "class_name": "mineral",
+      "count": 1
+    },
+    {
+      "class_name": "non_mineral",
+      "count": 1
+    }
+  ],
+  "object_count": 2
+}

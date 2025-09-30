@@ -1,0 +1,424 @@
+{
+  "detection_summary": [
+    {
+      "id": 0,
+      "name": "45-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            298.2039794921875,
+            1.9976806640625,
+            509.9661865234375,
+            512.7738037109375
+          ],
+          "confidence": 0.8263616561889648,
+          "class_id": 2,
+          "class_name": "mineral"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/45-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_a72818e4/45-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/45-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/45-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/45-best_pt-hybrid.png"
+      }
+    },
+    {
+      "id": 1,
+      "name": "62-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            144.16207885742188,
+            0.5894851684570312,
+            371.603759765625,
+            578.9254150390625
+          ],
+          "confidence": 0.8801478147506714,
+          "class_id": 2,
+          "class_name": "mineral"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/62-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_a72818e4/62-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/62-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/62-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/62-best_pt-hybrid.png"
+      }
+    },
+    {
+      "id": 2,
+      "name": "43-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            38.06759262084961,
+            78.14295959472656,
+            186.31874084472656,
+            149.91268920898438
+          ],
+          "confidence": 0.8600907921791077,
+          "class_id": 3,
+          "class_name": "non_mineral"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/43-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_a72818e4/43-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/43-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/43-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/43-best_pt-hybrid.png"
+      }
+    },
+    {
+      "id": 3,
+      "name": "47-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            30.171833038330078,
+            79.58673095703125,
+            184.52322387695312,
+            149.0042266845703
+          ],
+          "confidence": 0.8676203489303589,
+          "class_id": 3,
+          "class_name": "non_mineral"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/47-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_a72818e4/47-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/47-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/47-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/47-best_pt-hybrid.png"
+      }
+    },
+    {
+      "id": 4,
+      "name": "68-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            12.346000671386719,
+            73.65291595458984,
+            180.5181884765625,
+            132.32968139648438
+          ],
+          "confidence": 0.8531134128570557,
+          "class_id": 2,
+          "class_name": "mineral"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/68-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_a72818e4/68-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/68-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/68-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/68-best_pt-hybrid.png"
+      }
+    },
+    {
+      "id": 5,
+      "name": "41-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            27.81463623046875,
+            83.37459564208984,
+            180.17550659179688,
+            142.06809997558594
+          ],
+          "confidence": 0.8540395498275757,
+          "class_id": 3,
+          "class_name": "non_mineral"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/41-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_a72818e4/41-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/41-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/41-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/41-best_pt-hybrid.png"
+      }
+    },
+    {
+      "id": 6,
+      "name": "56-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            311.40557861328125,
+            14.549903869628906,
+            525.6377563476562,
+            600.0
+          ],
+          "confidence": 0.9183132648468018,
+          "class_id": 2,
+          "class_name": "mineral"
+        },
+        {
+          "bbox": [
+            363.94683837890625,
+            233.01409912109375,
+            474.237060546875,
+            598.4949951171875
+          ],
+          "confidence": 0.5841004252433777,
+          "class_id": 4,
+          "class_name": "not_empty"
+        },
+        {
+          "bbox": [
+            331.4144287109375,
+            0.0,
+            464.59991455078125,
+            517.9365234375
+          ],
+          "confidence": 0.3303992748260498,
+          "class_id": 4,
+          "class_name": "not_empty"
+        }
+      ],
+      "detection_count": 3,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/56-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_a72818e4/56-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/56-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/56-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/56-best_pt-hybrid.png"
+      }
+    },
+    {
+      "id": 7,
+      "name": "48-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            14.848899841308594,
+            72.94762420654297,
+            178.99942016601562,
+            138.27264404296875
+          ],
+          "confidence": 0.8416655659675598,
+          "class_id": 2,
+          "class_name": "mineral"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/48-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_a72818e4/48-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/48-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/48-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/48-best_pt-hybrid.png"
+      }
+    },
+    {
+      "id": 8,
+      "name": "67-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            21.98314666748047,
+            72.17144775390625,
+            182.4072265625,
+            140.4998321533203
+          ],
+          "confidence": 0.8402790427207947,
+          "class_id": 2,
+          "class_name": "mineral"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/67-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_a72818e4/67-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/67-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/67-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/67-best_pt-hybrid.png"
+      }
+    },
+    {
+      "id": 9,
+      "name": "66-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            23.66887664794922,
+            69.21644592285156,
+            182.6279296875,
+            149.929931640625
+          ],
+          "confidence": 0.8623256087303162,
+          "class_id": 3,
+          "class_name": "non_mineral"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/66-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_a72818e4/66-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/66-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/66-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/66-best_pt-hybrid.png"
+      }
+    },
+    {
+      "id": 10,
+      "name": "46-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            73.11982727050781,
+            142.9651336669922,
+            575.3226928710938,
+            628.5154418945312
+          ],
+          "confidence": 0.9209938049316406,
+          "class_id": 2,
+          "class_name": "mineral"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/46-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_a72818e4/46-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/46-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/46-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/46-best_pt-hybrid.png"
+      }
+    },
+    {
+      "id": 11,
+      "name": "65-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            277.94927978515625,
+            0.0,
+            504.4984436035156,
+            599.8125
+          ],
+          "confidence": 0.8820997476577759,
+          "class_id": 2,
+          "class_name": "mineral"
+        },
+        {
+          "bbox": [
+            354.6028137207031,
+            477.6714782714844,
+            426.41632080078125,
+            508.4154968261719
+          ],
+          "confidence": 0.5251861810684204,
+          "class_id": 4,
+          "class_name": "not_empty"
+        },
+        {
+          "bbox": [
+            345.4852294921875,
+            3.9904212951660156,
+            418.4837341308594,
+            302.1035461425781
+          ],
+          "confidence": 0.3441903591156006,
+          "class_id": 4,
+          "class_name": "not_empty"
+        },
+        {
+          "bbox": [
+            328.01861572265625,
+            72.40955352783203,
+            438.3974914550781,
+            534.0603637695312
+          ],
+          "confidence": 0.3214245140552521,
+          "class_id": 4,
+          "class_name": "not_empty"
+        }
+      ],
+      "detection_count": 4,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/65-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_a72818e4/65-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/65-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/65-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/65-best_pt-hybrid.png"
+      }
+    },
+    {
+      "id": 12,
+      "name": "44-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            22.055301666259766,
+            78.5847396850586,
+            184.1155242919922,
+            147.85702514648438
+          ],
+          "confidence": 0.8496163487434387,
+          "class_id": 2,
+          "class_name": "mineral"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/44-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_a72818e4/44-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/44-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/44-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/44-best_pt-hybrid.png"
+      }
+    },
+    {
+      "id": 13,
+      "name": "42-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            65.28730773925781,
+            202.1991424560547,
+            583.2535400390625,
+            636.6233520507812
+          ],
+          "confidence": 0.9288041591644287,
+          "class_id": 2,
+          "class_name": "mineral"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/42-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_a72818e4/42-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/42-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/42-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/42-best_pt-hybrid.png"
+      }
+    }
+  ],
+  "class_summary": [
+    {
+      "class_name": "mineral",
+      "count": 10
+    },
+    {
+      "class_name": "not_empty",
+      "count": 5
+    },
+    {
+      "class_name": "non_mineral",
+      "count": 4
+    }
+  ],
+  "object_count": 14
+}

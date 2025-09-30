@@ -17,3 +17,6 @@ cd "$PROJECT_DIR"
 echo "$(date): MyCV-Platform Web Service auto-started" >> /tmp/mycv_web_auto_start.log
 
 
+
+
+
