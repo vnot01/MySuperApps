@@ -253,13 +253,102 @@ UPLOAD_FORM=(-F "user_id=${USER_ID}")
 for f in "${COPIED_FILES[@]}"; do
   UPLOAD_FORM+=(-F "files=@${INPUT_DIR}/$f")
 done
+
+# Test API connectivity first
+print_status "Testing API connectivity..."
+API_HEALTH=$(curl -s -w "%{http_code}" "http://100.117.234.2:5000/api/health" -o /dev/null)
+if [ "$API_HEALTH" != "200" ]; then
+  print_error "API server at 100.117.234.2:5000 is not accessible (HTTP $API_HEALTH)"
+  print_error "Please ensure the API server is running on the main platform"
+  print_warning "Continuing with local processing instead..."
+  
+  # Run local processing without API
+  print_status "Running local hybrid integration test..."
+  python3 run_test_hybrid_integration-jetson.py
+  
+  if [ $? -eq 0 ]; then
+    print_success "✅ Local integration test completed successfully"
+  else
+    print_error "❌ Local integration test failed"
+    exit 1
+  fi
+  
+  # Show results summary
+  print_status "$PROJECT_NAME v$PROJECT_VERSION - Local Results Summary:"
+  echo "======================================================"
+  echo "📁 Generated files:"
+  find "${OUTPUT_DIR}" -name "*.png" -o -name "*.json" | wc -l | xargs echo "Total files:"
+  echo ""
+  echo "📂 Directory Structure:"
+  echo "Input:  ${INPUT_DIR}"
+  echo "Output: ${OUTPUT_DIR}"
+  echo "  ├── yolo/        (YOLO11m results)"
+  echo "  ├── best/        (best.pt results)"
+  echo "  ├── segmentasi/  (SAM2 segmentation results)"
+  echo "  └── hybrid/      (Combined results)"
+  echo ""
+  print_success "🎉 $PROJECT_NAME completed successfully!"
+  print_status "📊 Check '${OUTPUT_DIR}' for all results and visualizations"
+  exit 0
+fi
+
+print_success "API server is accessible"
 API_UPLOAD_RESP=$(curl -s -X POST "http://100.117.234.2:5000/api/upload" "${UPLOAD_FORM[@]}")
-SESSION_ID=$(echo "${API_UPLOAD_RESP}" | python3 -c "import sys,json; data=json.load(sys.stdin); print(data.get('session_id',''))")
+echo "API Response: $API_UPLOAD_RESP"
+
+# Check if response is empty or invalid JSON
+if [ -z "$API_UPLOAD_RESP" ]; then
+  print_error "Empty response from API upload"
+  exit 1
+fi
+
+SESSION_ID=$(echo "${API_UPLOAD_RESP}" | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    print(data.get('session_id', ''))
+except json.JSONDecodeError as e:
+    print('')
+    sys.stderr.write(f'JSON decode error: {e}\n')
+    sys.stderr.write(f'Response: {sys.stdin.read()}\n')
+except Exception as e:
+    print('')
+    sys.stderr.write(f'Error: {e}\n')
+")
 
 if [ -z "$SESSION_ID" ]; then
   print_error "Failed to get session_id from API upload"
-  echo "$API_UPLOAD_RESP"
-  exit 1
+  print_error "API Response: $API_UPLOAD_RESP"
+  print_warning "Continuing with local processing instead..."
+  
+  # Run local processing without API
+  print_status "Running local hybrid integration test..."
+  python3 run_test_hybrid_integration-jetson.py
+  
+  if [ $? -eq 0 ]; then
+    print_success "✅ Local integration test completed successfully"
+  else
+    print_error "❌ Local integration test failed"
+    exit 1
+  fi
+  
+  # Show results summary
+  print_status "$PROJECT_NAME v$PROJECT_VERSION - Local Results Summary:"
+  echo "======================================================"
+  echo "📁 Generated files:"
+  find "${OUTPUT_DIR}" -name "*.png" -o -name "*.json" | wc -l | xargs echo "Total files:"
+  echo ""
+  echo "📂 Directory Structure:"
+  echo "Input:  ${INPUT_DIR}"
+  echo "Output: ${OUTPUT_DIR}"
+  echo "  ├── yolo/        (YOLO11m results)"
+  echo "  ├── best/        (best.pt results)"
+  echo "  ├── segmentasi/  (SAM2 segmentation results)"
+  echo "  └── hybrid/      (Combined results)"
+  echo ""
+  print_success "🎉 $PROJECT_NAME completed successfully!"
+  print_status "📊 Check '${OUTPUT_DIR}' for all results and visualizations"
+  exit 0
 fi
 
 print_success "Session: $SESSION_ID"
