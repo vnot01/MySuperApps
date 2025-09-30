@@ -259,7 +259,7 @@ print_status "Testing API connectivity..."
 API_HEALTH=$(curl -s -w "%{http_code}" "http://100.117.234.2:5000/api/health" -o /dev/null)
 if [ "$API_HEALTH" != "200" ]; then
   print_error "API server at 100.117.234.2:5000 is not accessible (HTTP $API_HEALTH)"
-  print_error "Please ensure the API server is running on the main platform"
+  print_error "Please ensure the Jetson API server is running locally"
   print_warning "Continuing with local processing instead..."
   
   # Run local processing without API
