@@ -7,8 +7,7 @@ Utility scripts and tools for MyCV-Edge-API hardware monitoring and system manag
 ```
 utils/
 ├── python/                    # Python utility scripts
-│   ├── get_jetpack_versions.py    # JetPack and L4T version detection
-│   └── requirements.txt           # Python dependencies for utils
+│   └── get_jetpack_versions.py    # JetPack and L4T version detection
 ├── shell/                     # Shell utility scripts
 │   └── install_v4l_utils.sh      # v4l-utils installation script
 ├── config/                    # Configuration files
@@ -28,7 +27,8 @@ python3 get_jetpack_versions.py
 
 **Dependencies:**
 ```bash
-pip install -r requirements.txt
+# Dependencies are included in main requirements.txt
+# No additional installation needed
 ```
 
 **Features:**
@@ -57,10 +57,10 @@ chmod +x utils/shell/install_v4l_utils.sh
 ## 🔧 Configuration
 
 ### Python Dependencies
-Install Python utility dependencies:
+Python utility dependencies are included in the main requirements.txt:
 ```bash
-cd utils/python
-pip install -r requirements.txt
+# Dependencies are already installed with main project
+# No additional installation needed
 ```
 
 ### System Dependencies
@@ -96,9 +96,7 @@ The hardware monitoring API (`/api/hardware`) uses these utilities to provide:
 
 1. **Install Dependencies:**
    ```bash
-   # Python dependencies
-   cd utils/python && pip install -r requirements.txt
-   
+   # Python dependencies are included in main requirements.txt
    # System dependencies
    ./utils/shell/install_v4l_utils.sh
    ```
