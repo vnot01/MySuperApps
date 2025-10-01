@@ -16,7 +16,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../..'))
 
 from .api_client import RVMAPIClient
-from .health_monitor import RVMHealthMonitor
+from .internal_health_monitor import RVMHealthMonitor
 
 class RVMStatusPoller:
     """Main RVM status polling service"""

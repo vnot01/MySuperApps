@@ -13,7 +13,7 @@ from datetime import datetime
 # Add parent directories to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../..'))
 
-from service_manager import RVMServiceManager
+from internal_service_manager import RVMServiceManager
 
 def setup_logging(log_level: str = 'INFO'):
     """Setup logging configuration"""

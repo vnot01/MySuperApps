@@ -6,13 +6,14 @@ Services untuk polling status RVM dari MyRVM-Platform server. RVM dapat beropera
 
 ```
 utils/services/
-├── __init__.py                 # Package initialization
-├── api_client.py              # API client untuk komunikasi dengan server
-├── health_monitor.py          # Health monitoring service
-├── status_poller.py           # Main status polling service
-├── service_manager.py         # Service manager untuk mengelola semua services
-├── run_polling_service.py     # Script untuk menjalankan services
-└── README.md                  # Dokumentasi ini
+├── __init__.py                      # Package initialization
+├── api_client.py                   # API client untuk komunikasi dengan server
+├── internal_health_monitor.py      # Internal health monitoring service
+├── internal_status_poller.py       # Internal status polling service
+├── internal_service_manager.py     # Internal service manager untuk mengelola semua services
+├── internal_api_integration.py     # Internal integration dengan Jetson API
+├── internal_polling_service.py     # Internal script untuk menjalankan services
+└── README.md                       # Dokumentasi ini
 ```
 
 ## 🚀 Quick Start
@@ -92,7 +93,7 @@ if success:
 
 **Usage**:
 ```python
-from health_monitor import RVMHealthMonitor
+from internal_health_monitor import RVMHealthMonitor
 
 monitor = RVMHealthMonitor(rvm_id=1, monitoring_interval=30)
 monitor.start_monitoring()
@@ -115,7 +116,7 @@ print(f"System Health: {health_summary['system_health']}")
 
 **Usage**:
 ```python
-from status_poller import RVMStatusPoller
+from internal_status_poller import RVMStatusPoller
 
 def on_status_update(status):
     print(f"RVM Status: {status['rvm_status']}")
@@ -140,7 +141,7 @@ status = poller.get_current_status()
 
 **Usage**:
 ```python
-from service_manager import RVMServiceManager
+from internal_service_manager import RVMServiceManager
 
 manager = RVMServiceManager('rvm_config.env')
 
@@ -236,7 +237,7 @@ RVM_IDS=1,2,3  # Comma-separated RVM IDs
 ### 1. Basic Polling
 
 ```python
-from service_manager import RVMServiceManager
+from internal_service_manager import RVMServiceManager
 
 # Initialize manager
 manager = RVMServiceManager('rvm_config.env')
@@ -251,7 +252,7 @@ manager.run_forever()
 ### 2. Custom Status Callback
 
 ```python
-from status_poller import RVMStatusPoller
+from internal_status_poller import RVMStatusPoller
 
 def custom_status_callback(status):
     rvm_id = status.get('rvm_id', 'unknown')
@@ -277,7 +278,7 @@ poller.start_polling()
 ### 3. Health Monitoring
 
 ```python
-from health_monitor import RVMHealthMonitor
+from internal_health_monitor import RVMHealthMonitor
 
 monitor = RVMHealthMonitor(rvm_id=1, monitoring_interval=30)
 monitor.start_monitoring()
@@ -300,7 +301,7 @@ print(f"Memory Usage: {health['metrics']['memory_usage_avg']:.1f}%")
 ### 4. Service Management
 
 ```python
-from service_manager import RVMServiceManager
+from internal_service_manager import RVMServiceManager
 
 manager = RVMServiceManager('rvm_config.env')
 

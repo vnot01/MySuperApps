@@ -13,7 +13,7 @@ from typing import Dict, Optional
 # Add parent directories to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../..'))
 
-from service_manager import RVMServiceManager
+from internal_service_manager import RVMServiceManager
 
 class RVMAPIIntegration:
     """Integration between RVM polling services and Jetson API"""

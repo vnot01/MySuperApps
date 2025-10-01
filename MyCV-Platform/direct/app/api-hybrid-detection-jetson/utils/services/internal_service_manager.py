@@ -15,7 +15,7 @@ from datetime import datetime
 # Add parent directories to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../..'))
 
-from .status_poller import RVMStatusPoller
+from .internal_status_poller import RVMStatusPoller
 from .api_client import RVMAPIClient
 
 class RVMServiceManager:
