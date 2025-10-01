@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-MyCV-Platform Hybrid Detection API
-RESTful API for YOLO + SAM2 object detection and segmentation
-Integrated with MyRVM-Platform for multi-RVM support
+MyCV-Edge-API
+Edge computing API for YOLO + SAM2 object detection and segmentation
+Optimized for NVIDIA Jetson devices with RVM integration and multi-Jetson support
 """
 
 import os
@@ -392,7 +392,7 @@ def health_check():
     """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
-        'service': 'MyCV-Platform Hybrid Detection API',
+        'service': 'MyCV-Edge-API',
         'version': '1.0.0',
         'timestamp': datetime.now().isoformat(),
         'uptime': time.time()
@@ -426,7 +426,7 @@ def api_status():
     
     return jsonify({
         'api_status': 'online',
-        'service': 'MyCV-Platform Hybrid Detection API',
+        'service': 'MyCV-Edge-API',
         'version': '1.0.0',
         'endpoints': [
             '/api/health',

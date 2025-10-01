@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-MyCV-Platform Web Application
-Real-time camera detection with YOLO + SAM2
+MyCV-Web-Interface
+Real-time web interface for camera detection with YOLO + SAM2
+Interactive dashboard for monitoring and controlling computer vision processing
 """
 
 import os
@@ -356,7 +357,7 @@ def health():
     """Health check"""
     return jsonify({
         'status': 'healthy',
-        'service': 'MyCV-Platform Web Application',
+        'service': 'MyCV-Web-Interface',
         'version': '1.0.0',
         'timestamp': datetime.now().isoformat(),
         'uptime': time.time()

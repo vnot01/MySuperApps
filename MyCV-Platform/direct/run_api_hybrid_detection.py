@@ -557,7 +557,7 @@ def main():
         project_name = model_info['name']
         project_version = model_info['version']
     except:
-        project_name = "MyHybrid-Detection"
+        project_name = "MyCV-GPU-Server"
         project_version = "1.0.0"
     
     log_message(f"🚀 Starting Detection Process", 'info')

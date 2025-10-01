@@ -53,9 +53,9 @@
         }
     },
     "installation_date": "2025-09-26T19:32:28Z",
-    "name": "MyHybrid-Detection",
-    "version": "1.0.0",
-    "description": "MyCV-Platform Hybrid Detection System with YOLO + SAM2 Integration",
+    "name": "MyCV-Edge-API",
+    "version": "1.5.0",
+    "description": "MyCV-Edge-API: Edge computing for YOLO + SAM2 with RVM integration",
     "features": [
         "YOLO11m Object Detection",
         "Custom best.pt Model",

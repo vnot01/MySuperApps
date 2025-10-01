@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-MyCV-Platform Hybrid Detection API
-RESTful API for YOLO + SAM2 object detection and segmentation
+MyCV-GPU-Server API
+High-performance GPU computing server for YOLO + SAM2 object detection and segmentation
+Optimized for powerful PC/server environments with dedicated GPU resources
 """
 
 import os
@@ -252,7 +253,7 @@ def health_check():
     """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
-        'service': 'MyCV-Platform Hybrid Detection API',
+        'service': 'MyCV-GPU-Server',
         'version': '1.0.0',
         'timestamp': datetime.now().isoformat(),
         'uptime': time.time()

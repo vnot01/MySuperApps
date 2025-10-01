@@ -522,7 +522,7 @@ def main():
         project_name = model_info['name']
         project_version = model_info['version']
     except:
-        project_name = "MyHybrid-Detection-Jetson"
+        project_name = "MyCV-Edge-API"
         project_version = "1.0.0"
     
     log_message(f"🚀 {project_name} v{project_version}", 'info')
