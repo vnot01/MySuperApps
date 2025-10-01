@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Setup MyCV-Platform API as User Systemd Service
+# Setup MyCV-Edge-API as User Systemd Service
 # Tidak perlu sudo, menggunakan user systemd
 
 set -e
@@ -36,7 +36,7 @@ PROJECT_DIR="/home/my/MySuperApps/MyCV-Platform"
 API_DIR="${PROJECT_DIR}/direct/app/api-hybrid-detection"
 VENV_DIR="${PROJECT_DIR}/direct/venv"
 
-print_status "🔧 Setting up MyCV-Platform API as User Systemd Service..."
+print_status "🔧 Setting up MyCV-Edge-API as User Systemd Service..."
 
 # Create user systemd directory
 mkdir -p "$HOME/.config/systemd/user"
@@ -46,7 +46,7 @@ print_status "Creating user systemd service file..."
 
 cat > "$SERVICE_FILE" << EOF
 [Unit]
-Description=MyCV-Platform Hybrid Detection API
+Description=MyCV-Edge-API Service
 After=network.target
 Wants=network.target
 
@@ -79,7 +79,7 @@ systemctl --user enable "$SERVICE_NAME"
 print_status "Enabling user service lingering..."
 sudo loginctl enable-linger "$USER"
 
-print_success "✅ MyCV-Platform API User Service installed successfully!"
+print_success "✅ MyCV-Edge-API User Service installed successfully!"
 echo ""
 print_status "📋 Service Management Commands:"
 echo "  systemctl --user start $SERVICE_NAME    # Start service"

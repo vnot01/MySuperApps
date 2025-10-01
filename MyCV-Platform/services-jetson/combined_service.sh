@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# MyCV-Platform Combined Service Manager (Jetson)
+# MyCV-Edge-API Combined Service Manager (Jetson)
 # Mengelola API dan Web Service secara bersamaan untuk Jetson
 
 set -e
@@ -124,7 +124,7 @@ stop_all_ports() {
 
 # Function to start all services
 start_all() {
-    print_status "🚀 Starting MyCV-Platform Combined Services..."
+    print_status "🚀 Starting MyCV-Edge-API Combined Services..."
     echo ""
     
     # Stop all processes on target ports first
@@ -158,7 +158,7 @@ start_all() {
 
 # Function to stop all services
 stop_all() {
-    print_status "🛑 Stopping MyCV-Platform Combined Services..."
+    print_status "🛑 Stopping MyCV-Edge-API Combined Services..."
     echo ""
     
     # Stop all processes on target ports
@@ -169,7 +169,7 @@ stop_all() {
 
 # Function to restart all services
 restart_all() {
-    print_status "🔄 Restarting MyCV-Platform Combined Services..."
+    print_status "🔄 Restarting MyCV-Edge-API Combined Services..."
     stop_all
     sleep 3
     start_all
@@ -177,7 +177,7 @@ restart_all() {
 
 # Function to show status of all services
 status_all() {
-    print_status "📊 MyCV-Platform Combined Services Status"
+    print_status "📊 MyCV-Edge-API Combined Services Status"
     echo "=============================================="
     echo ""
     
@@ -222,7 +222,7 @@ status_all() {
 
 # Function to show logs
 show_logs() {
-    print_status "📄 MyCV-Platform Combined Services Logs"
+    print_status "📄 MyCV-Edge-API Combined Services Logs"
     echo "============================================="
     echo ""
     
@@ -313,7 +313,7 @@ main() {
             remove_autostart
             ;;
         *)
-            echo "MyCV-Platform Combined Service Manager"
+            echo "MyCV-Edge-API Combined Service Manager"
             echo "====================================="
             echo ""
             echo "Usage: $0 {start|stop|restart|status|logs|setup-autostart|remove-autostart}"

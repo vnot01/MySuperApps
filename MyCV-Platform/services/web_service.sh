@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# MyCV-Platform Web Service Manager
+# MyCV-Web-Interface Service Manager
 # Toggle on/off Web Application dengan background running dan auto-start
 
 set -e
@@ -76,7 +76,7 @@ start_web() {
         return 0
     fi
     
-    print_status "🚀 Starting MyCV-Platform Web Service..."
+    print_status "🚀 Starting MyCV-Web-Interface Service..."
     
     # Check if web directory exists
     if [ ! -d "$WEB_DIR" ]; then
@@ -144,7 +144,7 @@ stop_web() {
         return 0
     fi
     
-    print_status "🛑 Stopping MyCV-Platform Web Service..."
+    print_status "🛑 Stopping MyCV-Web-Interface Service..."
     
     local pid=$(cat "$PID_FILE")
     if kill "$pid" 2>/dev/null; then
@@ -158,7 +158,7 @@ stop_web() {
 
 # Function to restart web service
 restart_web() {
-    print_status "🔄 Restarting MyCV-Platform Web Service..."
+    print_status "🔄 Restarting MyCV-Web-Interface Service..."
     stop_web
     sleep 2
     start_web
@@ -213,7 +213,7 @@ main() {
             show_logs
             ;;
         *)
-            echo "MyCV-Platform Web Service Manager"
+            echo "MyCV-Web-Interface Service Manager"
             echo "=================================="
             echo ""
             echo "Usage: $0 {start|stop|restart|status|logs}"

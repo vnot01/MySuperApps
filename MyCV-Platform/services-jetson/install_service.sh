@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Install MyCV-Platform API as System Service
+# Install MyCV-Edge-API as System Service
 # Auto-start on boot dan bisa di-manage dengan systemctl
 
 set -e
@@ -36,7 +36,7 @@ PROJECT_DIR="/home/my/MySuperApps/MyCV-Platform"
 API_DIR="${PROJECT_DIR}/direct/app/api-hybrid-detection"
 VENV_DIR="${PROJECT_DIR}/direct/venv"
 
-print_status "🔧 Installing MyCV-Platform API as System Service..."
+print_status "🔧 Installing MyCV-Edge-API as System Service..."
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then
@@ -49,7 +49,7 @@ print_status "Creating systemd service file..."
 
 cat > "$SERVICE_FILE" << EOF
 [Unit]
-Description=MyCV-Platform Hybrid Detection API
+Description=MyCV-Edge-API Service
 After=network.target
 Wants=network.target
 
@@ -87,7 +87,7 @@ systemctl daemon-reload
 print_status "Enabling service for auto-start on boot..."
 systemctl enable "$SERVICE_NAME"
 
-print_success "✅ MyCV-Platform API Service installed successfully!"
+print_success "✅ MyCV-Edge-API Service installed successfully!"
 echo ""
 print_status "📋 Service Management Commands:"
 echo "  sudo systemctl start $SERVICE_NAME    # Start service"

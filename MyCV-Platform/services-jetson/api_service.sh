@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# MyCV-Platform API Service Manager
+# MyCV-Edge-API Service Manager
 # Toggle On/Off untuk API Hybrid Detection
 
 set -e
@@ -70,7 +70,7 @@ start_api() {
         return 0
     fi
     
-    print_status "🚀 Starting MyCV-Platform API Service (Jetson)..."
+    print_status "🚀 Starting MyCV-Edge-API Service (Jetson)..."
     
     # Change to API directory
     cd "$API_DIR"
@@ -125,7 +125,7 @@ stop_api() {
     fi
     
     local pid=$(cat "$PID_FILE")
-    print_status "🛑 Stopping MyCV-Platform API Service (PID: $pid)..."
+    print_status "🛑 Stopping MyCV-Edge-API Service (PID: $pid)..."
     
     # Kill the process
     kill "$pid" 2>/dev/null || true
@@ -151,7 +151,7 @@ stop_api() {
 
 # Function to restart API
 restart_api() {
-    print_status "🔄 Restarting MyCV-Platform API Service..."
+    print_status "🔄 Restarting MyCV-Edge-API Service..."
     stop_api
     sleep 2
     start_api
@@ -192,7 +192,7 @@ show_logs() {
 
 # Function to show help
 show_help() {
-    echo "MyCV-Platform API Service Manager"
+            echo "MyCV-Edge-API Service Manager"
     echo "=================================="
     echo ""
     echo "Usage: $0 {start|stop|restart|status|logs|help}"
