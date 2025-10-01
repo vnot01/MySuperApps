@@ -621,46 +621,86 @@ def get_disk_info():
     return disk_info
 
 def get_camera_info():
-    """Get camera information using v4l2-ctl"""
+    """Get camera information using multiple detection methods"""
     camera_info = {
         'usb_cameras': []
     }
     
     try:
-        # Use v4l2-ctl to list devices
-        result = subprocess.run(['v4l2-ctl', '--list-devices'], capture_output=True, text=True, timeout=10)
-        if result.returncode == 0:
-            lines = result.stdout.strip().split('\n')
-            current_device = None
-            
-            for line in lines:
-                line = line.strip()
-                if not line:
-                    continue
-                    
-                # Check if this is a device path
-                if line.startswith('/dev/video'):
-                    current_device = line
-                elif current_device and ':' in line:
-                    # This is a device name/description
-                    device_name = line.rstrip(':')
-                    camera_info['usb_cameras'].append({
-                        'device': current_device,
-                        'name': device_name
-                    })
-                    current_device = None
+        # Method 1: Try v4l2-ctl first (if available)
+        try:
+            result = subprocess.run(['v4l2-ctl', '--list-devices'], capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                lines = result.stdout.strip().split('\n')
+                current_device = None
+                
+                for line in lines:
+                    line = line.strip()
+                    if not line:
+                        continue
+                        
+                    # Check if this is a device path
+                    if line.startswith('/dev/video'):
+                        current_device = line
+                    elif current_device and ':' in line:
+                        # This is a device name/description
+                        device_name = line.rstrip(':')
+                        camera_info['usb_cameras'].append({
+                            'device': current_device,
+                            'name': device_name
+                        })
+                        current_device = None
+        except:
+            pass
         
-        # If v4l2-ctl fails, fallback to ls /dev/video*
+        # Method 2: Fallback to ls /dev/video* if v4l2-ctl not available
         if not camera_info['usb_cameras']:
             result = subprocess.run(['ls', '/dev/video*'], capture_output=True, text=True, timeout=5)
             if result.returncode == 0:
                 video_devices = result.stdout.strip().split('\n')
                 for device in video_devices:
                     if device.strip():
+                        # Try to get device info using other methods
+                        device_name = 'Unknown Device'
+                        try:
+                            # Try to read device info from sysfs
+                            device_num = device.split('video')[1]
+                            info_path = f'/sys/class/video4linux/video{device_num}/name'
+                            if os.path.exists(info_path):
+                                with open(info_path, 'r') as f:
+                                    device_name = f.read().strip()
+                        except:
+                            pass
+                        
                         camera_info['usb_cameras'].append({
                             'device': device.strip(),
-                            'name': 'Unknown Device'
+                            'name': device_name
                         })
+        
+        # Method 3: Check for CSI cameras (Jetson specific)
+        try:
+            # Check for nvargus service
+            result = subprocess.run(['systemctl', 'is-active', 'nvargus-daemon'], 
+                                  capture_output=True, text=True, timeout=5)
+            if result.returncode == 0 and 'active' in result.stdout:
+                camera_info['nvargus_status'] = 'active'
+            else:
+                camera_info['nvargus_status'] = 'inactive'
+        except:
+            camera_info['nvargus_status'] = 'unknown'
+        
+        # Method 4: Check for USB cameras using lsusb
+        try:
+            result = subprocess.run(['lsusb'], capture_output=True, text=True, timeout=5)
+            if result.returncode == 0:
+                usb_cameras = []
+                for line in result.stdout.split('\n'):
+                    if any(keyword in line.lower() for keyword in ['camera', 'webcam', 'video', 'imaging']):
+                        usb_cameras.append(line.strip())
+                if usb_cameras:
+                    camera_info['usb_devices'] = usb_cameras
+        except:
+            pass
         
     except Exception as e:
         camera_info['error'] = str(e)
