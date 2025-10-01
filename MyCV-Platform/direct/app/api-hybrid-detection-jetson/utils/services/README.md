@@ -41,16 +41,16 @@ RVM_IDS=1,2,3
 ```bash
 # Start polling service
 cd MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection-jetson/utils/services
-python3 run_polling_service.py
+python3 internal_polling_service.py
 
 # Test connection
-python3 run_polling_service.py --test-connection
+python3 internal_polling_service.py --test-connection
 
 # Show status
-python3 run_polling_service.py --status
+python3 internal_polling_service.py --status
 
 # Force poll all RVMs
-python3 run_polling_service.py --force-poll
+python3 internal_polling_service.py --force-poll
 ```
 
 ## 🔧 Services Overview
@@ -81,7 +81,7 @@ if success:
     print(f"RVM Status: {response['data']['rvm']['status']}")
 ```
 
-### 2. RVMHealthMonitor (`health_monitor.py`)
+### 2. RVMHealthMonitor (`internal_health_monitor.py`)
 
 **Purpose**: Tracks and manages RVM health metrics
 
@@ -104,7 +104,7 @@ print(f"Health Score: {health_summary['health_score']}")
 print(f"System Health: {health_summary['system_health']}")
 ```
 
-### 3. RVMStatusPoller (`status_poller.py`)
+### 3. RVMStatusPoller (`internal_status_poller.py`)
 
 **Purpose**: Main service for polling RVM status from server
 
@@ -129,7 +129,7 @@ poller.start_polling()
 status = poller.get_current_status()
 ```
 
-### 4. RVMServiceManager (`service_manager.py`)
+### 4. RVMServiceManager (`internal_service_manager.py`)
 
 **Purpose**: Manages multiple RVM polling services
 
@@ -336,34 +336,34 @@ for rvm_id in summary['rvm_ids']:
 
 ```bash
 # Start service normally
-python3 run_polling_service.py
+python3 internal_polling_service.py
 
 # With custom config
-python3 run_polling_service.py --config custom_config.env
+python3 internal_polling_service.py --config custom_config.env
 
 # With debug logging
-python3 run_polling_service.py --log-level DEBUG
+python3 internal_polling_service.py --log-level DEBUG
 ```
 
 ### Test Connection
 
 ```bash
 # Test server connection
-python3 run_polling_service.py --test-connection
+python3 internal_polling_service.py --test-connection
 ```
 
 ### Show Status
 
 ```bash
 # Show current status
-python3 run_polling_service.py --status
+python3 internal_polling_service.py --status
 ```
 
 ### Force Poll
 
 ```bash
 # Force immediate poll for all RVMs
-python3 run_polling_service.py --force-poll
+python3 internal_polling_service.py --force-poll
 ```
 
 ## 📊 Monitoring & Logging
@@ -504,14 +504,14 @@ Services berkomunikasi dengan MyRVM-Platform untuk:
 
 ```bash
 # Run with debug logging
-python3 run_polling_service.py --log-level DEBUG
+python3 internal_polling_service.py --log-level DEBUG
 ```
 
 ### Health Check
 
 ```bash
 # Check service health
-python3 run_polling_service.py --status
+python3 internal_polling_service.py --status
 ```
 
 ## 📞 Support
