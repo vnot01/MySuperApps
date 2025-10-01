@@ -58,7 +58,7 @@ cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection
       "local_ip": "10.3.52.184",
       "public_ip": "202.152.145.34"
     },
-    "updated_at": "2025-10-01T08:56:07.131973"
+    "updated_at": "2025-10-01T09:07:45.807590"
   }
 }
 ```
@@ -550,12 +550,124 @@ curl http://100.98.142.94:5000/api/hardware
 curl http://100.98.142.94:5000/api/hardware | jq
 ```
 
+#### Testing Commands:
+```bash
+# 1. Health Check
+curl -s http://100.98.142.94:5000/api/health | jq
+
+# 2. API Status (includes hardware info)
+curl -s http://100.98.142.94:5000/api/status | jq
+
+# 3. Hardware Information (detailed)
+curl -s http://100.98.142.94:5000/api/hardware | jq
+
+# 4. Test all endpoints
+curl -s http://100.98.142.94:5000/api/health
+curl -s http://100.98.142.94:5000/api/status
+curl -s http://100.98.142.94:5000/api/hardware
+curl -s http://100.98.142.94:5000/api/detections
+```
+
 #### Hardware Monitoring Features:
 - **Real-time Status**: Live hardware information
 - **Resource Monitoring**: Memory, disk, GPU usage
 - **Network Detection**: Automatic IP detection (local, public)
 - **System Information**: Architecture, hostname, kernel versions
 - **Performance Metrics**: GPU memory usage, system memory
+
+#### Live Testing Results:
+**Tested on**: 2025-10-01T09:07:45.807590
+
+**Health Check Response:**
+```json
+{
+  "service": "MyCV-GPU-Server",
+  "status": "healthy",
+  "timestamp": "2025-10-01T09:05:43.528279",
+  "uptime": 1759309543.528301,
+  "version": "1.0.0"
+}
+```
+
+**API Status Response:**
+```json
+{
+  "api_status": "online",
+  "endpoints": [
+    "/api/health",
+    "/api/status", 
+    "/api/hardware",
+    "/api/upload",
+    "/api/process/<session_id>",
+    "/api/results/<session_id>",
+    "/api/download/<session_id>/<filename>",
+    "/api/detections"
+  ],
+  "gpu_info": {
+    "available_gpus": 1,
+    "cuda_available": true,
+    "cudnn_enabled": true,
+    "gpus": [
+      {
+        "id": 0,
+        "memory_gb": 11.63,
+        "name": "NVIDIA GeForce RTX 3060"
+      }
+    ],
+    "pytorch_cuda_version": "2.8.0+cu128",
+    "status": "success",
+    "total_memory_all_gpus_gb": 11.63
+  },
+  "service": "MyCV-GPU-Server",
+  "timestamp": "2025-10-01T09:09:25.543460",
+  "total_sessions_processed": 50,
+  "version": "1.0.0"
+}
+```
+
+**Hardware Info Response:**
+```json
+{
+  "status": "success",
+  "service": "MyCV-GPU-Server",
+  "hardware_info": {
+    "system_info": {
+      "architecture": "x86_64",
+      "hostname": "cv-host",
+      "kernel_version": "5.15.0-156-generic"
+    },
+    "gpu_info": {
+      "status": "success",
+      "cuda_available": true,
+      "cudnn_enabled": true,
+      "pytorch_cuda_version": "2.8.0+cu128",
+      "available_gpus": 1,
+      "gpus": [
+        {
+          "id": 0,
+          "name": "NVIDIA GeForce RTX 3060",
+          "memory_gb": 11.63
+        }
+      ],
+      "total_memory_all_gpus_gb": 11.63
+    },
+    "memory_info": {
+      "total_gb": 12.75
+    },
+    "disk_info": {
+      "available": "74G",
+      "size": "153G",
+      "used": "72G",
+      "use_percent": "50%"
+    },
+    "network_info": {
+      "local_ip": "10.3.52.184",
+      "public_ip": "202.152.145.34"
+    },
+    "updated_at": "2025-10-01T09:07:45.807590"
+  }
+}
+```
 
 ## 📈 System Monitoring
 
