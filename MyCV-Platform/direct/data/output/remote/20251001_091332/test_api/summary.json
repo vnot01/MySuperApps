@@ -1,0 +1,36 @@
+{
+  "detection_summary": [
+    {
+      "id": 0,
+      "name": "dogs-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            0.04709620401263237,
+            51.37726974487305,
+            166.78123474121094,
+            566.7282104492188
+          ],
+          "confidence": 0.26000073552131653,
+          "class_id": 2,
+          "class_name": "mineral"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_3de9cfac/dogs-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_3de9cfac/dogs-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_3de9cfac/dogs-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_3de9cfac/dogs-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_3de9cfac/dogs-best_pt-hybrid.png"
+      }
+    }
+  ],
+  "class_summary": [
+    {
+      "class_name": "mineral",
+      "count": 1
+    }
+  ],
+  "object_count": 1
+}

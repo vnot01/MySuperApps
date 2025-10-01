@@ -561,11 +561,20 @@ curl -s http://100.98.142.94:5000/api/status | jq
 # 3. Hardware Information (detailed)
 curl -s http://100.98.142.94:5000/api/hardware | jq
 
-# 4. Test all endpoints
-curl -s http://100.98.142.94:5000/api/health
-curl -s http://100.98.142.94:5000/api/status
-curl -s http://100.98.142.94:5000/api/hardware
-curl -s http://100.98.142.94:5000/api/detections
+# 4. Detection History
+curl -s http://100.98.142.94:5000/api/detections | jq
+
+# 5. Upload Test (with actual file)
+curl -X POST -F 'files=@/path/to/image.jpg' -F 'user_id=test_user' http://100.98.142.94:5000/api/upload | jq
+
+# 6. Check Processing Status
+curl -s http://100.98.142.94:5000/api/process/session_3de9cfac | jq
+
+# 7. Get Detection Results
+curl -s http://100.98.142.94:5000/api/results/session_3de9cfac | jq
+
+# 8. Download Result Files
+curl -s http://100.98.142.94:5000/api/download/session_3de9cfac/dogs-best_pt-compare.png -o result.png
 ```
 
 #### Hardware Monitoring Features:
@@ -666,6 +675,115 @@ curl -s http://100.98.142.94:5000/api/detections
     },
     "updated_at": "2025-10-01T09:07:45.807590"
   }
+}
+```
+
+#### Complete API Testing Results:
+**Tested on**: 2025-10-01T09:13:45.289538
+
+**Upload Test Response:**
+```json
+{
+  "message": "Files uploaded successfully. Processing started.",
+  "results_url": "/api/results/session_3de9cfac",
+  "session_id": "session_3de9cfac",
+  "status_url": "/api/process/session_3de9cfac",
+  "success": true,
+  "timestamp": "20251001_091332",
+  "uploaded_files": [
+    {
+      "original_name": "dogs.jpg",
+      "path": "../../data/input/remote/20251001_091332/test_api/dogs.jpg",
+      "saved_name": "dogs.jpg"
+    }
+  ],
+  "user_id": "test_api"
+}
+```
+
+**Processing Status Response:**
+```json
+{
+  "end_time": "2025-10-01T09:13:45.289538",
+  "message": "Detection completed successfully",
+  "start_time": "2025-10-01T09:13:32.140137",
+  "status": "completed",
+  "timestamp": "20251001_091332",
+  "user_id": "test_api"
+}
+```
+
+**Detection Results Response:**
+```json
+{
+  "results": {
+    "class_summary": [
+      {
+        "class_name": "mineral",
+        "count": 1
+      }
+    ],
+    "detection_summary": [
+      {
+        "datas": [
+          {
+            "bbox": [
+              0.04709620401263237,
+              51.37726974487305,
+              166.78123474121094,
+              566.7282104492188
+            ],
+            "class_id": 2,
+            "class_name": "mineral",
+            "confidence": 0.26000073552131653
+          }
+        ],
+        "detection_count": 1,
+        "id": 0,
+        "images": {
+          "best": "http://100.98.142.94:5000/api/download/session_3de9cfac/dogs-best_pt-best.png",
+          "hybrid": "http://100.98.142.94:5000/api/download/session_3de9cfac/dogs-best_pt-hybrid.png",
+          "sam": "http://100.98.142.94:5000/api/download/session_3de9cfac/dogs-best_pt-segmentation.png",
+          "yolo": "http://100.98.142.94:5000/api/download/session_3de9cfac/dogs-yolo11m-detection.png"
+        },
+        "name": "dogs-best_pt-detection.json",
+        "summary_images_url": "http://100.98.142.94:5000/api/download/session_3de9cfac/dogs-best_pt-compare.png"
+      }
+    ],
+    "object_count": 1
+  },
+  "session_id": "session_3de9cfac",
+  "status": "completed",
+  "timestamp": "20251001_091332",
+  "user_id": "test_api"
+}
+```
+
+**Detection History Response:**
+```json
+{
+  "recent_detections": [
+    {
+      "detection_count": 1,
+      "detections": [
+        {
+          "bbox": [
+            0.04709620401263237,
+            51.37726974487305,
+            166.78123474121094,
+            566.7282104492188
+          ],
+          "class_id": 2,
+          "class_name": "mineral",
+          "confidence": 0.26000073552131653
+        }
+      ],
+      "image_name": "dogs",
+      "timestamp": "20251001_091332",
+      "user_id": "test_api"
+    }
+  ],
+  "total_sessions": 51
 }
 ```
 
