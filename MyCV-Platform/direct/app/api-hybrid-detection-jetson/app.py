@@ -724,10 +724,7 @@ def get_camera_info():
                             vendor_id, product_id = device_id.split(':')
                             
                             usb_cameras.append({
-                                'bus_device': bus_device,
                                 'device_id': device_id,
-                                'vendor_id': vendor_id,
-                                'product_id': product_id,
                                 'name': device_name,
                                 'raw_line': line.strip()
                             })
@@ -744,8 +741,8 @@ def get_camera_info():
 def get_network_info():
     """Get network interface information - simplified version"""
     network_info = {
-        'wlP1p1s0_ip': None,
-        'tailscale0_ip': None,
+        'local_ip': None,
+        'network_ip': None,
         'public_ip': None
     }
     
@@ -756,7 +753,7 @@ def get_network_info():
             for line in result.stdout.split('\n'):
                 if 'inet ' in line:
                     ip = line.split()[1].split('/')[0]
-                    network_info['wlP1p1s0_ip'] = ip
+                    network_info['local_ip'] = ip
                     break
         
         # Get tailscale0 IP
@@ -765,7 +762,7 @@ def get_network_info():
             for line in result.stdout.split('\n'):
                 if 'inet ' in line:
                     ip = line.split()[1].split('/')[0]
-                    network_info['tailscale0_ip'] = ip
+                    network_info['network_ip'] = ip
                     break
         
         # Validate Tailscale connection using tailscale status
@@ -779,14 +776,14 @@ def get_network_info():
                 
                 # Validate using AllowedIPs and tailscale_status
                 if 'AllowedIPs' in tailscale_self and tailscale_self.get('Online'):
-                    network_info['tailscale_connected'] = True
-                    network_info['tailscale_allowed_ips'] = tailscale_self.get('AllowedIPs', [])
+                    network_info['network_connected'] = True
+                    network_info['tailscale_ip'] = tailscale_self.get('AllowedIPs', [])
                 else:
-                    network_info['tailscale_connected'] = False
+                    network_info['network_connected'] = False
             else:
-                network_info['tailscale_connected'] = False
+                network_info['network_connected'] = False
         except:
-            network_info['tailscale_connected'] = False
+            network_info['network_connected'] = False
         
         # Try to get public IP
         try:
