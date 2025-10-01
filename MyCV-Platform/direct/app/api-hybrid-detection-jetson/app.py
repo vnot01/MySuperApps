@@ -454,7 +454,7 @@ def hardware_info():
             'disk_info': get_disk_info(),
             'camera_info': get_camera_info(),
             'network_info': get_network_info(),
-            'timestamp': datetime.now().isoformat()
+            'updated_at': datetime.now().isoformat()
         }
         
         return jsonify({
@@ -466,26 +466,18 @@ def hardware_info():
         return jsonify({
             'status': 'error',
             'message': f'Failed to get hardware info: {str(e)}',
-            'timestamp': datetime.now().isoformat()
+            'updated_at': datetime.now().isoformat()
         }), 500
 
 def get_jetson_info():
     """Get Jetson device information"""
     jetson_info = {
-        'model': 'Unknown',
-        'l4t_version': 'Unknown',
-        'jetpack_version': 'Unknown',
+        'architecture': 'Unknown',
         'kernel_version': 'Unknown',
-        'architecture': 'Unknown'
+        'model': 'Unknown'
     }
     
     try:
-        # Get L4T version
-        result = subprocess.run(['cat', '/etc/nv_tegra_release'], 
-                              capture_output=True, text=True, timeout=5)
-        if result.returncode == 0:
-            jetson_info['l4t_version'] = result.stdout.strip()
-        
         # Get kernel version
         result = subprocess.run(['uname', '-r'], 
                               capture_output=True, text=True, timeout=5)
@@ -505,18 +497,24 @@ def get_jetson_info():
         except:
             pass
         
-        # Try to get Jetpack version
+        # Get Jetpack and L4T versions using the utility script
         try:
-            result = subprocess.run(['dpkg', '-l', 'nvidia-jetpack'], 
-                                  capture_output=True, text=True, timeout=5)
+            utils_path = os.path.join(os.path.dirname(__file__), 'utils/python/get_jetpack_versions.py')
+            result = subprocess.run(['python3', utils_path], 
+                                  capture_output=True, text=True, timeout=10)
             if result.returncode == 0:
-                for line in result.stdout.split('\n'):
-                    if 'nvidia-jetpack' in line:
-                        parts = line.split()
-                        if len(parts) >= 3:
-                            jetson_info['jetpack_version'] = parts[2]
+                # Parse the output to get JetPack and L4T versions
+                lines = result.stdout.split('\n')
+                for line in lines:
+                    if 'Your L4T version' in line:
+                        l4t_version = line.split(':')[1].strip()
+                        jetson_info['l4t_version'] = l4t_version
+                    elif 'JetPack SDK' in line:
+                        jetpack_version = line.split('JetPack SDK')[1].strip().rstrip('.')
+                        jetson_info['jetpack_version'] = jetpack_version
         except:
-            pass
+            jetson_info['l4t_version'] = 'Unknown'
+            jetson_info['jetpack_version'] = 'Unknown'
             
     except Exception as e:
         jetson_info['error'] = str(e)
@@ -524,82 +522,71 @@ def get_jetson_info():
     return jetson_info
 
 def get_cuda_info():
-    """Get CUDA information"""
+    """Get CUDA information similar to get_gpu_info()"""
     cuda_info = {
-        'available': False,
-        'version': 'Unknown',
-        'device_count': 0,
-        'device_name': 'Unknown',
-        'memory_total': 0,
-        'memory_used': 0,
-        'memory_free': 0
+        'status': 'error',
+        'cuda_available': False,
+        'cudnn_enabled': False,
+        'pytorch_cuda_version': 'Unknown',
+        'available_gpus': 0,
+        'gpus': [],
+        'total_memory_all_gpus_gb': 0.0
     }
     
     try:
         if torch.cuda.is_available():
-            cuda_info['available'] = True
-            cuda_info['version'] = torch.version.cuda
-            cuda_info['device_count'] = torch.cuda.device_count()
+            cuda_info['status'] = 'success'
+            cuda_info['cuda_available'] = True
+            cuda_info['cudnn_enabled'] = torch.backends.cudnn.enabled
+            cuda_info['pytorch_cuda_version'] = torch.__version__
+            cuda_info['available_gpus'] = torch.cuda.device_count()
             
-            if torch.cuda.device_count() > 0:
-                device = torch.cuda.current_device()
-                cuda_info['device_name'] = torch.cuda.get_device_name(device)
+            total_memory_all_gpus_gb = 0.0
+            
+            for i in range(torch.cuda.device_count()):
+                device_properties = torch.cuda.get_device_properties(i)
+                gpu_name = device_properties.name
+                total_memory_bytes = device_properties.total_memory
+                total_memory_gb = total_memory_bytes / 1024**3
                 
-                # Get memory info
-                memory_total = torch.cuda.get_device_properties(device).total_memory
-                memory_allocated = torch.cuda.memory_allocated(device)
-                memory_cached = torch.cuda.memory_reserved(device)
-                
-                cuda_info['memory_total'] = memory_total
-                cuda_info['memory_used'] = memory_allocated + memory_cached
-                cuda_info['memory_free'] = memory_total - (memory_allocated + memory_cached)
-                
-                # Convert to GB
-                cuda_info['memory_total_gb'] = round(memory_total / (1024**3), 2)
-                cuda_info['memory_used_gb'] = round((memory_allocated + memory_cached) / (1024**3), 2)
-                cuda_info['memory_free_gb'] = round((memory_total - (memory_allocated + memory_cached)) / (1024**3), 2)
+                gpu_info = {
+                    "id": i,
+                    "name": gpu_name,
+                    "memory_gb": round(total_memory_gb, 2)
+                }
+                cuda_info['gpus'].append(gpu_info)
+                total_memory_all_gpus_gb += total_memory_gb
+            
+            cuda_info['total_memory_all_gpus_gb'] = round(total_memory_all_gpus_gb, 2)
+        else:
+            cuda_info['status'] = 'error'
+            cuda_info['message'] = 'Tidak ada GPU berkemampuan CUDA yang ditemukan.'
+            
     except Exception as e:
-        cuda_info['error'] = str(e)
+        cuda_info['status'] = 'error'
+        cuda_info['message'] = f'Terjadi kesalahan saat mengambil data GPU: {str(e)}'
     
     return cuda_info
 
 def get_memory_info():
-    """Get system memory information"""
+    """Get system memory information - simplified version"""
     memory_info = {
-        'total': 0,
-        'available': 0,
-        'used': 0,
-        'free': 0,
-        'swap_total': 0,
-        'swap_used': 0,
-        'swap_free': 0
+        'total_gb': 0.0
     }
     
     try:
+        total_memory_gb = 0.0
+        swap_total_gb = 0.0
+        
         with open('/proc/meminfo', 'r') as f:
             for line in f:
                 if line.startswith('MemTotal:'):
-                    memory_info['total'] = int(line.split()[1]) * 1024  # Convert KB to bytes
-                elif line.startswith('MemAvailable:'):
-                    memory_info['available'] = int(line.split()[1]) * 1024
-                elif line.startswith('MemFree:'):
-                    memory_info['free'] = int(line.split()[1]) * 1024
+                    total_memory_gb = int(line.split()[1]) / (1024**2)  # Convert KB to GB
                 elif line.startswith('SwapTotal:'):
-                    memory_info['swap_total'] = int(line.split()[1]) * 1024
-                elif line.startswith('SwapFree:'):
-                    memory_info['swap_free'] = int(line.split()[1]) * 1024
+                    swap_total_gb = int(line.split()[1]) / (1024**2)  # Convert KB to GB
         
-        memory_info['used'] = memory_info['total'] - memory_info['available']
-        memory_info['swap_used'] = memory_info['swap_total'] - memory_info['swap_free']
-        
-        # Convert to GB
-        memory_info['total_gb'] = round(memory_info['total'] / (1024**3), 2)
-        memory_info['available_gb'] = round(memory_info['available'] / (1024**3), 2)
-        memory_info['used_gb'] = round(memory_info['used'] / (1024**3), 2)
-        memory_info['free_gb'] = round(memory_info['free'] / (1024**3), 2)
-        memory_info['swap_total_gb'] = round(memory_info['swap_total'] / (1024**3), 2)
-        memory_info['swap_used_gb'] = round(memory_info['swap_used'] / (1024**3), 2)
-        memory_info['swap_free_gb'] = round(memory_info['swap_free'] / (1024**3), 2)
+        # Total memory = RAM + Swap
+        memory_info['total_gb'] = round(total_memory_gb + swap_total_gb, 2)
         
     except Exception as e:
         memory_info['error'] = str(e)
@@ -607,12 +594,12 @@ def get_memory_info():
     return memory_info
 
 def get_disk_info():
-    """Get disk storage information"""
+    """Get disk storage information - simplified version"""
     disk_info = {
-        'total': 0,
-        'used': 0,
-        'free': 0,
-        'devices': []
+        'available': 'Unknown',
+        'size': 'Unknown',
+        'used': 'Unknown',
+        'use_percent': 'Unknown'
     }
     
     try:
@@ -621,47 +608,12 @@ def get_disk_info():
             lines = result.stdout.strip().split('\n')[1:]  # Skip header
             for line in lines:
                 parts = line.split()
-                if len(parts) >= 6:
-                    device = {
-                        'filesystem': parts[0],
-                        'size': parts[1],
-                        'used': parts[2],
-                        'available': parts[3],
-                        'use_percent': parts[4],
-                        'mounted_on': parts[5]
-                    }
-                    disk_info['devices'].append(device)
-                    
-                    # Get root filesystem info
-                    if parts[5] == '/':
-                        disk_info['root_filesystem'] = device
-                        # Parse size for total calculation
-                        try:
-                            if 'G' in parts[1]:
-                                disk_info['total'] = int(float(parts[1].replace('G', '')) * 1024**3)
-                            elif 'T' in parts[1]:
-                                disk_info['total'] = int(float(parts[1].replace('T', '')) * 1024**4)
-                        except:
-                            pass
-        
-        # Get NVMe specific info if available
-        try:
-            result = subprocess.run(['lsblk', '-d', '-o', 'NAME,SIZE,TYPE,MOUNTPOINT'], 
-                                  capture_output=True, text=True, timeout=5)
-            if result.returncode == 0:
-                nvme_devices = []
-                for line in result.stdout.strip().split('\n')[1:]:  # Skip header
-                    parts = line.split()
-                    if len(parts) >= 4 and 'nvme' in parts[0].lower():
-                        nvme_devices.append({
-                            'name': parts[0],
-                            'size': parts[1],
-                            'type': parts[2],
-                            'mountpoint': parts[3] if len(parts) > 3 else ''
-                        })
-                disk_info['nvme_devices'] = nvme_devices
-        except:
-            pass
+                if len(parts) >= 6 and parts[5] == '/':  # Root filesystem
+                    disk_info['available'] = parts[3]
+                    disk_info['size'] = parts[1]
+                    disk_info['used'] = parts[2]
+                    disk_info['use_percent'] = parts[4]
+                    break
             
     except Exception as e:
         disk_info['error'] = str(e)
@@ -669,62 +621,46 @@ def get_disk_info():
     return disk_info
 
 def get_camera_info():
-    """Get camera information (USB and Jetson-specific)"""
+    """Get camera information using v4l2-ctl"""
     camera_info = {
-        'usb_cameras': [],
-        'jetson_cameras': [],
-        'total_cameras': 0
+        'usb_cameras': []
     }
     
     try:
-        # Check USB cameras
-        result = subprocess.run(['ls', '/dev/video*'], capture_output=True, text=True, timeout=5)
+        # Use v4l2-ctl to list devices
+        result = subprocess.run(['v4l2-ctl', '--list-devices'], capture_output=True, text=True, timeout=10)
         if result.returncode == 0:
-            usb_cameras = result.stdout.strip().split('\n')
-            for camera in usb_cameras:
-                if camera.strip():
+            lines = result.stdout.strip().split('\n')
+            current_device = None
+            
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                    
+                # Check if this is a device path
+                if line.startswith('/dev/video'):
+                    current_device = line
+                elif current_device and ':' in line:
+                    # This is a device name/description
+                    device_name = line.rstrip(':')
                     camera_info['usb_cameras'].append({
-                        'device': camera.strip(),
-                        'type': 'USB'
+                        'device': current_device,
+                        'name': device_name
                     })
+                    current_device = None
         
-        # Check Jetson-specific cameras (CSI cameras)
-        try:
+        # If v4l2-ctl fails, fallback to ls /dev/video*
+        if not camera_info['usb_cameras']:
             result = subprocess.run(['ls', '/dev/video*'], capture_output=True, text=True, timeout=5)
             if result.returncode == 0:
-                jetson_cameras = result.stdout.strip().split('\n')
-                for camera in jetson_cameras:
-                    if camera.strip() and 'video' in camera:
-                        # Check if it's a CSI camera by looking at device properties
-                        try:
-                            result2 = subprocess.run(['v4l2-ctl', '--device', camera.strip(), '--info'], 
-                                                   capture_output=True, text=True, timeout=5)
-                            if result2.returncode == 0:
-                                camera_info['jetson_cameras'].append({
-                                    'device': camera.strip(),
-                                    'type': 'CSI',
-                                    'info': result2.stdout.strip()
-                                })
-                        except:
-                            camera_info['jetson_cameras'].append({
-                                'device': camera.strip(),
-                                'type': 'Unknown'
-                            })
-        except:
-            pass
-        
-        # Check for nvargus (Jetson camera service)
-        try:
-            result = subprocess.run(['systemctl', 'is-active', 'nvargus-daemon'], 
-                                  capture_output=True, text=True, timeout=5)
-            if result.returncode == 0 and 'active' in result.stdout:
-                camera_info['nvargus_status'] = 'active'
-            else:
-                camera_info['nvargus_status'] = 'inactive'
-        except:
-            camera_info['nvargus_status'] = 'unknown'
-        
-        camera_info['total_cameras'] = len(camera_info['usb_cameras']) + len(camera_info['jetson_cameras'])
+                video_devices = result.stdout.strip().split('\n')
+                for device in video_devices:
+                    if device.strip():
+                        camera_info['usb_cameras'].append({
+                            'device': device.strip(),
+                            'name': 'Unknown Device'
+                        })
         
     except Exception as e:
         camera_info['error'] = str(e)
@@ -732,63 +668,51 @@ def get_camera_info():
     return camera_info
 
 def get_network_info():
-    """Get network interface information including Tailscale"""
+    """Get network interface information - simplified version"""
     network_info = {
-        'interfaces': [],
-        'tailscale_ip': None,
-        'local_ip': None,
+        'wlP1p1s0_ip': None,
+        'tailscale0_ip': None,
         'public_ip': None
     }
     
     try:
-        # Get network interfaces
-        result = subprocess.run(['ip', 'addr', 'show'], capture_output=True, text=True, timeout=10)
+        # Get wlP1p1s0 IP (WiFi interface)
+        result = subprocess.run(['ip', 'addr', 'show', 'wlP1p1s0'], capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
-            interfaces = []
-            current_interface = None
-            
             for line in result.stdout.split('\n'):
-                line = line.strip()
-                if line and not line.startswith(' '):
-                    # New interface
-                    if current_interface:
-                        interfaces.append(current_interface)
-                    current_interface = {
-                        'name': line.split(':')[1].strip() if ':' in line else line,
-                        'addresses': []
-                    }
-                elif line.startswith('inet '):
-                    # IP address
-                    parts = line.split()
-                    if len(parts) >= 2:
-                        ip = parts[1].split('/')[0]
-                        current_interface['addresses'].append(ip)
-                        
-                        # Check if it's Tailscale IP (usually 100.x.x.x)
-                        if ip.startswith('100.'):
-                            network_info['tailscale_ip'] = ip
-                        # Check if it's local IP (192.168.x.x or 10.x.x.x)
-                        elif ip.startswith('192.168.') or ip.startswith('10.'):
-                            network_info['local_ip'] = ip
-            
-            if current_interface:
-                interfaces.append(current_interface)
-            
-            network_info['interfaces'] = interfaces
+                if 'inet ' in line:
+                    ip = line.split()[1].split('/')[0]
+                    network_info['wlP1p1s0_ip'] = ip
+                    break
         
-        # Check Tailscale status
+        # Get tailscale0 IP
+        result = subprocess.run(['ip', 'addr', 'show', 'tailscale0'], capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            for line in result.stdout.split('\n'):
+                if 'inet ' in line:
+                    ip = line.split()[1].split('/')[0]
+                    network_info['tailscale0_ip'] = ip
+                    break
+        
+        # Validate Tailscale connection using tailscale status
         try:
             result = subprocess.run(['tailscale', 'status', '--json'], 
                                   capture_output=True, text=True, timeout=5)
             if result.returncode == 0:
                 import json
                 tailscale_data = json.loads(result.stdout)
-                network_info['tailscale_status'] = 'connected'
-                network_info['tailscale_self'] = tailscale_data.get('Self', {})
+                tailscale_self = tailscale_data.get('Self', {})
+                
+                # Validate using AllowedIPs and tailscale_status
+                if 'AllowedIPs' in tailscale_self and tailscale_self.get('Online'):
+                    network_info['tailscale_connected'] = True
+                    network_info['tailscale_allowed_ips'] = tailscale_self.get('AllowedIPs', [])
+                else:
+                    network_info['tailscale_connected'] = False
             else:
-                network_info['tailscale_status'] = 'disconnected'
+                network_info['tailscale_connected'] = False
         except:
-            network_info['tailscale_status'] = 'not_installed'
+            network_info['tailscale_connected'] = False
         
         # Try to get public IP
         try:
