@@ -1,4 +1,4 @@
-# MyCV-Platform Hybrid Detection API (Jetson)
+# MyCV-Platform Hybrid Detection API (Jetson) | 🚀 Jetson API
 
 RESTful API untuk deteksi objek dan segmentasi menggunakan YOLO + SAM2 pada NVIDIA Jetson Orin.
 

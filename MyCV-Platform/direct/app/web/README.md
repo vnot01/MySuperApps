@@ -1,4 +1,4 @@
-# MyCV-Platform Web Application
+# MyCV-Platform Web Application | 🌐 Web Interface
 
 Aplikasi web real-time untuk deteksi objek menggunakan kamera dengan YOLO + SAM2 integration.
 

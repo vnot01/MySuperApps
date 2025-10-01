@@ -2,6 +2,7 @@
 """
 MyCV-Platform Hybrid Detection API
 RESTful API for YOLO + SAM2 object detection and segmentation
+Integrated with MyRVM-Platform for multi-RVM support
 """
 
 import os
@@ -9,6 +10,9 @@ import sys
 import json
 import time
 import uuid
+import requests
+import hashlib
+import hmac
 from datetime import datetime
 from flask import Flask, request, jsonify, send_file
 import tarfile
@@ -26,11 +30,17 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
 app = Flask(__name__)
 CORS(app, origins=["*"])
 
-# Configuration for Jetson
-UPLOAD_FOLDER = '../../data-jetson/input/remote'
-OUTPUT_FOLDER = '../../data-jetson/output/remote'
+# Configuration for Jetson with RVM support
+BASE_DATA_DIR = '../../data-jetson'
+UPLOAD_FOLDER = f'{BASE_DATA_DIR}/input'
+OUTPUT_FOLDER = f'{BASE_DATA_DIR}/output'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp'}
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
+
+# RVM Platform Integration
+RVM_API_BASE_URL = os.getenv('RVM_API_BASE_URL', 'http://localhost:8000/api')
+RVM_API_KEY = os.getenv('RVM_API_KEY', '')  # Master API key for RVM platform
+RVM_CACHE_TTL = 300  # 5 minutes cache for RVM data
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
@@ -38,6 +48,10 @@ app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 # Global variables for tracking processing
 processing_status = {}
 processing_results = {}
+
+# RVM Cache for authentication and data
+rvm_cache = {}
+rvm_cache_timestamps = {}
 
 def allowed_file(filename):
     """Check if file extension is allowed"""
@@ -47,6 +61,127 @@ def allowed_file(filename):
 def generate_session_id():
     """Generate unique session ID"""
     return f"session_{uuid.uuid4().hex[:8]}"
+
+def validate_rvm_api_key(api_key):
+    """Validate RVM API key against RVM Platform"""
+    if not api_key:
+        return None
+    
+    # Check cache first
+    cache_key = f"rvm_auth_{api_key}"
+    if cache_key in rvm_cache:
+        cache_time = rvm_cache_timestamps.get(cache_key, 0)
+        if time.time() - cache_time < RVM_CACHE_TTL:
+            return rvm_cache[cache_key]
+    
+    try:
+        # Validate with RVM Platform API
+        headers = {
+            'Authorization': f'Bearer {RVM_API_KEY}',
+            'Content-Type': 'application/json'
+        }
+        
+        response = requests.get(
+            f"{RVM_API_BASE_URL}/rvm/validate-api-key",
+            headers=headers,
+            params={'api_key': api_key},
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            rvm_data = response.json()
+            # Cache the result
+            rvm_cache[cache_key] = rvm_data
+            rvm_cache_timestamps[cache_key] = time.time()
+            return rvm_data
+        else:
+            return None
+            
+    except Exception as e:
+        print(f"Error validating RVM API key: {e}")
+        return None
+
+def get_rvm_data(rvm_id):
+    """Get RVM data from cache or API"""
+    cache_key = f"rvm_data_{rvm_id}"
+    if cache_key in rvm_cache:
+        cache_time = rvm_cache_timestamps.get(cache_key, 0)
+        if time.time() - cache_time < RVM_CACHE_TTL:
+            return rvm_cache[cache_key]
+    
+    try:
+        headers = {
+            'Authorization': f'Bearer {RVM_API_KEY}',
+            'Content-Type': 'application/json'
+        }
+        
+        response = requests.get(
+            f"{RVM_API_BASE_URL}/rvm/{rvm_id}",
+            headers=headers,
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            rvm_data = response.json()
+            # Cache the result
+            rvm_cache[cache_key] = rvm_data
+            rvm_cache_timestamps[cache_key] = time.time()
+            return rvm_data
+        else:
+            return None
+            
+    except Exception as e:
+        print(f"Error getting RVM data: {e}")
+        return None
+
+def create_rvm_directory_structure(rvm_id, timestamp, user_id):
+    """Create directory structure for specific RVM"""
+    input_dir = os.path.join(UPLOAD_FOLDER, f"rvm_{rvm_id}", timestamp, user_id)
+    output_dir = os.path.join(OUTPUT_FOLDER, f"rvm_{rvm_id}", timestamp, user_id)
+    
+    # Create directories
+    os.makedirs(input_dir, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(os.path.join(output_dir, 'yolo'), exist_ok=True)
+    os.makedirs(os.path.join(output_dir, 'best'), exist_ok=True)
+    os.makedirs(os.path.join(output_dir, 'segmentasi'), exist_ok=True)
+    os.makedirs(os.path.join(output_dir, 'hybrid'), exist_ok=True)
+    
+    return input_dir, output_dir
+
+def save_detection_to_rvm_database(rvm_id, session_id, detection_data, image_path=None):
+    """Save detection results to RVM Platform database"""
+    try:
+        headers = {
+            'Authorization': f'Bearer {RVM_API_KEY}',
+            'Content-Type': 'application/json'
+        }
+        
+        # Prepare detection data for RVM platform
+        payload = {
+            'rvm_id': rvm_id,
+            'session_id': session_id,
+            'detection_data': detection_data,
+            'image_path': image_path,
+            'detected_at': datetime.now().isoformat()
+        }
+        
+        response = requests.post(
+            f"{RVM_API_BASE_URL}/detections/store",
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+        
+        if response.status_code == 201:
+            return response.json()
+        else:
+            print(f"Error saving detection to RVM database: {response.status_code} - {response.text}")
+            return None
+            
+    except Exception as e:
+        print(f"Error saving detection to RVM database: {e}")
+        return None
 
 def get_gpu_info():
     """Get detailed GPU information"""
@@ -105,22 +240,26 @@ def get_gpu_info():
             "total_memory_all_gpus_gb": 0.0
         }
 
-def create_directory_structure(timestamp, user_id):
-    """Create directory structure for processing"""
-    input_dir = os.path.join(UPLOAD_FOLDER, timestamp, user_id)
-    output_dir = os.path.join(OUTPUT_FOLDER, timestamp, user_id)
-    
-    # Create directories
-    os.makedirs(input_dir, exist_ok=True)
-    os.makedirs(output_dir, exist_ok=True)
-    os.makedirs(os.path.join(output_dir, 'yolo'), exist_ok=True)
-    os.makedirs(os.path.join(output_dir, 'best'), exist_ok=True)
-    os.makedirs(os.path.join(output_dir, 'segmentasi'), exist_ok=True)
-    os.makedirs(os.path.join(output_dir, 'hybrid'), exist_ok=True)
-    
-    return input_dir, output_dir
+def create_directory_structure(timestamp, user_id, rvm_id=None):
+    """Create directory structure for processing (backward compatibility)"""
+    if rvm_id:
+        return create_rvm_directory_structure(rvm_id, timestamp, user_id)
+    else:
+        # Legacy structure for backward compatibility
+        input_dir = os.path.join(UPLOAD_FOLDER, 'legacy', timestamp, user_id)
+        output_dir = os.path.join(OUTPUT_FOLDER, 'legacy', timestamp, user_id)
+        
+        # Create directories
+        os.makedirs(input_dir, exist_ok=True)
+        os.makedirs(output_dir, exist_ok=True)
+        os.makedirs(os.path.join(output_dir, 'yolo'), exist_ok=True)
+        os.makedirs(os.path.join(output_dir, 'best'), exist_ok=True)
+        os.makedirs(os.path.join(output_dir, 'segmentasi'), exist_ok=True)
+        os.makedirs(os.path.join(output_dir, 'hybrid'), exist_ok=True)
+        
+        return input_dir, output_dir
 
-def run_detection_process(timestamp, user_id, session_id):
+def run_detection_process(timestamp, user_id, session_id, rvm_id=None):
     """Run the detection process in background"""
     try:
         # Update status
@@ -129,6 +268,7 @@ def run_detection_process(timestamp, user_id, session_id):
             'message': 'Starting detection process...',
             'timestamp': timestamp,
             'user_id': user_id,
+            'rvm_id': rvm_id,
             'start_time': datetime.now().isoformat()
         }
         
@@ -304,8 +444,19 @@ def api_status():
 
 @app.route('/api/upload', methods=['POST'])
 def upload_files():
-    """Upload images for detection processing"""
+    """Upload images for detection processing with RVM authentication"""
     try:
+        # Get RVM authentication parameters
+        api_key = request.headers.get('X-RVM-API-Key') or request.form.get('api_key')
+        rvm_id = request.form.get('rvm_id')
+        
+        # Validate RVM authentication if provided
+        rvm_data = None
+        if api_key and rvm_id:
+            rvm_data = validate_rvm_api_key(api_key)
+            if not rvm_data or rvm_data.get('id') != int(rvm_id):
+                return jsonify({'error': 'Invalid RVM API key or RVM ID mismatch'}), 401
+        
         # Check if files are present
         if 'files' not in request.files:
             return jsonify({'error': 'No files provided'}), 400
@@ -320,8 +471,8 @@ def upload_files():
         user_id = request.form.get('user_id', 'public_user')
         session_id = generate_session_id()
         
-        # Create directory structure
-        input_dir, output_dir = create_directory_structure(timestamp, user_id)
+        # Create directory structure (with RVM support)
+        input_dir, output_dir = create_directory_structure(timestamp, user_id, rvm_id)
         
         # Save uploaded files
         uploaded_files = []
@@ -342,12 +493,12 @@ def upload_files():
         # Start detection process in background
         thread = threading.Thread(
             target=run_detection_process,
-            args=(timestamp, user_id, session_id)
+            args=(timestamp, user_id, session_id, rvm_id)
         )
         thread.daemon = True
         thread.start()
         
-        return jsonify({
+        response_data = {
             'success': True,
             'session_id': session_id,
             'timestamp': timestamp,
@@ -356,7 +507,17 @@ def upload_files():
             'message': 'Files uploaded successfully. Processing started.',
             'status_url': f'/api/process/{session_id}',
             'results_url': f'/api/results/{session_id}'
-        })
+        }
+        
+        # Add RVM data if authenticated
+        if rvm_data:
+            response_data['rvm'] = {
+                'id': rvm_data.get('id'),
+                'name': rvm_data.get('name'),
+                'location': rvm_data.get('location_description')
+            }
+        
+        return jsonify(response_data)
         
     except Exception as e:
         return jsonify({'error': f'Upload failed: {str(e)}'}), 500
@@ -468,12 +629,23 @@ def backup_session(session_id):
 
 @app.route('/api/detections', methods=['GET'])
 def get_all_detections():
-    """Get all recent detection results with pagination"""
+    """Get all recent detection results with pagination and RVM filtering"""
     try:
         # Get pagination parameters from query string
         page = int(request.args.get('page', 1))
         limit = int(request.args.get('limit', 20))
         user_id_filter = request.args.get('user_id', None)
+        rvm_id_filter = request.args.get('rvm_id', None)
+        
+        # Validate RVM access if rvm_id is provided
+        if rvm_id_filter:
+            api_key = request.headers.get('X-RVM-API-Key')
+            if not api_key:
+                return jsonify({'error': 'RVM API key required for RVM-specific queries'}), 401
+            
+            rvm_data = validate_rvm_api_key(api_key)
+            if not rvm_data or rvm_data.get('id') != int(rvm_id_filter):
+                return jsonify({'error': 'Invalid RVM API key or access denied'}), 403
         
         # Validate parameters
         if page < 1:
@@ -485,34 +657,56 @@ def get_all_detections():
         
         # Get all output directories
         if os.path.exists(OUTPUT_FOLDER):
-            for timestamp_dir in os.listdir(OUTPUT_FOLDER):
-                timestamp_path = os.path.join(OUTPUT_FOLDER, timestamp_dir)
-                if os.path.isdir(timestamp_path):
-                    for user_dir in os.listdir(timestamp_path):
-                        # Apply user_id filter if provided
-                        if user_id_filter and user_dir != user_id_filter:
+            for rvm_dir in os.listdir(OUTPUT_FOLDER):
+                rvm_path = os.path.join(OUTPUT_FOLDER, rvm_dir)
+                if os.path.isdir(rvm_path):
+                    # Extract RVM ID from directory name (rvm_123)
+                    if rvm_dir.startswith('rvm_'):
+                        current_rvm_id = rvm_dir.replace('rvm_', '')
+                        
+                        # Apply RVM filter if provided
+                        if rvm_id_filter and current_rvm_id != str(rvm_id_filter):
                             continue
-                            
-                        user_path = os.path.join(timestamp_path, user_dir)
-                        if os.path.isdir(user_path):
-                            # Find JSON files
-                            for root, dirs, files in os.walk(user_path):
-                                for file in files:
-                                    if file.endswith('.json'):
-                                        json_path = os.path.join(root, file)
-                                        try:
-                                            with open(json_path, 'r') as f:
-                                                detection_data = json.load(f)
-                                            
-                                            recent_results.append({
-                                                'timestamp': timestamp_dir,
-                                                'user_id': user_dir,
-                                                'image_name': file.replace('-best_pt-detection.json', ''),
-                                                'detections': detection_data,
-                                                'detection_count': len(detection_data)
-                                            })
-                                        except:
-                                            continue
+                    else:
+                        # Legacy directory structure
+                        if rvm_id_filter:
+                            continue
+                        current_rvm_id = None
+                    
+                    for timestamp_dir in os.listdir(rvm_path):
+                        timestamp_path = os.path.join(rvm_path, timestamp_dir)
+                        if os.path.isdir(timestamp_path):
+                            for user_dir in os.listdir(timestamp_path):
+                                # Apply user_id filter if provided
+                                if user_id_filter and user_dir != user_id_filter:
+                                    continue
+                                    
+                                user_path = os.path.join(timestamp_path, user_dir)
+                                if os.path.isdir(user_path):
+                                    # Find JSON files
+                                    for root, dirs, files in os.walk(user_path):
+                                        for file in files:
+                                            if file.endswith('.json'):
+                                                json_path = os.path.join(root, file)
+                                                try:
+                                                    with open(json_path, 'r') as f:
+                                                        detection_data = json.load(f)
+                                                    
+                                                    result_item = {
+                                                        'timestamp': timestamp_dir,
+                                                        'user_id': user_dir,
+                                                        'image_name': file.replace('-best_pt-detection.json', ''),
+                                                        'detections': detection_data,
+                                                        'detection_count': len(detection_data)
+                                                    }
+                                                    
+                                                    # Add RVM ID if available
+                                                    if current_rvm_id:
+                                                        result_item['rvm_id'] = int(current_rvm_id)
+                                                    
+                                                    recent_results.append(result_item)
+                                                except:
+                                                    continue
         
         # Sort by timestamp (newest first)
         recent_results.sort(key=lambda x: x['timestamp'], reverse=True)
@@ -538,7 +732,8 @@ def get_all_detections():
                 'prev_page': page - 1 if page > 1 else None
             },
             'filters': {
-                'user_id': user_id_filter
+                'user_id': user_id_filter,
+                'rvm_id': rvm_id_filter
             },
             'recent_detections': paginated_results
         })
@@ -548,7 +743,7 @@ def get_all_detections():
 
 @app.route('/api/detections/search', methods=['POST'])
 def search_detections():
-    """Search detections with JSON body parameters"""
+    """Search detections with JSON body parameters and RVM support"""
     try:
         # Get parameters from JSON body
         data = request.get_json()
@@ -561,6 +756,17 @@ def search_detections():
         user_id_filter = data.get('user_id', None)
         when_filter = data.get('when', None)
         class_name_filter = data.get('class_name', None)
+        rvm_id_filter = data.get('rvm_id', None)
+        
+        # Validate RVM access if rvm_id is provided
+        if rvm_id_filter:
+            api_key = request.headers.get('X-RVM-API-Key')
+            if not api_key:
+                return jsonify({'error': 'RVM API key required for RVM-specific queries'}), 401
+            
+            rvm_data = validate_rvm_api_key(api_key)
+            if not rvm_data or rvm_data.get('id') != int(rvm_id_filter):
+                return jsonify({'error': 'Invalid RVM API key or access denied'}), 403
         
         # Validate parameters
         if page < 1:
@@ -572,48 +778,70 @@ def search_detections():
         
         # Get all output directories
         if os.path.exists(OUTPUT_FOLDER):
-            for timestamp_dir in os.listdir(OUTPUT_FOLDER):
-                # Apply when filter if provided
-                if when_filter and when_filter not in timestamp_dir:
-                    continue
+            for rvm_dir in os.listdir(OUTPUT_FOLDER):
+                rvm_path = os.path.join(OUTPUT_FOLDER, rvm_dir)
+                if os.path.isdir(rvm_path):
+                    # Extract RVM ID from directory name (rvm_123)
+                    if rvm_dir.startswith('rvm_'):
+                        current_rvm_id = rvm_dir.replace('rvm_', '')
+                        
+                        # Apply RVM filter if provided
+                        if rvm_id_filter and current_rvm_id != str(rvm_id_filter):
+                            continue
+                    else:
+                        # Legacy directory structure
+                        if rvm_id_filter:
+                            continue
+                        current_rvm_id = None
                     
-                timestamp_path = os.path.join(OUTPUT_FOLDER, timestamp_dir)
-                if os.path.isdir(timestamp_path):
-                    for user_dir in os.listdir(timestamp_path):
-                        # Apply user_id filter if provided
-                        if user_id_filter and user_dir != user_id_filter:
+                    for timestamp_dir in os.listdir(rvm_path):
+                        # Apply when filter if provided
+                        if when_filter and when_filter not in timestamp_dir:
                             continue
                             
-                        user_path = os.path.join(timestamp_path, user_dir)
-                        if os.path.isdir(user_path):
-                            # Find JSON files
-                            for root, dirs, files in os.walk(user_path):
-                                for file in files:
-                                    if file.endswith('.json'):
-                                        json_path = os.path.join(root, file)
-                                        try:
-                                            with open(json_path, 'r') as f:
-                                                detection_data = json.load(f)
-                                            
-                                            # Apply class_name filter if provided
-                                            if class_name_filter:
-                                                filtered_detections = [
-                                                    det for det in detection_data 
-                                                    if det.get('class_name', '').lower() == class_name_filter.lower()
-                                                ]
-                                                if not filtered_detections:
+                        timestamp_path = os.path.join(rvm_path, timestamp_dir)
+                        if os.path.isdir(timestamp_path):
+                            for user_dir in os.listdir(timestamp_path):
+                                # Apply user_id filter if provided
+                                if user_id_filter and user_dir != user_id_filter:
+                                    continue
+                                    
+                                user_path = os.path.join(timestamp_path, user_dir)
+                                if os.path.isdir(user_path):
+                                    # Find JSON files
+                                    for root, dirs, files in os.walk(user_path):
+                                        for file in files:
+                                            if file.endswith('.json'):
+                                                json_path = os.path.join(root, file)
+                                                try:
+                                                    with open(json_path, 'r') as f:
+                                                        detection_data = json.load(f)
+                                                    
+                                                    # Apply class_name filter if provided
+                                                    if class_name_filter:
+                                                        filtered_detections = [
+                                                            det for det in detection_data 
+                                                            if det.get('class_name', '').lower() == class_name_filter.lower()
+                                                        ]
+                                                        if not filtered_detections:
+                                                            continue
+                                                        detection_data = filtered_detections
+                                                    
+                                                    result_item = {
+                                                        'timestamp': timestamp_dir,
+                                                        'user_id': user_dir,
+                                                        'image_name': file.replace('-best_pt-detection.json', ''),
+                                                        'detections': detection_data,
+                                                        'detection_count': len(detection_data)
+                                                    }
+                                                    
+                                                    # Add RVM ID if available
+                                                    if current_rvm_id:
+                                                        result_item['rvm_id'] = int(current_rvm_id)
+                                                    
+                                                    recent_results.append(result_item)
+                                                except:
                                                     continue
-                                                detection_data = filtered_detections
-                                            
-                                            recent_results.append({
-                                                'timestamp': timestamp_dir,
-                                                'user_id': user_dir,
-                                                'image_name': file.replace('-best_pt-detection.json', ''),
-                                                'detections': detection_data,
-                                                'detection_count': len(detection_data)
-                                            })
-                                        except:
-                                            continue
         
         # Sort by timestamp (newest first)
         recent_results.sort(key=lambda x: x['timestamp'], reverse=True)
@@ -641,13 +869,85 @@ def search_detections():
             'filters': {
                 'user_id': user_id_filter,
                 'when': when_filter,
-                'class_name': class_name_filter
+                'class_name': class_name_filter,
+                'rvm_id': rvm_id_filter
             },
             'recent_detections': paginated_results
         })
         
     except Exception as e:
         return jsonify({'error': f'Failed to search detections: {str(e)}'}), 500
+
+@app.route('/api/rvm/validate', methods=['POST'])
+def validate_rvm():
+    """Validate RVM API key and return RVM information"""
+    try:
+        data = request.get_json()
+        if not data or 'api_key' not in data:
+            return jsonify({'error': 'API key required'}), 400
+        
+        api_key = data['api_key']
+        rvm_data = validate_rvm_api_key(api_key)
+        
+        if rvm_data:
+            return jsonify({
+                'valid': True,
+                'rvm': {
+                    'id': rvm_data.get('id'),
+                    'name': rvm_data.get('name'),
+                    'location': rvm_data.get('location_description'),
+                    'status': rvm_data.get('status')
+                }
+            })
+        else:
+            return jsonify({'valid': False, 'error': 'Invalid API key'}), 401
+            
+    except Exception as e:
+        return jsonify({'error': f'Validation failed: {str(e)}'}), 500
+
+@app.route('/api/rvm/<int:rvm_id>/stats', methods=['GET'])
+def get_rvm_stats(rvm_id):
+    """Get statistics for a specific RVM"""
+    try:
+        # Validate RVM access
+        api_key = request.headers.get('X-RVM-API-Key')
+        if not api_key:
+            return jsonify({'error': 'RVM API key required'}), 401
+        
+        rvm_data = validate_rvm_api_key(api_key)
+        if not rvm_data or rvm_data.get('id') != rvm_id:
+            return jsonify({'error': 'Invalid RVM API key or access denied'}), 403
+        
+        # Get RVM-specific statistics
+        rvm_output_dir = os.path.join(OUTPUT_FOLDER, f'rvm_{rvm_id}')
+        
+        stats = {
+            'rvm_id': rvm_id,
+            'total_sessions': 0,
+            'total_detections': 0,
+            'recent_activity': []
+        }
+        
+        if os.path.exists(rvm_output_dir):
+            # Count sessions and detections
+            for timestamp_dir in os.listdir(rvm_output_dir):
+                timestamp_path = os.path.join(rvm_output_dir, timestamp_dir)
+                if os.path.isdir(timestamp_path):
+                    for user_dir in os.listdir(timestamp_path):
+                        user_path = os.path.join(timestamp_path, user_dir)
+                        if os.path.isdir(user_path):
+                            stats['total_sessions'] += 1
+                            
+                            # Count JSON files (detections)
+                            for root, dirs, files in os.walk(user_path):
+                                for file in files:
+                                    if file.endswith('.json'):
+                                        stats['total_detections'] += 1
+        
+        return jsonify(stats)
+        
+    except Exception as e:
+        return jsonify({'error': f'Failed to get RVM stats: {str(e)}'}), 500
 
 if __name__ == '__main__':
     # Ensure directories exist
@@ -659,11 +959,19 @@ if __name__ == '__main__':
     print("📋 Available endpoints:")
     print("   GET  /api/health - Health check")
     print("   GET  /api/status - API status")
-    print("   POST /api/upload - Upload images for detection")
+    print("   POST /api/upload - Upload images for detection (with RVM support)")
     print("   GET  /api/process/<session_id> - Get processing status")
     print("   GET  /api/results/<session_id> - Get detection results")
     print("   GET  /api/download/<session_id>/<filename> - Download result files")
-    print("   GET  /api/detections - Get all recent detections")
+    print("   GET  /api/detections - Get all recent detections (with RVM filtering)")
+    print("   POST /api/detections/search - Search detections (with RVM filtering)")
+    print("   POST /api/rvm/validate - Validate RVM API key")
+    print("   GET  /api/rvm/<rvm_id>/stats - Get RVM statistics")
+    print("=" * 60)
+    print("🔐 RVM Integration:")
+    print("   - Use X-RVM-API-Key header for authentication")
+    print("   - Include rvm_id parameter for RVM-specific operations")
+    print("   - Data stored in rvm_{id}/ structure")
     print("=" * 60)
     
     app.run(host='0.0.0.0', port=5000, debug=False)

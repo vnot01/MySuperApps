@@ -1,5 +1,11 @@
 # MyCV-Platform Requirements
 # Computer Vision Processing Service
+# Optimized for NVIDIA Jetson Orin with ARM64 architecture
+
+# Web Framework
+Flask==3.1.2
+Flask-CORS==4.0.0
+Werkzeug==2.3.7
 
 # Core Framework
 fastapi==0.104.1
@@ -7,10 +13,10 @@ uvicorn[standard]==0.24.0
 pydantic==2.5.0
 python-multipart==0.0.6
 
-# Computer Vision
-ultralytics==8.3.0
-torch>=2.0.0
-torchvision>=0.15.0
+# Computer Vision & AI
+ultralytics==8.3.202
+torch @ https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-2.5.0a0+872d972e41.nv24.08-cp310-cp310-linux_aarch64.whl
+torchvision @ https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.20.0a0+afc54f7-cp310-cp310-linux_aarch64.whl
 opencv-python==4.8.1.78
 Pillow==10.1.0
 numpy==1.24.3
@@ -40,7 +46,7 @@ pytest-asyncio==0.21.1
 black==23.11.0
 flake8==6.1.0
 
-# Utilities
+# Configuration & Utilities
 python-dotenv==1.0.0
 pyyaml==6.0.1
 tqdm==4.66.1

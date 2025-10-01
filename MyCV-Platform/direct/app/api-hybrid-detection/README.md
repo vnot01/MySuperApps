@@ -1,4 +1,4 @@
-# MyCV-Platform Hybrid Detection API
+# MyCV-Platform Hybrid Detection API | 🖥️ GPU Server
 
 RESTful API untuk deteksi objek dan segmentasi menggunakan YOLO + SAM2.
 

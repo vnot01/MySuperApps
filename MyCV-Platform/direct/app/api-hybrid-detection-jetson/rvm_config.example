@@ -1,0 +1,26 @@
+# MyCV-Platform RVM Integration Configuration
+# Copy this file to rvm_config.env and update the values
+
+# RVM Platform Integration
+RVM_API_BASE_URL=http://localhost:8000/api
+RVM_API_KEY=your_master_api_key_here
+
+# API Configuration
+API_HOST=0.0.0.0
+API_PORT=5000
+API_DEBUG=false
+
+# Data Directories
+BASE_DATA_DIR=../../data-jetson
+UPLOAD_FOLDER=../../data-jetson/input
+OUTPUT_FOLDER=../../data-jetson/output
+
+# File Upload Settings
+MAX_CONTENT_LENGTH=16777216  # 16MB
+ALLOWED_EXTENSIONS=png,jpg,jpeg,gif,bmp
+
+# Cache Settings
+RVM_CACHE_TTL=300  # 5 minutes
+
+# GPU Settings
+CUDA_VISIBLE_DEVICES=0
