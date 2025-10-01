@@ -18,6 +18,51 @@ cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection
 
 ### Health & Status
 - `GET /api/health` - Health check
+- `GET /api/hardware` - Comprehensive hardware information
+#### Response: `GET /api/hardware`
+```json
+{
+  "status": "success",
+  "service": "MyCV-GPU-Server",
+  "hardware_info": {
+    "system_info": {
+      "architecture": "x86_64",
+      "hostname": "cv-host",
+      "kernel_version": "5.15.0-156-generic"
+    },
+    "gpu_info": {
+      "status": "success",
+      "cuda_available": true,
+      "cudnn_enabled": true,
+      "pytorch_cuda_version": "2.8.0+cu128",
+      "available_gpus": 1,
+      "gpus": [
+        {
+          "id": 0,
+          "name": "NVIDIA GeForce RTX 3060",
+          "memory_gb": 11.63
+        }
+      ],
+      "total_memory_all_gpus_gb": 11.63
+    },
+    "memory_info": {
+      "total_gb": 12.75
+    },
+    "disk_info": {
+      "available": "74G",
+      "size": "153G",
+      "used": "72G",
+      "use_percent": "50%"
+    },
+    "network_info": {
+      "local_ip": "10.3.52.184",
+      "public_ip": "202.152.145.34"
+    },
+    "updated_at": "2025-10-01T08:56:07.131973"
+  }
+}
+```
+
 #### Response: `GET /api/health`
 ```json
 {
@@ -37,6 +82,7 @@ cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection
     "endpoints": [
         "/api/health",
         "/api/status",
+        "/api/hardware",
         "/api/upload",
         "/api/process/<session_id>",
         "/api/results/<session_id>",
@@ -483,6 +529,34 @@ API secara otomatis mendeteksi dan melaporkan informasi GPU yang tersedia:
 - **Multi-GPU Systems**: Mendukung sistem dengan multiple GPU
 - **Fallback Support**: Graceful handling jika GPU tidak tersedia
 
+## 🔧 Hardware Information
+
+### Comprehensive Hardware Monitoring
+API menyediakan endpoint `/api/hardware` untuk monitoring hardware GPU Server secara lengkap:
+
+#### Hardware Information Includes:
+- **System Info**: Architecture, hostname, kernel version
+- **GPU Info**: Status, availability, cuDNN enabled, PyTorch CUDA version, GPU details
+- **Memory Info**: Total memory (RAM + Swap combined)
+- **Disk Info**: Available space, total size, used space, usage percentage
+- **Network Info**: Local IP, public IP
+
+#### Usage:
+```bash
+# Get comprehensive hardware information
+curl http://100.98.142.94:5000/api/hardware
+
+# With pretty print
+curl http://100.98.142.94:5000/api/hardware | jq
+```
+
+#### Hardware Monitoring Features:
+- **Real-time Status**: Live hardware information
+- **Resource Monitoring**: Memory, disk, GPU usage
+- **Network Detection**: Automatic IP detection (local, public)
+- **System Information**: Architecture, hostname, kernel versions
+- **Performance Metrics**: GPU memory usage, system memory
+
 ## 📈 System Monitoring
 
 API menyediakan monitoring sistem secara real-time:
@@ -508,6 +582,7 @@ API menyediakan monitoring sistem secara real-time:
 ### Monitoring Endpoints:
 - `GET /api/status` - Comprehensive system status
 - `GET /api/health` - Basic health check
+- `GET /api/hardware` - Comprehensive hardware information
 - `GET /api/detections` - Processing history
 
 ## 🌐 Web Application Integration
