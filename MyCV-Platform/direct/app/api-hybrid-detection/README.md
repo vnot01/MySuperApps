@@ -118,31 +118,31 @@ cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection
 ```json
 {
     "message": "Files uploaded successfully. Processing started.",
-    "results_url": "/api/results/session_9eebbca5",
-    "session_id": "session_9eebbca5",
-    "status_url": "/api/process/session_9eebbca5",
+    "results_url": "/api/results/session_6ad61814",
+    "session_id": "session_6ad61814",
+    "status_url": "/api/process/session_6ad61814",
     "success": true,
-    "timestamp": "20250928_135630",
+    "timestamp": "20251001_093224",
     "uploaded_files": [
         {
-            "original_name": "27_not_mineral.jpg",
-            "path": "../../data/input/remote/20250928_135630/test_userrrr/27_not_mineral.jpg",
-            "saved_name": "27_not_mineral.jpg"
+            "original_name": "77.milk.jpg",
+            "path": "../../data/input/remote/20251001_093224/user-milk1/77.milk.jpg",
+            "saved_name": "77.milk.jpg"
         }
     ],
-    "user_id": "test_userrrr"
+    "user_id": "user-milk1"
 }
 ```
 - `GET /api/process/<session_id>` - Status pemrosesan
 #### Response: `GET /api/process/session_9eebbca5`
 ```json
 {
-    "end_time": "2025-09-28T13:57:03.728872",
+    "end_time": "2025-10-01T09:32:33.841991",
     "message": "Detection completed successfully",
-    "start_time": "2025-09-28T13:56:30.727720",
+    "start_time": "2025-10-01T09:32:24.497569",
     "status": "completed",
-    "timestamp": "20250928_135630",
-    "user_id": "test_userrrr"
+    "timestamp": "20251001_093224",
+    "user_id": "user-milk1"
 }
 ```
 - `GET /api/results/<session_id>` - Hasil deteksi dari summary.json
@@ -241,113 +241,2330 @@ cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection
 {
     "recent_detections": [
         {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        198.26275634765625,
+                        101.52664947509766,
+                        638.0875854492188,
+                        364.34716796875
+                    ],
+                    "class_id": 1,
+                    "class_name": "milk",
+                    "confidence": 0.9603502154350281
+                }
+            ],
+            "image_name": "77.milk",
+            "timestamp": "20251001_093224",
+            "user_id": "user-milk1"
+        },
+        {
+            "detection_count": 3,
+            "detections": {
+                "class_summary": [
+                    {
+                        "class_name": "milk",
+                        "count": 1
+                    }
+                ],
+                "detection_summary": [
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    198.26275634765625,
+                                    101.52664947509766,
+                                    638.0875854492188,
+                                    364.34716796875
+                                ],
+                                "class_id": 1,
+                                "class_name": "milk",
+                                "confidence": 0.9603502154350281
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 0,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_6ad61814/77.milk-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_6ad61814/77.milk-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_6ad61814/77.milk-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_6ad61814/77.milk-yolo11m-detection.png"
+                        },
+                        "name": "77.milk-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_6ad61814/77.milk-best_pt-compare.png"
+                    }
+                ],
+                "object_count": 1
+            },
+            "image_name": "summary.json",
+            "timestamp": "20251001_093224",
+            "user_id": "user-milk1"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        0.04709620401263237,
+                        51.37726974487305,
+                        166.78123474121094,
+                        566.7282104492188
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.26000073552131653
+                }
+            ],
+            "image_name": "dogs",
+            "timestamp": "20251001_091332",
+            "user_id": "test_api"
+        },
+        {
+            "detection_count": 3,
+            "detections": {
+                "class_summary": [
+                    {
+                        "class_name": "mineral",
+                        "count": 1
+                    }
+                ],
+                "detection_summary": [
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    0.04709620401263237,
+                                    51.37726974487305,
+                                    166.78123474121094,
+                                    566.7282104492188
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.26000073552131653
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 0,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_3de9cfac/dogs-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_3de9cfac/dogs-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_3de9cfac/dogs-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_3de9cfac/dogs-yolo11m-detection.png"
+                        },
+                        "name": "dogs-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_3de9cfac/dogs-best_pt-compare.png"
+                    }
+                ],
+                "object_count": 1
+            },
+            "image_name": "summary.json",
+            "timestamp": "20251001_091332",
+            "user_id": "test_api"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        298.2039794921875,
+                        1.9976806640625,
+                        509.9661865234375,
+                        512.7738037109375
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8263616561889648
+                }
+            ],
+            "image_name": "45",
+            "timestamp": "20250929_172107",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        144.16207885742188,
+                        0.5894851684570312,
+                        371.603759765625,
+                        578.9254150390625
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8801478147506714
+                }
+            ],
+            "image_name": "62",
+            "timestamp": "20250929_172107",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        38.06759262084961,
+                        78.14295959472656,
+                        186.31874084472656,
+                        149.91268920898438
+                    ],
+                    "class_id": 3,
+                    "class_name": "non_mineral",
+                    "confidence": 0.8600907921791077
+                }
+            ],
+            "image_name": "43",
+            "timestamp": "20250929_172107",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        30.171833038330078,
+                        79.58673095703125,
+                        184.52322387695312,
+                        149.0042266845703
+                    ],
+                    "class_id": 3,
+                    "class_name": "non_mineral",
+                    "confidence": 0.8676203489303589
+                }
+            ],
+            "image_name": "47",
+            "timestamp": "20250929_172107",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        12.346000671386719,
+                        73.65291595458984,
+                        180.5181884765625,
+                        132.32968139648438
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8531134128570557
+                }
+            ],
+            "image_name": "68",
+            "timestamp": "20250929_172107",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        27.81463623046875,
+                        83.37459564208984,
+                        180.17550659179688,
+                        142.06809997558594
+                    ],
+                    "class_id": 3,
+                    "class_name": "non_mineral",
+                    "confidence": 0.8540395498275757
+                }
+            ],
+            "image_name": "41",
+            "timestamp": "20250929_172107",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 3,
+            "detections": [
+                {
+                    "bbox": [
+                        311.40557861328125,
+                        14.549903869628906,
+                        525.6377563476562,
+                        600.0
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.9183132648468018
+                },
+                {
+                    "bbox": [
+                        363.94683837890625,
+                        233.01409912109375,
+                        474.237060546875,
+                        598.4949951171875
+                    ],
+                    "class_id": 4,
+                    "class_name": "not_empty",
+                    "confidence": 0.5841004252433777
+                },
+                {
+                    "bbox": [
+                        331.4144287109375,
+                        0.0,
+                        464.59991455078125,
+                        517.9365234375
+                    ],
+                    "class_id": 4,
+                    "class_name": "not_empty",
+                    "confidence": 0.3303992748260498
+                }
+            ],
+            "image_name": "56",
+            "timestamp": "20250929_172107",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        14.848899841308594,
+                        72.94762420654297,
+                        178.99942016601562,
+                        138.27264404296875
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8416655659675598
+                }
+            ],
+            "image_name": "48",
+            "timestamp": "20250929_172107",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 3,
+            "detections": {
+                "class_summary": [
+                    {
+                        "class_name": "mineral",
+                        "count": 10
+                    },
+                    {
+                        "class_name": "not_empty",
+                        "count": 5
+                    },
+                    {
+                        "class_name": "non_mineral",
+                        "count": 4
+                    }
+                ],
+                "detection_summary": [
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    298.2039794921875,
+                                    1.9976806640625,
+                                    509.9661865234375,
+                                    512.7738037109375
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8263616561889648
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 0,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a72818e4/45-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/45-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/45-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/45-yolo11m-detection.png"
+                        },
+                        "name": "45-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/45-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    144.16207885742188,
+                                    0.5894851684570312,
+                                    371.603759765625,
+                                    578.9254150390625
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8801478147506714
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 1,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a72818e4/62-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/62-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/62-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/62-yolo11m-detection.png"
+                        },
+                        "name": "62-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/62-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    38.06759262084961,
+                                    78.14295959472656,
+                                    186.31874084472656,
+                                    149.91268920898438
+                                ],
+                                "class_id": 3,
+                                "class_name": "non_mineral",
+                                "confidence": 0.8600907921791077
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 2,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a72818e4/43-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/43-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/43-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/43-yolo11m-detection.png"
+                        },
+                        "name": "43-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/43-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    30.171833038330078,
+                                    79.58673095703125,
+                                    184.52322387695312,
+                                    149.0042266845703
+                                ],
+                                "class_id": 3,
+                                "class_name": "non_mineral",
+                                "confidence": 0.8676203489303589
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 3,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a72818e4/47-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/47-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/47-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/47-yolo11m-detection.png"
+                        },
+                        "name": "47-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/47-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    12.346000671386719,
+                                    73.65291595458984,
+                                    180.5181884765625,
+                                    132.32968139648438
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8531134128570557
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 4,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a72818e4/68-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/68-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/68-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/68-yolo11m-detection.png"
+                        },
+                        "name": "68-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/68-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    27.81463623046875,
+                                    83.37459564208984,
+                                    180.17550659179688,
+                                    142.06809997558594
+                                ],
+                                "class_id": 3,
+                                "class_name": "non_mineral",
+                                "confidence": 0.8540395498275757
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 5,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a72818e4/41-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/41-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/41-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/41-yolo11m-detection.png"
+                        },
+                        "name": "41-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/41-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    311.40557861328125,
+                                    14.549903869628906,
+                                    525.6377563476562,
+                                    600.0
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.9183132648468018
+                            },
+                            {
+                                "bbox": [
+                                    363.94683837890625,
+                                    233.01409912109375,
+                                    474.237060546875,
+                                    598.4949951171875
+                                ],
+                                "class_id": 4,
+                                "class_name": "not_empty",
+                                "confidence": 0.5841004252433777
+                            },
+                            {
+                                "bbox": [
+                                    331.4144287109375,
+                                    0.0,
+                                    464.59991455078125,
+                                    517.9365234375
+                                ],
+                                "class_id": 4,
+                                "class_name": "not_empty",
+                                "confidence": 0.3303992748260498
+                            }
+                        ],
+                        "detection_count": 3,
+                        "id": 6,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a72818e4/56-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/56-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/56-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/56-yolo11m-detection.png"
+                        },
+                        "name": "56-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/56-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    14.848899841308594,
+                                    72.94762420654297,
+                                    178.99942016601562,
+                                    138.27264404296875
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8416655659675598
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 7,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a72818e4/48-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/48-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/48-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/48-yolo11m-detection.png"
+                        },
+                        "name": "48-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/48-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    21.98314666748047,
+                                    72.17144775390625,
+                                    182.4072265625,
+                                    140.4998321533203
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8402790427207947
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 8,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a72818e4/67-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/67-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/67-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/67-yolo11m-detection.png"
+                        },
+                        "name": "67-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/67-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    23.66887664794922,
+                                    69.21644592285156,
+                                    182.6279296875,
+                                    149.929931640625
+                                ],
+                                "class_id": 3,
+                                "class_name": "non_mineral",
+                                "confidence": 0.8623256087303162
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 9,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a72818e4/66-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/66-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/66-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/66-yolo11m-detection.png"
+                        },
+                        "name": "66-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/66-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    73.11982727050781,
+                                    142.9651336669922,
+                                    575.3226928710938,
+                                    628.5154418945312
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.9209938049316406
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 10,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a72818e4/46-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/46-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/46-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/46-yolo11m-detection.png"
+                        },
+                        "name": "46-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/46-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    277.94927978515625,
+                                    0.0,
+                                    504.4984436035156,
+                                    599.8125
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8820997476577759
+                            },
+                            {
+                                "bbox": [
+                                    354.6028137207031,
+                                    477.6714782714844,
+                                    426.41632080078125,
+                                    508.4154968261719
+                                ],
+                                "class_id": 4,
+                                "class_name": "not_empty",
+                                "confidence": 0.5251861810684204
+                            },
+                            {
+                                "bbox": [
+                                    345.4852294921875,
+                                    3.9904212951660156,
+                                    418.4837341308594,
+                                    302.1035461425781
+                                ],
+                                "class_id": 4,
+                                "class_name": "not_empty",
+                                "confidence": 0.3441903591156006
+                            },
+                            {
+                                "bbox": [
+                                    328.01861572265625,
+                                    72.40955352783203,
+                                    438.3974914550781,
+                                    534.0603637695312
+                                ],
+                                "class_id": 4,
+                                "class_name": "not_empty",
+                                "confidence": 0.3214245140552521
+                            }
+                        ],
+                        "detection_count": 4,
+                        "id": 11,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a72818e4/65-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/65-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/65-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/65-yolo11m-detection.png"
+                        },
+                        "name": "65-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/65-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    22.055301666259766,
+                                    78.5847396850586,
+                                    184.1155242919922,
+                                    147.85702514648438
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8496163487434387
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 12,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a72818e4/44-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/44-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/44-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/44-yolo11m-detection.png"
+                        },
+                        "name": "44-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/44-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    65.28730773925781,
+                                    202.1991424560547,
+                                    583.2535400390625,
+                                    636.6233520507812
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.9288041591644287
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 13,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a72818e4/42-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a72818e4/42-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a72818e4/42-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a72818e4/42-yolo11m-detection.png"
+                        },
+                        "name": "42-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a72818e4/42-best_pt-compare.png"
+                    }
+                ],
+                "object_count": 14
+            },
+            "image_name": "summary.json",
+            "timestamp": "20250929_172107",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        21.98314666748047,
+                        72.17144775390625,
+                        182.4072265625,
+                        140.4998321533203
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8402790427207947
+                }
+            ],
+            "image_name": "67",
+            "timestamp": "20250929_172107",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        23.66887664794922,
+                        69.21644592285156,
+                        182.6279296875,
+                        149.929931640625
+                    ],
+                    "class_id": 3,
+                    "class_name": "non_mineral",
+                    "confidence": 0.8623256087303162
+                }
+            ],
+            "image_name": "66",
+            "timestamp": "20250929_172107",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        73.11982727050781,
+                        142.9651336669922,
+                        575.3226928710938,
+                        628.5154418945312
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.9209938049316406
+                }
+            ],
+            "image_name": "46",
+            "timestamp": "20250929_172107",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 4,
+            "detections": [
+                {
+                    "bbox": [
+                        277.94927978515625,
+                        0.0,
+                        504.4984436035156,
+                        599.8125
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8820997476577759
+                },
+                {
+                    "bbox": [
+                        354.6028137207031,
+                        477.6714782714844,
+                        426.41632080078125,
+                        508.4154968261719
+                    ],
+                    "class_id": 4,
+                    "class_name": "not_empty",
+                    "confidence": 0.5251861810684204
+                },
+                {
+                    "bbox": [
+                        345.4852294921875,
+                        3.9904212951660156,
+                        418.4837341308594,
+                        302.1035461425781
+                    ],
+                    "class_id": 4,
+                    "class_name": "not_empty",
+                    "confidence": 0.3441903591156006
+                },
+                {
+                    "bbox": [
+                        328.01861572265625,
+                        72.40955352783203,
+                        438.3974914550781,
+                        534.0603637695312
+                    ],
+                    "class_id": 4,
+                    "class_name": "not_empty",
+                    "confidence": 0.3214245140552521
+                }
+            ],
+            "image_name": "65",
+            "timestamp": "20250929_172107",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        22.055301666259766,
+                        78.5847396850586,
+                        184.1155242919922,
+                        147.85702514648438
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8496163487434387
+                }
+            ],
+            "image_name": "44",
+            "timestamp": "20250929_172107",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        65.28730773925781,
+                        202.1991424560547,
+                        583.2535400390625,
+                        636.6233520507812
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.9288041591644287
+                }
+            ],
+            "image_name": "42",
+            "timestamp": "20250929_172107",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        19.61334228515625,
+                        95.25968933105469,
+                        180.70230102539062,
+                        149.99090576171875
+                    ],
+                    "class_id": 3,
+                    "class_name": "non_mineral",
+                    "confidence": 0.865796685218811
+                }
+            ],
+            "image_name": "2",
+            "timestamp": "20250929_171237",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        23.886775970458984,
+                        74.8812484741211,
+                        184.21766662597656,
+                        146.26339721679688
+                    ],
+                    "class_id": 3,
+                    "class_name": "non_mineral",
+                    "confidence": 0.8686655163764954
+                }
+            ],
+            "image_name": "5",
+            "timestamp": "20250929_171237",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        71.99132537841797,
+                        214.1638641357422,
+                        372.3984375,
+                        493.9196472167969
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8471338152885437
+                }
+            ],
+            "image_name": "6",
+            "timestamp": "20250929_171237",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        318.94964599609375,
+                        0.0,
+                        564.5763549804688,
+                        600.0
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8856334090232849
+                }
+            ],
+            "image_name": "4",
+            "timestamp": "20250929_171237",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        86.64531707763672,
+                        176.4845733642578,
+                        374.3604431152344,
+                        629.4055786132812
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8809738159179688
+                }
+            ],
+            "image_name": "3",
+            "timestamp": "20250929_171237",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        276.8039245605469,
+                        3.0908203125,
+                        535.4398803710938,
+                        591.9407958984375
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8865288496017456
+                }
+            ],
+            "image_name": "1",
+            "timestamp": "20250929_171237",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 3,
+            "detections": {
+                "class_summary": [
+                    {
+                        "class_name": "mineral",
+                        "count": 4
+                    },
+                    {
+                        "class_name": "non_mineral",
+                        "count": 2
+                    }
+                ],
+                "detection_summary": [
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    19.61334228515625,
+                                    95.25968933105469,
+                                    180.70230102539062,
+                                    149.99090576171875
+                                ],
+                                "class_id": 3,
+                                "class_name": "non_mineral",
+                                "confidence": 0.865796685218811
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 0,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a326b858/2-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a326b858/2-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a326b858/2-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a326b858/2-yolo11m-detection.png"
+                        },
+                        "name": "2-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a326b858/2-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    23.886775970458984,
+                                    74.8812484741211,
+                                    184.21766662597656,
+                                    146.26339721679688
+                                ],
+                                "class_id": 3,
+                                "class_name": "non_mineral",
+                                "confidence": 0.8686655163764954
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 1,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a326b858/5-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a326b858/5-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a326b858/5-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a326b858/5-yolo11m-detection.png"
+                        },
+                        "name": "5-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a326b858/5-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    71.99132537841797,
+                                    214.1638641357422,
+                                    372.3984375,
+                                    493.9196472167969
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8471338152885437
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 2,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a326b858/6-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a326b858/6-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a326b858/6-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a326b858/6-yolo11m-detection.png"
+                        },
+                        "name": "6-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a326b858/6-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    318.94964599609375,
+                                    0.0,
+                                    564.5763549804688,
+                                    600.0
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8856334090232849
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 3,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a326b858/4-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a326b858/4-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a326b858/4-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a326b858/4-yolo11m-detection.png"
+                        },
+                        "name": "4-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a326b858/4-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    86.64531707763672,
+                                    176.4845733642578,
+                                    374.3604431152344,
+                                    629.4055786132812
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8809738159179688
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 4,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a326b858/3-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a326b858/3-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a326b858/3-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a326b858/3-yolo11m-detection.png"
+                        },
+                        "name": "3-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a326b858/3-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    276.8039245605469,
+                                    3.0908203125,
+                                    535.4398803710938,
+                                    591.9407958984375
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8865288496017456
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 5,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_a326b858/1-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_a326b858/1-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_a326b858/1-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_a326b858/1-yolo11m-detection.png"
+                        },
+                        "name": "1-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_a326b858/1-best_pt-compare.png"
+                    }
+                ],
+                "object_count": 6
+            },
+            "image_name": "summary.json",
+            "timestamp": "20250929_171237",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        19.61334228515625,
+                        95.25968933105469,
+                        180.70230102539062,
+                        149.99090576171875
+                    ],
+                    "class_id": 3,
+                    "class_name": "non_mineral",
+                    "confidence": 0.865796685218811
+                }
+            ],
+            "image_name": "2",
+            "timestamp": "20250929_170306",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        23.886775970458984,
+                        74.8812484741211,
+                        184.21766662597656,
+                        146.26339721679688
+                    ],
+                    "class_id": 3,
+                    "class_name": "non_mineral",
+                    "confidence": 0.8686655163764954
+                }
+            ],
+            "image_name": "5",
+            "timestamp": "20250929_170306",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        71.99132537841797,
+                        214.1638641357422,
+                        372.3984375,
+                        493.9196472167969
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8471338152885437
+                }
+            ],
+            "image_name": "6",
+            "timestamp": "20250929_170306",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        318.94964599609375,
+                        0.0,
+                        564.5763549804688,
+                        600.0
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8856334090232849
+                }
+            ],
+            "image_name": "4",
+            "timestamp": "20250929_170306",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        86.64531707763672,
+                        176.4845733642578,
+                        374.3604431152344,
+                        629.4055786132812
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8809738159179688
+                }
+            ],
+            "image_name": "3",
+            "timestamp": "20250929_170306",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        276.8039245605469,
+                        3.0908203125,
+                        535.4398803710938,
+                        591.9407958984375
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8865288496017456
+                }
+            ],
+            "image_name": "1",
+            "timestamp": "20250929_170306",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 3,
+            "detections": {
+                "class_summary": [
+                    {
+                        "class_name": "mineral",
+                        "count": 4
+                    },
+                    {
+                        "class_name": "non_mineral",
+                        "count": 2
+                    }
+                ],
+                "detection_summary": [
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    19.61334228515625,
+                                    95.25968933105469,
+                                    180.70230102539062,
+                                    149.99090576171875
+                                ],
+                                "class_id": 3,
+                                "class_name": "non_mineral",
+                                "confidence": 0.865796685218811
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 0,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_ee379942/2-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_ee379942/2-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_ee379942/2-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_ee379942/2-yolo11m-detection.png"
+                        },
+                        "name": "2-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_ee379942/2-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    23.886775970458984,
+                                    74.8812484741211,
+                                    184.21766662597656,
+                                    146.26339721679688
+                                ],
+                                "class_id": 3,
+                                "class_name": "non_mineral",
+                                "confidence": 0.8686655163764954
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 1,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_ee379942/5-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_ee379942/5-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_ee379942/5-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_ee379942/5-yolo11m-detection.png"
+                        },
+                        "name": "5-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_ee379942/5-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    71.99132537841797,
+                                    214.1638641357422,
+                                    372.3984375,
+                                    493.9196472167969
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8471338152885437
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 2,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_ee379942/6-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_ee379942/6-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_ee379942/6-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_ee379942/6-yolo11m-detection.png"
+                        },
+                        "name": "6-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_ee379942/6-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    318.94964599609375,
+                                    0.0,
+                                    564.5763549804688,
+                                    600.0
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8856334090232849
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 3,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_ee379942/4-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_ee379942/4-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_ee379942/4-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_ee379942/4-yolo11m-detection.png"
+                        },
+                        "name": "4-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_ee379942/4-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    86.64531707763672,
+                                    176.4845733642578,
+                                    374.3604431152344,
+                                    629.4055786132812
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8809738159179688
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 4,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_ee379942/3-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_ee379942/3-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_ee379942/3-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_ee379942/3-yolo11m-detection.png"
+                        },
+                        "name": "3-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_ee379942/3-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    276.8039245605469,
+                                    3.0908203125,
+                                    535.4398803710938,
+                                    591.9407958984375
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8865288496017456
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 5,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_ee379942/1-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_ee379942/1-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_ee379942/1-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_ee379942/1-yolo11m-detection.png"
+                        },
+                        "name": "1-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_ee379942/1-best_pt-compare.png"
+                    }
+                ],
+                "object_count": 6
+            },
+            "image_name": "summary.json",
+            "timestamp": "20250929_170306",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        58.03447341918945,
+                        134.4967803955078,
+                        592.0010375976562,
+                        623.7411499023438
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.894088089466095
+                }
+            ],
+            "image_name": "378",
+            "timestamp": "20250929_164315",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        65.6668472290039,
+                        207.7731475830078,
+                        546.5119018554688,
+                        635.6267700195312
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.9120920300483704
+                }
+            ],
+            "image_name": "341",
+            "timestamp": "20250929_164315",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        229.16587829589844,
+                        1.0831069946289062,
+                        566.10595703125,
+                        599.0540161132812
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8829227089881897
+                }
+            ],
+            "image_name": "384",
+            "timestamp": "20250929_164315",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        71.2474136352539,
+                        136.7961883544922,
+                        615.6281127929688,
+                        566.58837890625
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.9240455031394958
+                }
+            ],
+            "image_name": "338",
+            "timestamp": "20250929_164315",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        75.037353515625,
+                        237.60044860839844,
+                        643.7103881835938,
+                        511.0901794433594
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8888660669326782
+                }
+            ],
+            "image_name": "321",
+            "timestamp": "20250929_164315",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        57.02041244506836,
+                        164.49624633789062,
+                        670.578125,
+                        390.94927978515625
+                    ],
+                    "class_id": 3,
+                    "class_name": "non_mineral",
+                    "confidence": 0.599696934223175
+                }
+            ],
+            "image_name": "313",
+            "timestamp": "20250929_164315",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 3,
+            "detections": {
+                "class_summary": [
+                    {
+                        "class_name": "mineral",
+                        "count": 6
+                    },
+                    {
+                        "class_name": "not_empty",
+                        "count": 3
+                    },
+                    {
+                        "class_name": "non_mineral",
+                        "count": 1
+                    }
+                ],
+                "detection_summary": [
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    58.03447341918945,
+                                    134.4967803955078,
+                                    592.0010375976562,
+                                    623.7411499023438
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.894088089466095
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 0,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_914d0780/378-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_914d0780/378-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_914d0780/378-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_914d0780/378-yolo11m-detection.png"
+                        },
+                        "name": "378-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_914d0780/378-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    65.6668472290039,
+                                    207.7731475830078,
+                                    546.5119018554688,
+                                    635.6267700195312
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.9120920300483704
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 1,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_914d0780/341-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_914d0780/341-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_914d0780/341-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_914d0780/341-yolo11m-detection.png"
+                        },
+                        "name": "341-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_914d0780/341-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    229.16587829589844,
+                                    1.0831069946289062,
+                                    566.10595703125,
+                                    599.0540161132812
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8829227089881897
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 2,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_914d0780/384-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_914d0780/384-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_914d0780/384-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_914d0780/384-yolo11m-detection.png"
+                        },
+                        "name": "384-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_914d0780/384-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    71.2474136352539,
+                                    136.7961883544922,
+                                    615.6281127929688,
+                                    566.58837890625
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.9240455031394958
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 3,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_914d0780/338-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_914d0780/338-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_914d0780/338-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_914d0780/338-yolo11m-detection.png"
+                        },
+                        "name": "338-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_914d0780/338-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    75.037353515625,
+                                    237.60044860839844,
+                                    643.7103881835938,
+                                    511.0901794433594
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8888660669326782
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 4,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_914d0780/321-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_914d0780/321-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_914d0780/321-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_914d0780/321-yolo11m-detection.png"
+                        },
+                        "name": "321-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_914d0780/321-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    57.02041244506836,
+                                    164.49624633789062,
+                                    670.578125,
+                                    390.94927978515625
+                                ],
+                                "class_id": 3,
+                                "class_name": "non_mineral",
+                                "confidence": 0.599696934223175
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 5,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_914d0780/313-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_914d0780/313-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_914d0780/313-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_914d0780/313-yolo11m-detection.png"
+                        },
+                        "name": "313-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_914d0780/313-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    258.7248229980469,
+                                    0.0,
+                                    489.5411682128906,
+                                    599.09033203125
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8533073663711548
+                            },
+                            {
+                                "bbox": [
+                                    336.07513427734375,
+                                    488.0848693847656,
+                                    417.63458251953125,
+                                    519.3463134765625
+                                ],
+                                "class_id": 4,
+                                "class_name": "not_empty",
+                                "confidence": 0.3200879991054535
+                            },
+                            {
+                                "bbox": [
+                                    312.18585205078125,
+                                    79.28901672363281,
+                                    419.75146484375,
+                                    565.7007446289062
+                                ],
+                                "class_id": 4,
+                                "class_name": "not_empty",
+                                "confidence": 0.3165200352668762
+                            },
+                            {
+                                "bbox": [
+                                    319.8309020996094,
+                                    11.757278442382812,
+                                    400.3699035644531,
+                                    391.1419677734375
+                                ],
+                                "class_id": 4,
+                                "class_name": "not_empty",
+                                "confidence": 0.27894076704978943
+                            }
+                        ],
+                        "detection_count": 4,
+                        "id": 6,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_914d0780/354-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_914d0780/354-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_914d0780/354-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_914d0780/354-yolo11m-detection.png"
+                        },
+                        "name": "354-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_914d0780/354-best_pt-compare.png"
+                    }
+                ],
+                "object_count": 7
+            },
+            "image_name": "summary.json",
+            "timestamp": "20250929_164315",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 4,
+            "detections": [
+                {
+                    "bbox": [
+                        258.7248229980469,
+                        0.0,
+                        489.5411682128906,
+                        599.09033203125
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8533073663711548
+                },
+                {
+                    "bbox": [
+                        336.07513427734375,
+                        488.0848693847656,
+                        417.63458251953125,
+                        519.3463134765625
+                    ],
+                    "class_id": 4,
+                    "class_name": "not_empty",
+                    "confidence": 0.3200879991054535
+                },
+                {
+                    "bbox": [
+                        312.18585205078125,
+                        79.28901672363281,
+                        419.75146484375,
+                        565.7007446289062
+                    ],
+                    "class_id": 4,
+                    "class_name": "not_empty",
+                    "confidence": 0.3165200352668762
+                },
+                {
+                    "bbox": [
+                        319.8309020996094,
+                        11.757278442382812,
+                        400.3699035644531,
+                        391.1419677734375
+                    ],
+                    "class_id": 4,
+                    "class_name": "not_empty",
+                    "confidence": 0.27894076704978943
+                }
+            ],
+            "image_name": "354",
+            "timestamp": "20250929_164315",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 4,
+            "detections": [
+                {
+                    "bbox": [
+                        242.61474609375,
+                        12.343025207519531,
+                        532.5955810546875,
+                        600.0
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.9195183515548706
+                },
+                {
+                    "bbox": [
+                        266.65155029296875,
+                        98.52569580078125,
+                        378.8997802734375,
+                        164.14520263671875
+                    ],
+                    "class_id": 4,
+                    "class_name": "not_empty",
+                    "confidence": 0.8401011228561401
+                },
+                {
+                    "bbox": [
+                        285.4236755371094,
+                        265.30230712890625,
+                        521.5062866210938,
+                        600.0
+                    ],
+                    "class_id": 4,
+                    "class_name": "not_empty",
+                    "confidence": 0.6164628863334656
+                },
+                {
+                    "bbox": [
+                        269.50390625,
+                        230.6625213623047,
+                        505.3045959472656,
+                        557.5062255859375
+                    ],
+                    "class_id": 4,
+                    "class_name": "not_empty",
+                    "confidence": 0.42666763067245483
+                }
+            ],
+            "image_name": "193",
+            "timestamp": "20250929_163736",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        179.23629760742188,
+                        0.0,
+                        429.785400390625,
+                        539.3291625976562
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8473432064056396
+                }
+            ],
+            "image_name": "181",
+            "timestamp": "20250929_163736",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 1,
+            "detections": [
+                {
+                    "bbox": [
+                        276.7310791015625,
+                        0.0,
+                        531.376220703125,
+                        571.3033447265625
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8509712219238281
+                }
+            ],
+            "image_name": "118",
+            "timestamp": "20250929_163736",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 3,
+            "detections": [
+                {
+                    "bbox": [
+                        275.3157653808594,
+                        0.895538330078125,
+                        489.90179443359375,
+                        600.0
+                    ],
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.8866058588027954
+                },
+                {
+                    "bbox": [
+                        328.6308288574219,
+                        71.87113952636719,
+                        434.80194091796875,
+                        382.4837951660156
+                    ],
+                    "class_id": 4,
+                    "class_name": "not_empty",
+                    "confidence": 0.6486598253250122
+                },
+                {
+                    "bbox": [
+                        344.604248046875,
+                        479.9710388183594,
+                        423.48516845703125,
+                        517.8389282226562
+                    ],
+                    "class_id": 4,
+                    "class_name": "not_empty",
+                    "confidence": 0.5457576513290405
+                }
+            ],
+            "image_name": "107",
+            "timestamp": "20250929_163736",
+            "user_id": "web_user"
+        },
+        {
             "detection_count": 2,
             "detections": [
                 {
                     "bbox": [
-                        289.1062316894531,
-                        224.7684326171875,
-                        368.2486267089844,
-                        452.5482177734375
+                        162.58079528808594,
+                        0.0,
+                        443.83935546875,
+                        600.0
                     ],
-                    "class_id": 5,
-                    "class_name": "soda",
-                    "confidence": 0.28023016452789307
+                    "class_id": 2,
+                    "class_name": "mineral",
+                    "confidence": 0.6811609864234924
                 },
                 {
                     "bbox": [
-                        288.54638671875,
-                        223.8448944091797,
-                        369.2777099609375,
-                        452.61724853515625
+                        175.410888671875,
+                        0.0,
+                        439.87176513671875,
+                        600.0
                     ],
-                    "class_id": 0,
-                    "class_name": "dishwasher",
-                    "confidence": 0.27135953307151794
+                    "class_id": 3,
+                    "class_name": "non_mineral",
+                    "confidence": 0.5245780944824219
                 }
             ],
-            "image_name": "27_not_mineral",
-            "timestamp": "20250928_135630",
-            "user_id": "test_userrrr"
+            "image_name": "163",
+            "timestamp": "20250929_163736",
+            "user_id": "web_user"
+        },
+        {
+            "detection_count": 3,
+            "detections": {
+                "class_summary": [
+                    {
+                        "class_name": "mineral",
+                        "count": 6
+                    },
+                    {
+                        "class_name": "not_empty",
+                        "count": 5
+                    },
+                    {
+                        "class_name": "non_mineral",
+                        "count": 1
+                    }
+                ],
+                "detection_summary": [
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    242.61474609375,
+                                    12.343025207519531,
+                                    532.5955810546875,
+                                    600.0
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.9195183515548706
+                            },
+                            {
+                                "bbox": [
+                                    266.65155029296875,
+                                    98.52569580078125,
+                                    378.8997802734375,
+                                    164.14520263671875
+                                ],
+                                "class_id": 4,
+                                "class_name": "not_empty",
+                                "confidence": 0.8401011228561401
+                            },
+                            {
+                                "bbox": [
+                                    285.4236755371094,
+                                    265.30230712890625,
+                                    521.5062866210938,
+                                    600.0
+                                ],
+                                "class_id": 4,
+                                "class_name": "not_empty",
+                                "confidence": 0.6164628863334656
+                            },
+                            {
+                                "bbox": [
+                                    269.50390625,
+                                    230.6625213623047,
+                                    505.3045959472656,
+                                    557.5062255859375
+                                ],
+                                "class_id": 4,
+                                "class_name": "not_empty",
+                                "confidence": 0.42666763067245483
+                            }
+                        ],
+                        "detection_count": 4,
+                        "id": 0,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_e3ffd252/193-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_e3ffd252/193-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_e3ffd252/193-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_e3ffd252/193-yolo11m-detection.png"
+                        },
+                        "name": "193-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_e3ffd252/193-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    179.23629760742188,
+                                    0.0,
+                                    429.785400390625,
+                                    539.3291625976562
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8473432064056396
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 1,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_e3ffd252/181-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_e3ffd252/181-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_e3ffd252/181-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_e3ffd252/181-yolo11m-detection.png"
+                        },
+                        "name": "181-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_e3ffd252/181-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    276.7310791015625,
+                                    0.0,
+                                    531.376220703125,
+                                    571.3033447265625
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8509712219238281
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 2,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_e3ffd252/118-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_e3ffd252/118-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_e3ffd252/118-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_e3ffd252/118-yolo11m-detection.png"
+                        },
+                        "name": "118-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_e3ffd252/118-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    275.3157653808594,
+                                    0.895538330078125,
+                                    489.90179443359375,
+                                    600.0
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8866058588027954
+                            },
+                            {
+                                "bbox": [
+                                    328.6308288574219,
+                                    71.87113952636719,
+                                    434.80194091796875,
+                                    382.4837951660156
+                                ],
+                                "class_id": 4,
+                                "class_name": "not_empty",
+                                "confidence": 0.6486598253250122
+                            },
+                            {
+                                "bbox": [
+                                    344.604248046875,
+                                    479.9710388183594,
+                                    423.48516845703125,
+                                    517.8389282226562
+                                ],
+                                "class_id": 4,
+                                "class_name": "not_empty",
+                                "confidence": 0.5457576513290405
+                            }
+                        ],
+                        "detection_count": 3,
+                        "id": 3,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_e3ffd252/107-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_e3ffd252/107-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_e3ffd252/107-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_e3ffd252/107-yolo11m-detection.png"
+                        },
+                        "name": "107-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_e3ffd252/107-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    162.58079528808594,
+                                    0.0,
+                                    443.83935546875,
+                                    600.0
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.6811609864234924
+                            },
+                            {
+                                "bbox": [
+                                    175.410888671875,
+                                    0.0,
+                                    439.87176513671875,
+                                    600.0
+                                ],
+                                "class_id": 3,
+                                "class_name": "non_mineral",
+                                "confidence": 0.5245780944824219
+                            }
+                        ],
+                        "detection_count": 2,
+                        "id": 4,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_e3ffd252/163-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_e3ffd252/163-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_e3ffd252/163-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_e3ffd252/163-yolo11m-detection.png"
+                        },
+                        "name": "163-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_e3ffd252/163-best_pt-compare.png"
+                    },
+                    {
+                        "datas": [
+                            {
+                                "bbox": [
+                                    302.72998046875,
+                                    0.4238128662109375,
+                                    563.0634765625,
+                                    599.367431640625
+                                ],
+                                "class_id": 2,
+                                "class_name": "mineral",
+                                "confidence": 0.8695794939994812
+                            }
+                        ],
+                        "detection_count": 1,
+                        "id": 5,
+                        "images": {
+                            "best": "http://100.98.142.94:5000/api/download/session_e3ffd252/197-best_pt-best.png",
+                            "hybrid": "http://100.98.142.94:5000/api/download/session_e3ffd252/197-best_pt-hybrid.png",
+                            "sam": "http://100.98.142.94:5000/api/download/session_e3ffd252/197-best_pt-segmentation.png",
+                            "yolo": "http://100.98.142.94:5000/api/download/session_e3ffd252/197-yolo11m-detection.png"
+                        },
+                        "name": "197-best_pt-detection.json",
+                        "summary_images_url": "http://100.98.142.94:5000/api/download/session_e3ffd252/197-best_pt-compare.png"
+                    }
+                ],
+                "object_count": 6
+            },
+            "image_name": "summary.json",
+            "timestamp": "20250929_163736",
+            "user_id": "web_user"
         },
         {
             "detection_count": 1,
             "detections": [
                 {
                     "bbox": [
-                        294.4569091796875,
-                        308.8126220703125,
-                        363.95751953125,
-                        448.69964599609375
+                        302.72998046875,
+                        0.4238128662109375,
+                        563.0634765625,
+                        599.367431640625
                     ],
                     "class_id": 2,
                     "class_name": "mineral",
-                    "confidence": 0.8424936532974243
+                    "confidence": 0.8695794939994812
                 }
             ],
-            "image_name": "21_mineral",
-            "timestamp": "20250928_092747",
-            "user_id": "test_api_user"
+            "image_name": "197",
+            "timestamp": "20250929_163736",
+            "user_id": "web_user"
         },
         {
             "detection_count": 1,
             "detections": [
                 {
                     "bbox": [
-                        57.36895751953125,
-                        62.235107421875,
-                        344.09259033203125,
-                        577.8096923828125
+                        81.505615234375,
+                        148.776123046875,
+                        570.615234375,
+                        632.4052124023438
                     ],
                     "class_id": 2,
                     "class_name": "mineral",
-                    "confidence": 0.8787883520126343
+                    "confidence": 0.9154394268989563
                 }
             ],
-            "image_name": "1-botol_mineral",
-            "timestamp": "20250928_091258",
-            "user_id": "test_user_001"
+            "image_name": "108",
+            "timestamp": "20250929_153909",
+            "user_id": "web_user"
         },
         {
-            "detection_count": 1,
+            "detection_count": 3,
             "detections": [
                 {
                     "bbox": [
-                        294.4569091796875,
-                        308.8126220703125,
-                        363.95751953125,
-                        448.69964599609375
+                        275.3157653808594,
+                        0.895538330078125,
+                        489.90179443359375,
+                        600.0
                     ],
                     "class_id": 2,
                     "class_name": "mineral",
-                    "confidence": 0.8424936532974243
-                }
-            ],
-            "image_name": "21_mineral",
-            "timestamp": "20250928_091258",
-            "user_id": "test_user_001"
-        },
-        {
-            "detection_count": 1,
-            "detections": [
+                    "confidence": 0.8866058588027954
+                },
                 {
                     "bbox": [
-                        252.4176788330078,
-                        145.65257263183594,
-                        394.87469482421875,
-                        367.3836669921875
+                        328.6308288574219,
+                        71.87113952636719,
+                        434.80194091796875,
+                        382.4837951660156
                     ],
-                    "class_id": 2,
-                    "class_name": "mineral",
-                    "confidence": 0.9168100953102112
+                    "class_id": 4,
+                    "class_name": "not_empty",
+                    "confidence": 0.6486598253250122
+                },
+                {
+                    "bbox": [
+                        344.604248046875,
+                        479.9710388183594,
+                        423.48516845703125,
+                        517.8389282226562
+                    ],
+                    "class_id": 4,
+                    "class_name": "not_empty",
+                    "confidence": 0.5457576513290405
                 }
             ],
-            "image_name": "244.mineral_crush",
-            "timestamp": "20250928_091258",
-            "user_id": "test_user_001"
+            "image_name": "107",
+            "timestamp": "20250929_153909",
+            "user_id": "web_user"
         }
     ],
-    "total_sessions": 5
+    "total_sessions": 54
 }
 ```
 

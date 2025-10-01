@@ -1,0 +1,36 @@
+{
+  "detection_summary": [
+    {
+      "id": 0,
+      "name": "77.milk-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            198.26275634765625,
+            101.52664947509766,
+            638.0875854492188,
+            364.34716796875
+          ],
+          "confidence": 0.9603502154350281,
+          "class_id": 1,
+          "class_name": "milk"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.98.142.94:5000/api/download/session_6ad61814/77.milk-best_pt-compare.png",
+      "images": {
+        "best": "http://100.98.142.94:5000/api/download/session_6ad61814/77.milk-best_pt-best.png",
+        "yolo": "http://100.98.142.94:5000/api/download/session_6ad61814/77.milk-yolo11m-detection.png",
+        "sam": "http://100.98.142.94:5000/api/download/session_6ad61814/77.milk-best_pt-segmentation.png",
+        "hybrid": "http://100.98.142.94:5000/api/download/session_6ad61814/77.milk-best_pt-hybrid.png"
+      }
+    }
+  ],
+  "class_summary": [
+    {
+      "class_name": "milk",
+      "count": 1
+    }
+  ],
+  "object_count": 1
+}
