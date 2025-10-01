@@ -497,23 +497,40 @@ def get_jetson_info():
         except:
             pass
         
-        # Get Jetpack and L4T versions using the utility script
+        # Get L4T version directly from /etc/nv_tegra_release
+        try:
+            with open('/etc/nv_tegra_release', 'r') as f:
+                content = f.read()
+                # Parse L4T version: # R36.4.2, REVISION: 36.4.2
+                import re
+                match = re.search(r'# R(\d+)[^,]*,\s*REVISION:\s*([\d\.]+)', content)
+                if match:
+                    release_part = match.group(1)
+                    revision_part = match.group(2)
+                    jetson_info['l4t_version'] = f"{release_part}.{revision_part}"
+                else:
+                    jetson_info['l4t_version'] = 'Unknown'
+        except:
+            jetson_info['l4t_version'] = 'Unknown'
+        
+        # Get JetPack version using the utility script
         try:
             utils_path = os.path.join(os.path.dirname(__file__), 'utils/python/get_jetpack_versions.py')
             result = subprocess.run(['python3', utils_path], 
-                                  capture_output=True, text=True, timeout=10)
+                                  capture_output=True, text=True, timeout=15)
             if result.returncode == 0:
-                # Parse the output to get JetPack and L4T versions
+                # Parse the output to get JetPack version
                 lines = result.stdout.split('\n')
                 for line in lines:
-                    if 'Your L4T version' in line:
-                        l4t_version = line.split(':')[1].strip()
-                        jetson_info['l4t_version'] = l4t_version
-                    elif 'JetPack SDK' in line:
+                    if 'JetPack SDK' in line and 'Match Found' in result.stdout:
                         jetpack_version = line.split('JetPack SDK')[1].strip().rstrip('.')
                         jetson_info['jetpack_version'] = jetpack_version
+                        break
+                else:
+                    jetson_info['jetpack_version'] = 'Unknown'
+            else:
+                jetson_info['jetpack_version'] = 'Unknown'
         except:
-            jetson_info['l4t_version'] = 'Unknown'
             jetson_info['jetpack_version'] = 'Unknown'
             
     except Exception as e:
@@ -689,14 +706,31 @@ def get_camera_info():
         except:
             camera_info['nvargus_status'] = 'unknown'
         
-        # Method 4: Check for USB cameras using lsusb
+        # Method 4: Check for USB cameras using lsusb with detailed parsing
         try:
             result = subprocess.run(['lsusb'], capture_output=True, text=True, timeout=5)
             if result.returncode == 0:
                 usb_cameras = []
                 for line in result.stdout.split('\n'):
                     if any(keyword in line.lower() for keyword in ['camera', 'webcam', 'video', 'imaging']):
-                        usb_cameras.append(line.strip())
+                        # Parse USB device information
+                        parts = line.strip().split()
+                        if len(parts) >= 6:
+                            bus_device = parts[1] + ' ' + parts[3].rstrip(':')
+                            device_id = parts[5]
+                            device_name = ' '.join(parts[6:]) if len(parts) > 6 else 'Unknown'
+                            
+                            # Extract vendor and product ID
+                            vendor_id, product_id = device_id.split(':')
+                            
+                            usb_cameras.append({
+                                'bus_device': bus_device,
+                                'device_id': device_id,
+                                'vendor_id': vendor_id,
+                                'product_id': product_id,
+                                'name': device_name,
+                                'raw_line': line.strip()
+                            })
                 if usb_cameras:
                     camera_info['usb_devices'] = usb_cameras
         except:
