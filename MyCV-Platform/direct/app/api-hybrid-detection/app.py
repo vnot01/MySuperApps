@@ -287,11 +287,12 @@ def api_status():
     
     return jsonify({
         'api_status': 'online',
-        'service': 'MyCV-Platform Hybrid Detection API',
+        'service': 'MyCV-GPU-Server',
         'version': '1.0.0',
         'endpoints': [
             '/api/health',
-            '/api/status', 
+            '/api/status',
+            '/api/hardware',
             '/api/upload',
             '/api/process/<session_id>',
             '/api/results/<session_id>',
@@ -302,6 +303,31 @@ def api_status():
         'gpu_info': gpu_info,
         'total_sessions_processed': total_sessions
     })
+
+@app.route('/api/hardware', methods=['GET'])
+def hardware_info():
+    """Get comprehensive GPU server hardware information"""
+    try:
+        hardware_data = {
+            'system_info': get_system_info(),
+            'gpu_info': get_gpu_info(),
+            'memory_info': get_memory_info(),
+            'disk_info': get_disk_info(),
+            'network_info': get_network_info(),
+            'updated_at': datetime.now().isoformat()
+        }
+        
+        return jsonify({
+            'status': 'success',
+            'service': 'MyCV-GPU-Server',
+            'hardware_info': hardware_data
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to get hardware info: {str(e)}',
+            'updated_at': datetime.now().isoformat()
+        }), 500
 
 @app.route('/api/upload', methods=['POST'])
 def upload_files():
@@ -511,6 +537,121 @@ def get_all_detections():
     except Exception as e:
         return jsonify({'error': f'Failed to get detections: {str(e)}'}), 500
 
+def get_system_info():
+    """Get system information"""
+    system_info = {
+        'architecture': 'Unknown',
+        'kernel_version': 'Unknown',
+        'hostname': 'Unknown'
+    }
+    
+    try:
+        # Get architecture
+        result = subprocess.run(['uname', '-m'], capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            system_info['architecture'] = result.stdout.strip()
+        
+        # Get kernel version
+        result = subprocess.run(['uname', '-r'], capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            system_info['kernel_version'] = result.stdout.strip()
+        
+        # Get hostname
+        result = subprocess.run(['hostname'], capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            system_info['hostname'] = result.stdout.strip()
+            
+    except Exception as e:
+        system_info['error'] = str(e)
+    
+    return system_info
+
+def get_memory_info():
+    """Get system memory information"""
+    memory_info = {
+        'total_gb': 0.0
+    }
+    
+    try:
+        total_memory_gb = 0.0
+        swap_total_gb = 0.0
+        
+        with open('/proc/meminfo', 'r') as f:
+            for line in f:
+                if line.startswith('MemTotal:'):
+                    total_memory_gb = int(line.split()[1]) / (1024**2)  # Convert KB to GB
+                elif line.startswith('SwapTotal:'):
+                    swap_total_gb = int(line.split()[1]) / (1024**2)  # Convert KB to GB
+        
+        # Total memory = RAM + Swap
+        memory_info['total_gb'] = round(total_memory_gb + swap_total_gb, 2)
+        
+    except Exception as e:
+        memory_info['error'] = str(e)
+    
+    return memory_info
+
+def get_disk_info():
+    """Get disk storage information"""
+    disk_info = {
+        'available': 'Unknown',
+        'size': 'Unknown',
+        'used': 'Unknown',
+        'use_percent': 'Unknown'
+    }
+    
+    try:
+        result = subprocess.run(['df', '-h'], capture_output=True, text=True, timeout=10)
+        if result.returncode == 0:
+            lines = result.stdout.strip().split('\n')[1:]  # Skip header
+            for line in lines:
+                parts = line.split()
+                if len(parts) >= 6 and parts[5] == '/':  # Root filesystem
+                    disk_info['available'] = parts[3]
+                    disk_info['size'] = parts[1]
+                    disk_info['used'] = parts[2]
+                    disk_info['use_percent'] = parts[4]
+                    break
+            
+    except Exception as e:
+        disk_info['error'] = str(e)
+    
+    return disk_info
+
+def get_network_info():
+    """Get network interface information"""
+    network_info = {
+        'local_ip': None,
+        'public_ip': None
+    }
+    
+    try:
+        # Get local IP (first non-loopback interface)
+        result = subprocess.run(['ip', 'route', 'get', '8.8.8.8'], capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            for line in result.stdout.split('\n'):
+                if 'src' in line:
+                    parts = line.split()
+                    for i, part in enumerate(parts):
+                        if part == 'src' and i + 1 < len(parts):
+                            network_info['local_ip'] = parts[i + 1]
+                            break
+                    break
+        
+        # Try to get public IP
+        try:
+            result = subprocess.run(['curl', '-s', '--max-time', '5', 'ifconfig.me'], 
+                                  capture_output=True, text=True, timeout=10)
+            if result.returncode == 0 and result.stdout.strip():
+                network_info['public_ip'] = result.stdout.strip()
+        except:
+            pass
+            
+    except Exception as e:
+        network_info['error'] = str(e)
+    
+    return network_info
+
 if __name__ == '__main__':
     # Ensure directories exist
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -521,6 +662,7 @@ if __name__ == '__main__':
     print("📋 Available endpoints:")
     print("   GET  /api/health - Health check")
     print("   GET  /api/status - API status")
+    print("   GET  /api/hardware - Comprehensive hardware information")
     print("   POST /api/upload - Upload images for detection")
     print("   GET  /api/process/<session_id> - Get processing status")
     print("   GET  /api/results/<session_id> - Get detection results")
