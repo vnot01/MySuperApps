@@ -19,6 +19,7 @@ cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection-jetson
 ### Health & Status
 - `GET /api/health` - Health check
 - `GET /api/status` - API status dengan informasi GPU Jetson
+- `GET /api/hardware` - Informasi hardware Jetson lengkap
 
 ### Upload & Processing
 - `POST /api/upload` - Upload gambar untuk deteksi
@@ -125,6 +126,124 @@ API secara otomatis mendeteksi dan melaporkan informasi GPU Jetson:
     }
 }
 ```
+
+## 🔧 Hardware Information (Jetson)
+
+### Comprehensive Hardware Monitoring
+API menyediakan endpoint `/api/hardware` untuk monitoring hardware Jetson secara lengkap:
+
+#### Hardware Information Includes:
+- **Jetson Info**: Model, L4T version, Jetpack version, kernel version
+- **CUDA Info**: Availability, version, device count, memory usage (total/used/free)
+- **Memory Info**: System memory, swap memory dengan konversi GB
+- **Disk Info**: Storage devices, NVMe detection, filesystem usage
+- **Camera Info**: USB cameras, CSI cameras, nvargus status
+- **Network Info**: Interfaces, Tailscale IP, local IP, public IP
+
+#### Usage:
+```bash
+# Get comprehensive hardware information
+curl http://100.117.234.2:5000/api/hardware
+
+# With pretty print
+curl http://100.117.234.2:5000/api/hardware | jq
+```
+
+#### Example Response:
+```json
+{
+  "status": "success",
+  "service": "MyCV-Edge-API",
+  "hardware_info": {
+    "jetson_info": {
+      "model": "Jetson Orin Nano",
+      "l4t_version": "R36.4.2",
+      "jetpack_version": "6.1",
+      "kernel_version": "5.10.120-tegra",
+      "architecture": "aarch64"
+    },
+    "cuda_info": {
+      "available": true,
+      "version": "12.6",
+      "device_count": 1,
+      "device_name": "Orin",
+      "memory_total_gb": 7.4,
+      "memory_used_gb": 1.2,
+      "memory_free_gb": 6.2
+    },
+    "memory_info": {
+      "total_gb": 7.4,
+      "available_gb": 6.0,
+      "used_gb": 1.4,
+      "free_gb": 3.1,
+      "swap_total_gb": 16.0,
+      "swap_used_gb": 0.0,
+      "swap_free_gb": 16.0
+    },
+    "disk_info": {
+      "devices": [
+        {
+          "filesystem": "/dev/nvme0n1p1",
+          "size": "32G",
+          "used": "8.2G",
+          "available": "22G",
+          "use_percent": "28%",
+          "mounted_on": "/"
+        }
+      ],
+      "nvme_devices": [
+        {
+          "name": "nvme0n1",
+          "size": "32G",
+          "type": "disk",
+          "mountpoint": "/"
+        }
+      ]
+    },
+    "camera_info": {
+      "usb_cameras": [
+        {
+          "device": "/dev/video0",
+          "type": "USB"
+        }
+      ],
+      "jetson_cameras": [
+        {
+          "device": "/dev/video1",
+          "type": "CSI",
+          "info": "CSI Camera Info"
+        }
+      ],
+      "total_cameras": 2,
+      "nvargus_status": "active"
+    },
+    "network_info": {
+      "interfaces": [
+        {
+          "name": "eth0",
+          "addresses": ["192.168.1.100"]
+        },
+        {
+          "name": "tailscale0",
+          "addresses": ["100.117.234.2"]
+        }
+      ],
+      "tailscale_ip": "100.117.234.2",
+      "local_ip": "192.168.1.100",
+      "public_ip": "203.0.113.1",
+      "tailscale_status": "connected"
+    }
+  }
+}
+```
+
+#### Hardware Monitoring Features:
+- **Real-time Status**: Live hardware information
+- **Resource Monitoring**: Memory, disk, GPU usage
+- **Network Detection**: Automatic IP detection (Tailscale, local, public)
+- **Camera Detection**: USB and CSI camera enumeration
+- **System Information**: Jetson model, L4T, Jetpack versions
+- **Performance Metrics**: CUDA memory usage, system memory
 
 ## 📈 System Monitoring
 

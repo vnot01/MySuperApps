@@ -61,8 +61,9 @@ direct/
 ### 3. Jetson API (`app/api-hybrid-detection-jetson/`)
 - **Framework**: Flask
 - **Purpose**: Edge device detection with RVM integration
-- **Features**: Multi-Jetson support, RVM authentication, database integration
+- **Features**: Multi-Jetson support, RVM authentication, database integration, hardware monitoring
 - **Port**: 5000 (default)
+- **Hardware Info**: `/api/hardware` endpoint for comprehensive Jetson hardware information
 
 ## ✅ Features
 
@@ -70,6 +71,7 @@ direct/
 - ✅ **Cross-Platform Setup**: Setup script yang bekerja di semua environment
 - ✅ **RVM Integration**: Multi-Jetson support dengan authentication
 - ✅ **GPU Support**: Optimized untuk NVIDIA GPU
+- ✅ **Hardware Monitoring**: Comprehensive Jetson hardware information
 - ✅ **Virtual Environment**: Shared virtual environment
 - ✅ **Production Ready**: Siap untuk deployment
 

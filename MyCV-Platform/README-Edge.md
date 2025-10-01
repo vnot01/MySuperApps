@@ -192,6 +192,7 @@ data-jetson/
 - ✅ **Memory Optimization** dengan 16GB swap configuration untuk edge constraints
 - ✅ **Edge-Specific Paths** menggunakan `data-jetson/` directory
 - ✅ **API Integration** dengan Jetson IP (100.117.234.2:5000)
+- ✅ **Hardware Monitoring** dengan `/api/hardware` endpoint untuk comprehensive system info
 - ✅ **Auto-Installation** PyTorch jika tidak terdeteksi
 - ✅ **Model Management** terpisah dari main installation
 - ✅ **Enhanced Verification** dengan GPU memory dan device name info
@@ -204,6 +205,15 @@ data-jetson/
 - **Memory Management**: Optimized untuk Jetson Orin memory constraints
 - **CUDA Acceleration**: Full GPU support untuk inference
 - **Model Caching**: Local model storage untuk offline capability
+
+### **Hardware Monitoring Features:**
+- **Comprehensive System Info**: Jetson model, L4T version, Jetpack version
+- **CUDA Monitoring**: GPU availability, memory usage, device information
+- **Memory Tracking**: System memory, swap memory dengan real-time usage
+- **Storage Monitoring**: Disk usage, NVMe detection, filesystem information
+- **Camera Detection**: USB cameras, CSI cameras, nvargus status
+- **Network Monitoring**: Interfaces, Tailscale IP, local IP, public IP detection
+- **Real-time Status**: Live hardware information via `/api/hardware` endpoint
 
 ## 🚨 Troubleshooting
 
@@ -295,6 +305,12 @@ curl http://100.117.234.2:5000/api/process/session_abc123
 
 # Get results
 curl http://100.117.234.2:5000/api/results/session_abc123
+
+# Get comprehensive hardware information
+curl http://100.117.234.2:5000/api/hardware
+
+# Get hardware info with pretty print
+curl http://100.117.234.2:5000/api/hardware | jq
 ```
 
 ### **MyRVM-Platform Integration:**
