@@ -1,5 +1,48 @@
 # MyCV-Platform Changelog
 
+## [1.5.0-rvm-integration] - 2025-01-15
+
+### 🎯 **Major Changes - RVM Integration & Architecture Cleanup**
+
+#### **🔗 RVM Integration (Multi-Jetson Support)**
+- ✅ **RVM Authentication**: API key-based authentication untuk setiap RVM
+- ✅ **Multi-Jetson Support**: Support multiple Jetson machines dengan RVM ID
+- ✅ **Database Integration**: Detection results tersimpan di MyRVM-Platform database
+- ✅ **Directory Structure**: `data-jetson/input/rvm_{rvm_id}/{timestamp}/{user_id}/`
+- ✅ **Caching System**: In-memory cache untuk RVM data dan validation
+- ✅ **API Endpoints**: New endpoints untuk RVM validation dan statistics
+
+#### **🧹 Architecture Cleanup**
+- ✅ **Unified Dependencies**: Satu `requirements.txt` untuk semua services
+- ✅ **Docker Removal**: Hapus semua file Docker yang tidak digunakan
+- ✅ **Clean Documentation**: Update dan reorganisasi dokumentasi
+- ✅ **Cross-Platform Setup**: `setup.sh` script yang bekerja di semua environment
+- ✅ **Service Separation**: Clear separation antara Web, GPU Server, dan Jetson API
+
+#### **📚 Documentation Updates**
+- ✅ **README.md**: Updated dengan struktur baru dan RVM integration
+- ✅ **ARCHITECTURE.md**: Dokumentasi arsitektur sistem lengkap
+- ✅ **DEPLOYMENT.md**: Panduan deployment untuk semua environment
+- ✅ **Service READMEs**: Update dokumentasi untuk setiap service
+
+#### **🔧 Configuration Management**
+- ✅ **Environment Variables**: Unified configuration system
+- ✅ **RVM Config**: `rvm_config.env` untuk Jetson API configuration
+- ✅ **Setup Script**: Cross-platform setup dengan Python detection
+
+### 🎯 **Breaking Changes**
+- **Dependencies**: Removed individual `requirements.txt` files, now using unified `requirements.txt`
+- **Docker**: Removed all Docker-related files and scripts
+- **Structure**: Reorganized folder structure for better clarity
+
+### 🎯 **New Features**
+- **RVM API Endpoints**: `/api/rvm/validate`, `/api/rvm/{rvm_id}/stats`
+- **Multi-Jetson Support**: Support untuk multiple Jetson machines
+- **Unified Setup**: Single setup script untuk semua environments
+- **Clean Architecture**: Better organized codebase structure
+
+---
+
 ## [1.4.2-jetson-edge] - 2025-09-29
 
 ### 🎯 Edge Devices (NVIDIA Jetson) Support

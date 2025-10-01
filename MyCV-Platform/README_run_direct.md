@@ -2,51 +2,64 @@
 
 ## 📋 Overview
 
-Script `run_direct.sh` adalah launcher utama untuk menjalankan MyCV-Platform secara langsung di **Server/Computer** dengan **GPU Computing** tanpa menggunakan Docker. Script ini mengatur virtual environment, menginstall dependencies, dan menjalankan fresh integration test dengan YOLO + SAM2.
+MyCV-Platform sekarang menggunakan **unified setup system** dengan `setup.sh` script yang bekerja di semua environment. Tidak lagi menggunakan `run_direct.sh` yang terpisah, melainkan menggunakan sistem setup yang terintegrasi.
 
 **Target Environment**: Server/Computer dengan GPU Computing capabilities  
 **Purpose**: High-performance computer vision processing untuk production server  
-**Integration**: MyRVM-Platform (VM 100) via API
+**Integration**: MyRVM-Platform via API dengan RVM authentication
+**Architecture**: Multi-service architecture (Web, GPU Server, Jetson API)
 
 ## 🔗 File Location
 
-**Script:** [`./run_direct.sh`](./run_direct.sh)
+**Main Setup:** [`direct/setup.sh`](./direct/setup.sh)  
+**Services:** [`direct/app/`](./direct/app/) - Web, GPU Server, Jetson API
 
 ## 🎯 Fungsi Utama
 
-1. **Environment Setup** - Membuat dan mengaktifkan virtual environment untuk server
-2. **Dependency Management** - Menginstall semua dependencies yang diperlukan untuk GPU computing
-3. **GPU Detection** - Otomatis deteksi dan konfigurasi GPU untuk optimal performance
-4. **Integration Testing** - Menjalankan fresh integration test dengan YOLO + SAM2
-5. **Output Management** - Menyimpan hasil di folder `data/output/` dengan struktur terorganisir
-6. **Performance Optimization** - Optimasi untuk server environment dengan resource yang memadai
+1. **Unified Setup** - Setup script yang bekerja di semua environment
+2. **Multi-Service Architecture** - Web Interface, GPU Server API, Jetson API
+3. **RVM Integration** - Multi-Jetson support dengan authentication
+4. **Unified Dependencies** - Satu requirements.txt untuk semua services
+5. **Cross-Platform** - Bekerja di CV Host dan Jetson devices
+6. **Clean Architecture** - Struktur folder yang terorganisir
 
 ## 📁 Dependencies
 
 ### Folder yang Diperlukan:
 - ✅ `direct/` - Folder utama aplikasi
 - ✅ `direct/venv/` - Virtual environment (dibuat otomatis)
-- ✅ `direct/scripts/` - Folder scripts
+- ✅ `direct/app/` - Services folder (Web, GPU Server, Jetson API)
 
 ### File yang Diperlukan:
-- ✅ `direct/requirements.txt` - Python dependencies
-- ✅ `direct/scripts/run_fresh_integration_test.sh` - Integration test script
+- ✅ `direct/requirements.txt` - Unified Python dependencies
+- ✅ `direct/setup.sh` - Cross-platform setup script
 
 ## 🚀 Cara Penggunaan
 
-### 1. Persiapan
+### 1. Setup Environment
 ```bash
-# Pastikan berada di root directory MyCV-Platform
-cd /path/to/MyCV-Platform
+# Masuk ke folder direct
+cd MySuperApps/MyCV-Platform/direct
 
-# Pastikan script executable
-chmod +x run_direct.sh
+# Setup environment (satu kali)
+./setup.sh
 ```
 
-### 2. Menjalankan
+### 2. Run Services
 ```bash
-# Jalankan script
-./run_direct.sh
+# Aktifkan virtual environment
+source venv/bin/activate
+
+# Pilih service yang ingin dijalankan:
+
+# Web Interface
+cd app/web && python app.py
+
+# GPU Server API
+cd app/api-hybrid-detection && python app.py
+
+# Jetson API (dengan RVM integration)
+cd app/api-hybrid-detection-jetson && python app.py
 ```
 
 ### 3. Output

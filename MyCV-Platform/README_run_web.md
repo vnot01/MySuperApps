@@ -2,11 +2,12 @@
 
 ## 📋 Overview
 
-Script `run_web.sh` adalah launcher untuk menjalankan aplikasi web MyCV-Platform dengan real-time camera detection menggunakan YOLO + SAM2. Aplikasi web ini menyediakan interface interaktif untuk deteksi objek dan segmentasi real-time melalui kamera.
+MyCV-Platform Web Application sekarang terintegrasi dalam **unified architecture** dengan setup script yang bekerja di semua environment. Web application menyediakan interface interaktif untuk deteksi objek dan segmentasi real-time melalui kamera.
 
 ## 🔗 File Location
 
-**Script:** [`./run_web.sh`](./run_web.sh)
+**Web App:** [`direct/app/web/app.py`](./direct/app/web/app.py)  
+**Setup:** [`direct/setup.sh`](./direct/setup.sh)
 
 ## 🎯 Fungsi Utama
 
@@ -20,34 +21,33 @@ Script `run_web.sh` adalah launcher untuk menjalankan aplikasi web MyCV-Platform
 
 ### Folder yang Diperlukan:
 - ✅ `direct/app/web/` - Folder web application
-- ✅ `direct/venv/` - Virtual environment (shared dengan direct)
-- ✅ `direct/data/models/` - Model files untuk processing
+- ✅ `direct/venv/` - Virtual environment (shared)
+- ✅ `direct/requirements.txt` - Unified dependencies
 
 ### File yang Diperlukan:
-- ✅ `direct/app/web/requirements.txt` - Web dependencies
-- ✅ `direct/app/web/run_web_app.sh` - Web app launcher
+- ✅ `direct/setup.sh` - Cross-platform setup script
 - ✅ `direct/app/web/app.py` - Web application main file
 - ✅ `direct/app/web/templates/index.html` - Web template
 
-### Models yang Diperlukan:
-- ✅ `direct/data/models/yolo/active/yolo11m.pt` - YOLO model
-- ✅ `direct/data/models/trained/best.pt` - Trained model
-- ✅ `direct/data/models/sam/active/sam2_b.pt` - SAM model
-
 ## 🚀 Cara Penggunaan
 
-### 1. Persiapan
+### 1. Setup Environment
 ```bash
-# Pastikan berada di root directory MyCV-Platform
-cd /path/to/MyCV-Platform
+# Masuk ke folder direct
+cd MySuperApps/MyCV-Platform/direct
 
-# Pastikan script executable
-chmod +x run_web.sh
+# Setup environment (satu kali)
+./setup.sh
+```
 
-# Pastikan virtual environment sudah dibuat
-cd direct
-python3 -m venv venv
+### 2. Run Web Application
+```bash
+# Aktifkan virtual environment
 source venv/bin/activate
+
+# Run web application
+cd app/web
+python app.py
 pip install -r requirements.txt
 cd ..
 ```

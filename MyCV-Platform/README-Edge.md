@@ -3,11 +3,11 @@
 ## 🎯 **Computer Vision Processing for Edge Devices**
 
 **Target Devices**: NVIDIA Jetson Orin Nano, Orin NX, Orin AGX  
-**Purpose**: Real YOLO11 + SAM2 processing untuk edge deployment  
-**Integration**: MyRVM-Platform (VM 100) via API  
+**Purpose**: Real YOLO11 + SAM2 processing untuk edge deployment dengan RVM integration  
+**Integration**: MyRVM-Platform via API dengan RVM authentication  
 **Environment**: Edge Computing dengan resource constraints
 
-Platform Computer Vision dengan YOLO + SAM2 Integration khusus untuk **Edge Devices** dan **NVIDIA Jetson** dengan optimasi memory dan performance.
+Platform Computer Vision dengan YOLO + SAM2 Integration khusus untuk **Edge Devices** dan **NVIDIA Jetson** dengan optimasi memory, performance, dan **RVM integration** untuk multi-Jetson support.
 
 ## 📋 System Requirements
 
@@ -46,6 +46,31 @@ sudo swapon /swapfile
 ```bash
 # Add to fstab for automatic mounting
 echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+### 2. Setup MyCV-Platform
+
+#### **Clone and Setup:**
+```bash
+# Clone repository
+git clone https://github.com/vnot01/MySuperApps.git
+cd MySuperApps/MyCV-Platform/direct
+
+# Setup environment (unified setup)
+./setup.sh
+```
+
+#### **Configure RVM Integration:**
+```bash
+# Edit RVM configuration
+cd app/api-hybrid-detection-jetson
+cp rvm_config.example rvm_config.env
+nano rvm_config.env
+
+# Set your RVM configuration
+RVM_API_BASE_URL=http://your-rvm-platform.com/api
+RVM_API_KEY=your_master_api_key_here
+API_HOST=your_jetson_ip
 ```
 
 #### **Optimize for Jetson Orin:**
