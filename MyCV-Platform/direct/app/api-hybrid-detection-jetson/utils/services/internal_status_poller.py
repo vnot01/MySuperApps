@@ -15,8 +15,8 @@ import sys
 # Add parent directories to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../..'))
 
-from .api_client import RVMAPIClient
-from .internal_health_monitor import RVMHealthMonitor
+from api_client import RVMAPIClient
+from internal_health_monitor import RVMHealthMonitor
 
 class RVMStatusPoller:
     """Main RVM status polling service"""

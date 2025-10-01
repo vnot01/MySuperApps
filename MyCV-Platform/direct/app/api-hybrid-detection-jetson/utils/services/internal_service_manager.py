@@ -15,8 +15,8 @@ from datetime import datetime
 # Add parent directories to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../..'))
 
-from .internal_status_poller import RVMStatusPoller
-from .api_client import RVMAPIClient
+from internal_status_poller import RVMStatusPoller
+from api_client import RVMAPIClient
 
 class RVMServiceManager:
     """Main service manager for RVM polling services"""
@@ -28,15 +28,15 @@ class RVMServiceManager:
         Args:
             config_file: Path to configuration file
         """
+        # Setup logging first
+        self.logger = logging.getLogger(__name__)
+        
         self.config_file = config_file or 'rvm_config.env'
         self.config = self._load_config()
         
         # Service registry
         self.pollers: Dict[int, RVMStatusPoller] = {}
         self.is_running = False
-        
-        # Setup logging
-        self.logger = logging.getLogger(__name__)
         
         # Signal handling
         signal.signal(signal.SIGINT, self._signal_handler)
