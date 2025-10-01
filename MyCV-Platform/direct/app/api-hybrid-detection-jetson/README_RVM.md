@@ -67,12 +67,12 @@ curl http://100.117.234.2:5000/api/hardware
 ```
 
 #### Hardware Information Includes:
-- **Jetson Info**: Model, L4T version, Jetpack version, kernel
-- **CUDA Info**: Availability, version, device count, memory usage
-- **Memory Info**: System memory, swap memory (total/used/free)
-- **Disk Info**: Storage devices, NVMe detection, filesystem usage
-- **Camera Info**: USB cameras, CSI cameras, nvargus status
-- **Network Info**: Interfaces, Tailscale IP, local IP, public IP
+- **Jetson Info**: Model, L4T version, Jetpack version, kernel version, architecture
+- **CUDA Info**: Status, availability, cuDNN enabled, PyTorch CUDA version, GPU details
+- **Memory Info**: Total memory (RAM + Swap combined)
+- **Disk Info**: Available space, total size, used space, usage percentage
+- **Camera Info**: USB cameras with device names, USB devices with detailed info, nvargus status
+- **Network Info**: Local IP, network IP (Tailscale), public IP, connection status
 
 #### Example Response:
 ```json
@@ -88,40 +88,54 @@ curl http://100.117.234.2:5000/api/hardware
       "architecture": "aarch64"
     },
     "cuda_info": {
-      "available": true,
-      "version": "12.6",
-      "device_count": 1,
-      "device_name": "Orin",
-      "memory_total_gb": 7.4,
-      "memory_used_gb": 1.2,
-      "memory_free_gb": 6.2
+      "status": "success",
+      "cuda_available": true,
+      "cudnn_enabled": true,
+      "pytorch_cuda_version": "2.5.0a0+872d972e41.nv24.08",
+      "available_gpus": 1,
+      "gpus": [
+        {
+          "id": 0,
+          "name": "Orin",
+          "memory_gb": 7.44
+        }
+      ],
+      "total_memory_all_gpus_gb": 7.44
     },
     "memory_info": {
-      "total_gb": 7.4,
-      "available_gb": 6.0,
-      "used_gb": 1.4,
-      "free_gb": 3.1,
-      "swap_total_gb": 16.0,
-      "swap_used_gb": 0.0,
-      "swap_free_gb": 16.0
+      "total_gb": 23.44
     },
     "disk_info": {
-      "devices": [...],
-      "nvme_devices": [...],
-      "root_filesystem": {...}
+      "available": "134G",
+      "size": "233G",
+      "used": "88G",
+      "use_percent": "40%"
     },
     "camera_info": {
-      "usb_cameras": [...],
-      "jetson_cameras": [...],
-      "total_cameras": 2,
+      "usb_cameras": [
+        {
+          "device": "/dev/video3",
+          "name": "Integrated_Webcam_HD: Integrate (usb-3610000.usb-2.4)"
+        }
+      ],
+      "usb_devices": [
+        {
+          "device_id": "0c45:64ab",
+          "name": "Microdia Integrated_Webcam_HD",
+          "raw_line": "Bus 001 Device 004: ID 0c45:64ab Microdia Integrated_Webcam_HD"
+        }
+      ],
       "nvargus_status": "active"
     },
     "network_info": {
-      "interfaces": [...],
-      "tailscale_ip": "100.117.234.2",
-      "local_ip": "192.168.1.100",
-      "public_ip": "203.0.113.1",
-      "tailscale_status": "connected"
+      "local_ip": "192.168.1.11",
+      "network_ip": "100.117.234.2",
+      "public_ip": "182.8.226.98",
+      "network_connected": true,
+      "tailscale_ip": [
+        "100.117.234.2/32",
+        "fd7a:115c:a1e0::1f35:ea02/128"
+      ]
     }
   }
 }

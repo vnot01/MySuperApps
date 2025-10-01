@@ -133,12 +133,12 @@ API secara otomatis mendeteksi dan melaporkan informasi GPU Jetson:
 API menyediakan endpoint `/api/hardware` untuk monitoring hardware Jetson secara lengkap:
 
 #### Hardware Information Includes:
-- **Jetson Info**: Model, L4T version, Jetpack version, kernel version
-- **CUDA Info**: Availability, version, device count, memory usage (total/used/free)
-- **Memory Info**: System memory, swap memory dengan konversi GB
-- **Disk Info**: Storage devices, NVMe detection, filesystem usage
-- **Camera Info**: USB cameras, CSI cameras, nvargus status
-- **Network Info**: Interfaces, Tailscale IP, local IP, public IP
+- **Jetson Info**: Model, L4T version, Jetpack version, kernel version, architecture
+- **CUDA Info**: Status, availability, cuDNN enabled, PyTorch CUDA version, GPU details
+- **Memory Info**: Total memory (RAM + Swap combined)
+- **Disk Info**: Available space, total size, used space, usage percentage
+- **Camera Info**: USB cameras with device names, USB devices with detailed info, nvargus status
+- **Network Info**: Local IP, network IP (Tailscale), public IP, connection status
 
 #### Usage:
 ```bash
@@ -163,75 +163,59 @@ curl http://100.117.234.2:5000/api/hardware | jq
       "architecture": "aarch64"
     },
     "cuda_info": {
-      "available": true,
-      "version": "12.6",
-      "device_count": 1,
-      "device_name": "Orin",
-      "memory_total_gb": 7.4,
-      "memory_used_gb": 1.2,
-      "memory_free_gb": 6.2
-    },
-    "memory_info": {
-      "total_gb": 7.4,
-      "available_gb": 6.0,
-      "used_gb": 1.4,
-      "free_gb": 3.1,
-      "swap_total_gb": 16.0,
-      "swap_used_gb": 0.0,
-      "swap_free_gb": 16.0
-    },
-    "disk_info": {
-      "devices": [
+      "status": "success",
+      "cuda_available": true,
+      "cudnn_enabled": true,
+      "pytorch_cuda_version": "2.5.0a0+872d972e41.nv24.08",
+      "available_gpus": 1,
+      "gpus": [
         {
-          "filesystem": "/dev/nvme0n1p1",
-          "size": "32G",
-          "used": "8.2G",
-          "available": "22G",
-          "use_percent": "28%",
-          "mounted_on": "/"
+          "id": 0,
+          "name": "Orin",
+          "memory_gb": 7.44
         }
       ],
-      "nvme_devices": [
-        {
-          "name": "nvme0n1",
-          "size": "32G",
-          "type": "disk",
-          "mountpoint": "/"
-        }
-      ]
+      "total_memory_all_gpus_gb": 7.44
+    },
+    "memory_info": {
+      "total_gb": 23.44
+    },
+    "disk_info": {
+      "available": "134G",
+      "size": "233G",
+      "used": "88G",
+      "use_percent": "40%"
     },
     "camera_info": {
       "usb_cameras": [
         {
-          "device": "/dev/video0",
-          "type": "USB"
+          "device": "/dev/video3",
+          "name": "Integrated_Webcam_HD: Integrate (usb-3610000.usb-2.4)"
         }
       ],
-      "jetson_cameras": [
+      "usb_devices": [
         {
-          "device": "/dev/video1",
-          "type": "CSI",
-          "info": "CSI Camera Info"
+          "device_id": "0c45:64ab",
+          "name": "Microdia Integrated_Webcam_HD",
+          "raw_line": "Bus 001 Device 004: ID 0c45:64ab Microdia Integrated_Webcam_HD"
+        },
+        {
+          "device_id": "1bcf:2284",
+          "name": "Sunplus Innovation Technology Inc. UGREEN camera 2K",
+          "raw_line": "Bus 001 Device 005: ID 1bcf:2284 Sunplus Innovation Technology Inc. UGREEN camera 2K"
         }
       ],
-      "total_cameras": 2,
       "nvargus_status": "active"
     },
     "network_info": {
-      "interfaces": [
-        {
-          "name": "eth0",
-          "addresses": ["192.168.1.100"]
-        },
-        {
-          "name": "tailscale0",
-          "addresses": ["100.117.234.2"]
-        }
-      ],
-      "tailscale_ip": "100.117.234.2",
-      "local_ip": "192.168.1.100",
-      "public_ip": "203.0.113.1",
-      "tailscale_status": "connected"
+      "local_ip": "192.168.1.11",
+      "network_ip": "100.117.234.2",
+      "public_ip": "182.8.226.98",
+      "network_connected": true,
+      "tailscale_ip": [
+        "100.117.234.2/32",
+        "fd7a:115c:a1e0::1f35:ea02/128"
+      ]
     }
   }
 }
