@@ -37,24 +37,24 @@ print_error() {
 
 # Function to check if API service is running
 api_running() {
-    if [ -f "/tmp/mycv_api.pid" ]; then
-        local pid=$(cat "/tmp/mycv_api.pid")
+    if [ -f "/tmp/mycv-gpu-server.pid" ]; then
+        local pid=$(cat "/tmp/mycv-gpu-server.pid")
         if ps -p "$pid" > /dev/null 2>&1; then
             # Check if it's actually the API service (port 5000)
             if ss -tlnp 2>/dev/null | grep ":5000" | grep -q "pid=$pid"; then
                 return 0
             else
-                rm -f "/tmp/mycv_api.pid"
+                rm -f "/tmp/mycv-gpu-server.pid"
             fi
         else
-            rm -f "/tmp/mycv_api.pid"
+            rm -f "/tmp/mycv-gpu-server.pid"
         fi
     fi
     
     # Check for process listening on port 5000
     local api_pid=$(ss -tlnp 2>/dev/null | grep ":5000" | grep -o 'pid=[0-9]*' | cut -d'=' -f2)
     if [ -n "$api_pid" ] && ps -p "$api_pid" > /dev/null 2>&1; then
-        echo "$api_pid" > "/tmp/mycv_api.pid"
+        echo "$api_pid" > "/tmp/mycv-gpu-server.pid"
         return 0
     fi
     
@@ -116,7 +116,7 @@ stop_all_ports() {
     fi
     
     # Clean up PID files
-    rm -f /tmp/mycv_api.pid /tmp/mycv_web.pid
+    rm -f /tmp/mycv-gpu-server.pid /tmp/mycv_web.pid
     
     print_success "✅ All processes on ports 5000, 5001, 5002 stopped"
     echo ""
@@ -184,7 +184,7 @@ status_all() {
     # API Service Status
     print_status "📡 API Service:"
     if api_running; then
-        local api_pid=$(cat "/tmp/mycv_api.pid" 2>/dev/null || echo "unknown")
+        local api_pid=$(cat "/tmp/mycv-gpu-server.pid" 2>/dev/null || echo "unknown")
         print_success "  ✅ RUNNING (PID: $api_pid)"
         print_status "  📡 URL: http://100.98.142.94:5000"
         
@@ -229,8 +229,8 @@ show_logs() {
     # API Logs
     print_status "📡 API Service Logs:"
     echo "----------------------"
-    if [ -f "/tmp/mycv_api.log" ]; then
-        tail -20 "/tmp/mycv_api.log"
+    if [ -f "/tmp/mycv-gpu-server.log" ]; then
+        tail -20 "/tmp/mycv-gpu-server.log"
     else
         print_warning "No API logs found"
     fi

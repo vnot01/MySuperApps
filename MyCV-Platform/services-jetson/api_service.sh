@@ -31,8 +31,8 @@ print_error() {
 
 # Configuration (Jetson)
 API_DIR="/home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection-jetson"
-PID_FILE="/tmp/mycv_api.pid"
-LOG_FILE="/tmp/mycv_api.log"
+PID_FILE="/tmp/mycv-edge-api.pid"
+LOG_FILE="/tmp/mycv-edge-api.log"
 API_SCRIPT="app.py"
 
 # Function to check if API is running

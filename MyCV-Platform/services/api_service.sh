@@ -31,8 +31,8 @@ print_error() {
 
 # Configuration
 API_DIR="/home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection"
-PID_FILE="/tmp/mycv_api.pid"
-LOG_FILE="/tmp/mycv_api.log"
+PID_FILE="/tmp/mycv-gpu-server.pid"
+LOG_FILE="/tmp/mycv-gpu-server.log"
 API_SCRIPT="app.py"
 
 # Function to check if API is running

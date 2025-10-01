@@ -30,7 +30,7 @@ print_error() {
 }
 
 # Configuration
-SERVICE_NAME="mycv-api"
+SERVICE_NAME="mycv-edge-api"
 SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
 PROJECT_DIR="/home/my/MySuperApps/MyCV-Platform"
 API_DIR="${PROJECT_DIR}/direct/app/api-hybrid-detection"
@@ -64,7 +64,7 @@ Restart=always
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=mycv-api
+SyslogIdentifier=mycv-edge-api
 
 # Security settings
 NoNewPrivileges=true
