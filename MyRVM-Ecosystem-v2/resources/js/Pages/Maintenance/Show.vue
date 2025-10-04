@@ -1355,6 +1355,14 @@ const updateCharts = () => {
 }
 
 onMounted(() => {
+  // Debug: Log monitoring analytics data
+  console.log('🔍 Monitoring Analytics Data:', monitoringAnalytics)
+  console.log('🔍 Chart Data Available:', monitoringAnalytics?.chart_data?.hourly?.length > 0)
+  console.log('🔍 Hourly Data Count:', monitoringAnalytics?.chart_data?.hourly?.length || 0)
+  
+  // Initialize charts
+  updateCharts()
+  
   // Auto-refresh data every 30 seconds
   refreshInterval = setInterval(() => {
     console.log('🔄 Auto-refreshing maintenance data...')
