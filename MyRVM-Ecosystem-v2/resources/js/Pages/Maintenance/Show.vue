@@ -333,13 +333,13 @@
             </div>
           </div>
           
-          <div v-if="analytics" class="space-y-6">
+                 <div v-if="detectionResults && detectionResults.data && detectionResults.data.length > 0" class="space-y-6">
             <div class="grid grid-cols-2 gap-4">
               <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200/50">
                 <div class="flex items-center justify-between">
                   <div>
                     <p class="text-sm font-medium text-gray-600">Total Detections</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ analytics.total_detections || 0 }}</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ detectionResults.data.length }}</p>
                   </div>
                   <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
                     <i class="fas fa-eye text-white"></i>
@@ -351,7 +351,7 @@
                 <div class="flex items-center justify-between">
                   <div>
                     <p class="text-sm font-medium text-gray-600">Success Rate</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ analytics.success_rate || 0 }}%</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ successRate }}%</p>
                   </div>
                   <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
                     <i class="fas fa-check-circle text-white"></i>
@@ -362,11 +362,11 @@
               <div class="bg-gradient-to-br from-yellow-50 to-yellow-100/50 rounded-xl p-6 border border-yellow-200/50">
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-sm font-medium text-gray-600">Avg Processing</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ analytics.average_processing_time ? analytics.average_processing_time.toFixed(2) + 's' : 'N/A' }}</p>
+                    <p class="text-sm font-medium text-gray-600">Waste Types</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ uniqueWasteTypes }}</p>
                   </div>
                   <div class="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-clock text-white"></i>
+                    <i class="fas fa-recycle text-white"></i>
                   </div>
                 </div>
               </div>
@@ -374,8 +374,8 @@
               <div class="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-6 border border-purple-200/50">
                 <div class="flex items-center justify-between">
                   <div>
-                    <p class="text-sm font-medium text-gray-600">Confidence</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ analytics.average_confidence ? (analytics.average_confidence * 100).toFixed(1) + '%' : 'N/A' }}</p>
+                    <p class="text-sm font-medium text-gray-600">Avg Confidence</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ averageConfidence }}%</p>
                   </div>
                   <div class="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center">
                     <i class="fas fa-bullseye text-white"></i>
@@ -1052,6 +1052,48 @@ const getTypeColor = (type) => {
   }
   return colors[type] || '#6B7280'
 }
+
+// Computed properties for analytics
+const successRate = computed(() => {
+  if (!props.detectionResults?.data || props.detectionResults.data.length === 0) return 0
+  
+  const successCount = props.detectionResults.data.filter(detection => detection.status === 'completed').length
+  return Math.round((successCount / props.detectionResults.data.length) * 100)
+})
+
+const uniqueWasteTypes = computed(() => {
+  if (!props.detectionResults?.data) return 0
+  
+  const types = new Set()
+  props.detectionResults.data.forEach(detection => {
+    if (detection.detection_data?.objects) {
+      detection.detection_data.objects.forEach(obj => {
+        types.add(obj.class_name || 'unknown')
+      })
+    }
+  })
+  return types.size
+})
+
+const averageConfidence = computed(() => {
+  if (!props.detectionResults?.data) return 0
+  
+  let totalConfidence = 0
+  let count = 0
+  
+  props.detectionResults.data.forEach(detection => {
+    if (detection.detection_data?.objects) {
+      detection.detection_data.objects.forEach(obj => {
+        if (obj.confidence) {
+          totalConfidence += obj.confidence
+          count++
+        }
+      })
+    }
+  })
+  
+  return count > 0 ? Math.round((totalConfidence / count) * 100) : 0
+})
 
 // Methods
 const goBack = () => {
