@@ -384,19 +384,42 @@
               </div>
             </div>
             
-            <!-- Multi-line Chart for Detection Trends -->
-            <div class="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl p-6 border border-gray-200/50">
-              <div v-if="monitoringAnalytics && monitoringAnalytics.chart_data && monitoringAnalytics.chart_data.hourly.length > 0" class="h-48">
-                <canvas ref="detectionChart" class="w-full h-full"></canvas>
-              </div>
-              <div v-else class="h-48 flex items-center justify-center text-gray-500">
-                <div class="text-center">
-                  <i class="fas fa-chart-area text-4xl mb-3"></i>
-                  <p class="text-lg font-medium">Detection Trends Chart</p>
-                  <p class="text-sm">Real-time detection trends will appear here</p>
-                </div>
-              </div>
-            </div>
+                   <!-- Pie Charts for RVM Analytics -->
+                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <!-- Detection Types Pie Chart -->
+                     <div class="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl p-6 border border-gray-200/50">
+                       <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                         <i class="fas fa-chart-pie text-blue-500 mr-2"></i>
+                         Detection Types
+                       </h4>
+                       <div v-if="detectionTypesData && detectionTypesData.length > 0" class="h-48">
+                         <canvas ref="detectionTypesChart" class="w-full h-full"></canvas>
+                       </div>
+                       <div v-else class="h-48 flex items-center justify-center text-gray-500">
+                         <div class="text-center">
+                           <i class="fas fa-chart-pie text-4xl mb-3"></i>
+                           <p class="text-sm">Detection types will appear here</p>
+                         </div>
+                       </div>
+                     </div>
+                     
+                     <!-- Detection Status Pie Chart -->
+                     <div class="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl p-6 border border-gray-200/50">
+                       <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                         <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                         Detection Status
+                       </h4>
+                       <div v-if="detectionStatusData && detectionStatusData.length > 0" class="h-48">
+                         <canvas ref="detectionStatusChart" class="w-full h-full"></canvas>
+                       </div>
+                       <div v-else class="h-48 flex items-center justify-center text-gray-500">
+                         <div class="text-center">
+                           <i class="fas fa-check-circle text-4xl mb-3"></i>
+                           <p class="text-sm">Detection status will appear here</p>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
           </div>
           
           <div v-else class="text-center py-12">
@@ -922,8 +945,12 @@ const editIpForm = ref({
 // Chart references
 const detectionChart = ref(null)
 const performanceChart = ref(null)
+const detectionTypesChart = ref(null)
+const detectionStatusChart = ref(null)
 let detectionChartInstance = null
 let performanceChartInstance = null
+let detectionTypesChartInstance = null
+let detectionStatusChartInstance = null
 
 let refreshInterval = null
 let timeUpdateInterval = null
@@ -969,6 +996,61 @@ const getChartData = () => {
     processing_time_ms: item.processing_time_ms || 0,
     detections_count: item.detections_count || 0,
   }))
+}
+
+// Pie chart data for detection types
+const detectionTypesData = computed(() => {
+  if (!props.detectionResults?.data) return []
+  
+  const typeCounts = {}
+  props.detectionResults.data.forEach(detection => {
+    if (detection.detection_data?.objects) {
+      detection.detection_data.objects.forEach(obj => {
+        const type = obj.class_name || 'unknown'
+        typeCounts[type] = (typeCounts[type] || 0) + 1
+      })
+    }
+  })
+  
+  return Object.entries(typeCounts).map(([type, count]) => ({
+    label: type.replace('_', ' ').toUpperCase(),
+    value: count,
+    color: getTypeColor(type)
+  }))
+})
+
+// Pie chart data for detection status
+const detectionStatusData = computed(() => {
+  if (!props.detectionResults?.data) return []
+  
+  let successCount = 0
+  let rejectCount = 0
+  
+  props.detectionResults.data.forEach(detection => {
+    if (detection.status === 'completed') {
+      successCount++
+    } else {
+      rejectCount++
+    }
+  })
+  
+  return [
+    { label: 'Success', value: successCount, color: '#10B981' },
+    { label: 'Rejected', value: rejectCount, color: '#EF4444' }
+  ]
+})
+
+// Helper function to get colors for different waste types
+const getTypeColor = (type) => {
+  const colors = {
+    'plastic_bottle': '#3B82F6',
+    'glass_bottle': '#8B5CF6',
+    'aluminum_can': '#F59E0B',
+    'paper': '#10B981',
+    'cardboard': '#84CC16',
+    'unknown': '#6B7280'
+  }
+  return colors[type] || '#6B7280'
 }
 
 // Methods
@@ -1382,6 +1464,132 @@ const createPerformanceChart = () => {
   }
 }
 
+const createDetectionTypesChart = () => {
+  try {
+    if (!detectionTypesChart.value) {
+      console.warn('⚠️ Detection types chart canvas not found')
+      return
+    }
+    
+    const data = detectionTypesData.value
+    if (data.length === 0) {
+      console.warn('⚠️ No detection types data available')
+      return
+    }
+    
+    console.log('📊 Creating detection types pie chart with', data.length, 'types')
+    
+    const ctx = detectionTypesChart.value.getContext('2d')
+    
+    // Destroy existing chart if it exists
+    if (detectionTypesChartInstance) {
+      detectionTypesChartInstance.destroy()
+      detectionTypesChartInstance = null
+    }
+    
+    detectionTypesChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: data.map(item => item.label),
+        datasets: [{
+          data: data.map(item => item.value),
+          backgroundColor: data.map(item => item.color),
+          borderColor: data.map(item => item.color),
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              padding: 20,
+              usePointStyle: true
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const total = context.dataset.data.reduce((a, b) => a + b, 0)
+                const percentage = ((context.parsed / total) * 100).toFixed(1)
+                return `${context.label}: ${context.parsed} (${percentage}%)`
+              }
+            }
+          }
+        }
+      }
+    })
+  } catch (error) {
+    console.error('❌ Error creating detection types chart:', error)
+    detectionTypesChartInstance = null
+  }
+}
+
+const createDetectionStatusChart = () => {
+  try {
+    if (!detectionStatusChart.value) {
+      console.warn('⚠️ Detection status chart canvas not found')
+      return
+    }
+    
+    const data = detectionStatusData.value
+    if (data.length === 0) {
+      console.warn('⚠️ No detection status data available')
+      return
+    }
+    
+    console.log('📊 Creating detection status pie chart with', data.length, 'statuses')
+    
+    const ctx = detectionStatusChart.value.getContext('2d')
+    
+    // Destroy existing chart if it exists
+    if (detectionStatusChartInstance) {
+      detectionStatusChartInstance.destroy()
+      detectionStatusChartInstance = null
+    }
+    
+    detectionStatusChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: data.map(item => item.label),
+        datasets: [{
+          data: data.map(item => item.value),
+          backgroundColor: data.map(item => item.color),
+          borderColor: data.map(item => item.color),
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              padding: 20,
+              usePointStyle: true
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const total = context.dataset.data.reduce((a, b) => a + b, 0)
+                const percentage = ((context.parsed / total) * 100).toFixed(1)
+                return `${context.label}: ${context.parsed} (${percentage}%)`
+              }
+            }
+          }
+        }
+      }
+    })
+  } catch (error) {
+    console.error('❌ Error creating detection status chart:', error)
+    detectionStatusChartInstance = null
+  }
+}
+
 const updateCharts = () => {
   nextTick(() => {
     // Destroy existing charts first
@@ -1393,10 +1601,20 @@ const updateCharts = () => {
       performanceChartInstance.destroy()
       performanceChartInstance = null
     }
+    if (detectionTypesChartInstance) {
+      detectionTypesChartInstance.destroy()
+      detectionTypesChartInstance = null
+    }
+    if (detectionStatusChartInstance) {
+      detectionStatusChartInstance.destroy()
+      detectionStatusChartInstance = null
+    }
     
     // Create new charts
     createDetectionChart()
     createPerformanceChart()
+    createDetectionTypesChart()
+    createDetectionStatusChart()
   })
 }
 
@@ -1458,6 +1676,14 @@ onUnmounted(() => {
   if (performanceChartInstance) {
     performanceChartInstance.destroy()
     performanceChartInstance = null
+  }
+  if (detectionTypesChartInstance) {
+    detectionTypesChartInstance.destroy()
+    detectionTypesChartInstance = null
+  }
+  if (detectionStatusChartInstance) {
+    detectionStatusChartInstance.destroy()
+    detectionStatusChartInstance = null
   }
 })
 </script>
