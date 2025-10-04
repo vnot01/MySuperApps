@@ -184,6 +184,45 @@ def save_detection_to_rvm_database(rvm_id, session_id, detection_data, image_pat
         print(f"Error saving detection to RVM database: {e}")
         return None
 
+def send_monitoring_data_to_server(rvm_id, monitoring_data):
+    """Send monitoring data to RVM Platform server"""
+    try:
+        headers = {
+            'Authorization': f'Bearer {RVM_API_KEY}',
+            'Content-Type': 'application/json'
+        }
+        
+        # Prepare monitoring data for server
+        payload = {
+            'timestamp': monitoring_data.get('timestamp', datetime.now().isoformat()),
+            'cpu_usage': monitoring_data.get('cpu_usage'),
+            'memory_usage': monitoring_data.get('memory_usage'),
+            'gpu_usage': monitoring_data.get('gpu_usage'),
+            'disk_usage': monitoring_data.get('disk_usage'),
+            'processing_time_ms': monitoring_data.get('processing_time_ms'),
+            'detections_count': monitoring_data.get('detections_count', 0),
+            'error_count': monitoring_data.get('error_count', 0),
+            'api_requests_count': monitoring_data.get('api_requests_count', 0),
+        }
+        
+        response = requests.post(
+            f"{RVM_API_BASE_URL}/maintenance/{rvm_id}/monitoring",
+            headers=headers,
+            json=payload,
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            print(f"✅ Monitoring data sent to server for RVM {rvm_id}")
+            return response.json()
+        else:
+            print(f"❌ Error sending monitoring data: {response.status_code} - {response.text}")
+            return None
+            
+    except Exception as e:
+        print(f"❌ Error sending monitoring data to server: {e}")
+        return None
+
 def get_gpu_info():
     """Get detailed GPU information"""
     gpus_data = []
@@ -497,24 +536,58 @@ def monitoring_status():
             except:
                 gpu_usage = 0
             
-            return jsonify({
+            # Prepare monitoring data for server sync
+            monitoring_data = {
                 'cpu_usage': round(cpu_usage, 1),
                 'memory_usage': round(memory.percent, 1),
                 'disk_usage': round(disk.percent, 1),
                 'gpu_usage': round(gpu_usage, 1),
-                'alerts': alerts if alerts else [],
                 'timestamp': datetime.now().isoformat(),
+                'detections_count': 0,
+                'error_count': 0,
+                'api_requests_count': 0,
+            }
+            
+            # Send to server if RVM_ID is available
+            rvm_id = request.headers.get('X-RVM-ID')
+            if rvm_id and RVM_API_BASE_URL != 'http://localhost:8000/api':
+                send_monitoring_data_to_server(rvm_id, monitoring_data)
+            
+            return jsonify({
+                'cpu_usage': monitoring_data['cpu_usage'],
+                'memory_usage': monitoring_data['memory_usage'],
+                'disk_usage': monitoring_data['disk_usage'],
+                'gpu_usage': monitoring_data['gpu_usage'],
+                'alerts': alerts if alerts else [],
+                'timestamp': monitoring_data['timestamp'],
                 'status': 'success'
             })
         
-        # Return structured data for frontend
-        return jsonify({
+        # Prepare monitoring data for server sync
+        monitoring_data = {
             'cpu_usage': round(current_metrics.cpu_percent, 1),
             'memory_usage': round(current_metrics.memory_percent, 1),
             'disk_usage': round(current_metrics.disk_usage_percent, 1),
             'gpu_usage': round(current_metrics.gpu_memory_percent, 1),
-            'alerts': alerts if alerts else [],
             'timestamp': current_metrics.timestamp.isoformat(),
+            'detections_count': current_metrics.detections_count,
+            'error_count': current_metrics.error_count,
+            'api_requests_count': current_metrics.api_requests_count,
+        }
+        
+        # Send to server if RVM_ID is available
+        rvm_id = request.headers.get('X-RVM-ID')
+        if rvm_id and RVM_API_BASE_URL != 'http://localhost:8000/api':
+            send_monitoring_data_to_server(rvm_id, monitoring_data)
+        
+        # Return structured data for frontend
+        return jsonify({
+            'cpu_usage': monitoring_data['cpu_usage'],
+            'memory_usage': monitoring_data['memory_usage'],
+            'disk_usage': monitoring_data['disk_usage'],
+            'gpu_usage': monitoring_data['gpu_usage'],
+            'alerts': alerts if alerts else [],
+            'timestamp': monitoring_data['timestamp'],
             'status': 'success'
         })
     except Exception as e:
@@ -525,13 +598,30 @@ def monitoring_status():
             memory = psutil.virtual_memory()
             disk = psutil.disk_usage('/')
             
-            return jsonify({
+            # Prepare fallback monitoring data
+            monitoring_data = {
                 'cpu_usage': round(cpu_usage, 1),
                 'memory_usage': round(memory.percent, 1),
                 'disk_usage': round(disk.percent, 1),
                 'gpu_usage': 0,
-                'alerts': [],
                 'timestamp': datetime.now().isoformat(),
+                'detections_count': 0,
+                'error_count': 1,
+                'api_requests_count': 0,
+            }
+            
+            # Send to server if RVM_ID is available
+            rvm_id = request.headers.get('X-RVM-ID')
+            if rvm_id and RVM_API_BASE_URL != 'http://localhost:8000/api':
+                send_monitoring_data_to_server(rvm_id, monitoring_data)
+            
+            return jsonify({
+                'cpu_usage': monitoring_data['cpu_usage'],
+                'memory_usage': monitoring_data['memory_usage'],
+                'disk_usage': monitoring_data['disk_usage'],
+                'gpu_usage': monitoring_data['gpu_usage'],
+                'alerts': [],
+                'timestamp': monitoring_data['timestamp'],
                 'status': 'fallback'
             })
         except Exception as fallback_error:
