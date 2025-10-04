@@ -322,72 +322,74 @@
         </div>
       </div>
 
-      <!-- Recent Detection Results Card (Smaller, positioned where RVM Analytics was) -->
-      <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Recent Detection Results</h3>
-          <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-            <i class="fas fa-eye text-white text-sm"></i>
-          </div>
-        </div>
-        
-        <div v-if="detectionResults && detectionResults.data && detectionResults.data.length > 0" class="space-y-3">
-          <div v-for="detection in detectionResults.data.slice(0, 5)" :key="detection.id" 
-               class="bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-xl p-4 border border-gray-200/50 hover:shadow-md transition-all duration-200">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-3">
-                <div :class="[
-                  'w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold',
-                  detection.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                ]">
-                  <i :class="detection.status === 'completed' ? 'fas fa-check' : 'fas fa-times'"></i>
-                </div>
-                <div>
-                  <p class="text-sm font-medium text-gray-900">{{ detection.session_id }}</p>
-                  <p class="text-xs text-gray-500">{{ new Date(detection.detected_at).toLocaleString() }}</p>
-                </div>
-              </div>
-              <div class="text-right">
-                <span :class="[
-                  'px-2 py-1 rounded-full text-xs font-medium',
-                  detection.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                ]">
-                  {{ detection.status }}
-                </span>
-              </div>
+      <!-- Recent Detection Results and System Monitoring Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Recent Detection Results Card (Smaller) -->
+        <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Recent Detection Results</h3>
+            <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <i class="fas fa-eye text-white text-xs"></i>
             </div>
           </div>
           
-          <div v-if="detectionResults.data.length > 5" class="text-center pt-2">
-            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-              View All {{ detectionResults.data.length }} Results
-            </button>
+          <div v-if="detectionResults && detectionResults.data && detectionResults.data.length > 0" class="space-y-2">
+            <div v-for="detection in detectionResults.data.slice(0, 4)" :key="detection.id" 
+                 class="bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-lg p-3 border border-gray-200/50 hover:shadow-md transition-all duration-200">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                  <div :class="[
+                    'w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold',
+                    detection.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  ]">
+                    <i :class="detection.status === 'completed' ? 'fas fa-check' : 'fas fa-times'" class="text-xs"></i>
+                  </div>
+                  <div>
+                    <p class="text-xs font-medium text-gray-900 truncate">{{ detection.session_id }}</p>
+                    <p class="text-xs text-gray-500">{{ new Date(detection.detected_at).toLocaleDateString() }}</p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span :class="[
+                    'px-2 py-1 rounded-full text-xs font-medium',
+                    detection.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  ]">
+                    {{ detection.status }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div v-if="detectionResults.data.length > 4" class="text-center pt-2">
+              <button class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                View All {{ detectionResults.data.length }} Results
+              </button>
+            </div>
+          </div>
+          
+          <div v-else class="text-center py-6">
+            <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+              <i class="fas fa-eye text-gray-400 text-sm"></i>
+            </div>
+            <p class="text-gray-500 text-xs">No detection results available</p>
           </div>
         </div>
-        
-        <div v-else class="text-center py-8">
-          <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-3">
-            <i class="fas fa-eye text-gray-400"></i>
-          </div>
-          <p class="text-gray-500 text-sm">No detection results available</p>
-        </div>
-      </div>
 
-      <!-- System Monitoring Card (Full width) -->
-      <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-8">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">System Monitoring</h3>
-          <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-            <i class="fas fa-heartbeat text-white text-lg"></i>
+        <!-- System Monitoring Card -->
+        <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">System Monitoring</h3>
+          <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+            <i class="fas fa-heartbeat text-white text-sm"></i>
           </div>
         </div>
         
-        <div v-if="monitoringStatus" class="space-y-6">
-          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200/50">
+        <div v-if="monitoringStatus" class="space-y-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-lg p-4 border border-blue-200/50">
               <div class="flex items-center justify-between mb-2">
-                <p class="text-sm font-medium text-gray-600">CPU Usage</p>
-                <i class="fas fa-microchip text-blue-500"></i>
+                <p class="text-xs font-medium text-gray-600">CPU Usage</p>
+                <i class="fas fa-microchip text-blue-500 text-sm"></i>
               </div>
               <div class="flex items-center space-x-2">
                 <div class="flex-1 bg-gray-200 rounded-full h-2">
@@ -396,14 +398,14 @@
                     :style="{ width: `${monitoringStatus.cpu_usage || 0}%` }"
                   ></div>
                 </div>
-                <span class="text-sm font-bold text-gray-900">{{ monitoringStatus.cpu_usage || 0 }}%</span>
+                <span class="text-xs font-bold text-gray-900">{{ monitoringStatus.cpu_usage || 0 }}%</span>
               </div>
             </div>
             
-            <div class="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-6 border border-green-200/50">
+            <div class="bg-gradient-to-br from-green-50 to-green-100/50 rounded-lg p-4 border border-green-200/50">
               <div class="flex items-center justify-between mb-2">
-                <p class="text-sm font-medium text-gray-600">Memory Usage</p>
-                <i class="fas fa-memory text-green-500"></i>
+                <p class="text-xs font-medium text-gray-600">Memory Usage</p>
+                <i class="fas fa-memory text-green-500 text-sm"></i>
               </div>
               <div class="flex items-center space-x-2">
                 <div class="flex-1 bg-gray-200 rounded-full h-2">
@@ -412,14 +414,14 @@
                     :style="{ width: `${monitoringStatus.memory_usage || 0}%` }"
                   ></div>
                 </div>
-                <span class="text-sm font-bold text-gray-900">{{ monitoringStatus.memory_usage || 0 }}%</span>
+                <span class="text-xs font-bold text-gray-900">{{ monitoringStatus.memory_usage || 0 }}%</span>
               </div>
             </div>
             
-            <div class="bg-gradient-to-br from-yellow-50 to-yellow-100/50 rounded-xl p-6 border border-yellow-200/50">
+            <div class="bg-gradient-to-br from-yellow-50 to-yellow-100/50 rounded-lg p-4 border border-yellow-200/50">
               <div class="flex items-center justify-between mb-2">
-                <p class="text-sm font-medium text-gray-600">Disk Usage</p>
-                <i class="fas fa-hdd text-yellow-500"></i>
+                <p class="text-xs font-medium text-gray-600">Disk Usage</p>
+                <i class="fas fa-hdd text-yellow-500 text-sm"></i>
               </div>
               <div class="flex items-center space-x-2">
                 <div class="flex-1 bg-gray-200 rounded-full h-2">
@@ -428,14 +430,14 @@
                     :style="{ width: `${monitoringStatus.disk_usage || 0}%` }"
                   ></div>
                 </div>
-                <span class="text-sm font-bold text-gray-900">{{ monitoringStatus.disk_usage || 0 }}%</span>
+                <span class="text-xs font-bold text-gray-900">{{ monitoringStatus.disk_usage || 0 }}%</span>
               </div>
             </div>
             
-            <div class="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-6 border border-purple-200/50">
+            <div class="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-lg p-4 border border-purple-200/50">
               <div class="flex items-center justify-between mb-2">
-                <p class="text-sm font-medium text-gray-600">GPU Usage</p>
-                <i class="fas fa-microchip text-purple-500"></i>
+                <p class="text-xs font-medium text-gray-600">GPU Usage</p>
+                <i class="fas fa-microchip text-purple-500 text-sm"></i>
               </div>
               <div class="flex items-center space-x-2">
                 <div class="flex-1 bg-gray-200 rounded-full h-2">
@@ -444,30 +446,30 @@
                     :style="{ width: `${monitoringStatus.gpu_usage || 0}%` }"
                   ></div>
                 </div>
-                <span class="text-sm font-bold text-gray-900">{{ monitoringStatus.gpu_usage || 0 }}%</span>
+                <span class="text-xs font-bold text-gray-900">{{ monitoringStatus.gpu_usage || 0 }}%</span>
               </div>
             </div>
           </div>
           
           <!-- Alerts Section -->
-          <div v-if="monitoringStatus.alerts && monitoringStatus.alerts.length > 0" class="space-y-3">
-            <h4 class="text-lg font-semibold text-gray-900">Active Alerts</h4>
-            <div v-for="alert in monitoringStatus.alerts" :key="alert.timestamp" class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start space-x-3">
-              <i class="fas fa-exclamation-triangle text-red-500 mt-1"></i>
+          <div v-if="monitoringStatus.alerts && monitoringStatus.alerts.length > 0" class="space-y-2">
+            <h4 class="text-sm font-semibold text-gray-900">Active Alerts</h4>
+            <div v-for="alert in monitoringStatus.alerts" :key="alert.timestamp" class="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start space-x-2">
+              <i class="fas fa-exclamation-triangle text-red-500 mt-0.5 text-sm"></i>
               <div>
-                <p class="text-sm font-medium text-red-800">{{ alert.message }}</p>
-                <p class="text-xs text-red-600">{{ new Date(alert.timestamp).toLocaleString() }}</p>
+                <p class="text-xs font-medium text-red-800">{{ alert.message }}</p>
+                <p class="text-xs text-red-600">{{ new Date(alert.timestamp).toLocaleDateString() }}</p>
               </div>
             </div>
           </div>
         </div>
         
-        <div v-else class="text-center py-12">
-          <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <i class="fas fa-heartbeat text-gray-400 text-2xl"></i>
+        <div v-else class="text-center py-6">
+          <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+            <i class="fas fa-heartbeat text-gray-400 text-sm"></i>
           </div>
-          <p class="text-gray-500 text-lg">No monitoring data available</p>
-          <p class="text-gray-400 text-sm">System metrics will appear here</p>
+          <p class="text-gray-500 text-xs">No monitoring data available</p>
+        </div>
         </div>
       </div>
 
