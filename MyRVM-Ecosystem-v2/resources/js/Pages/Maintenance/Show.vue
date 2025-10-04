@@ -333,34 +333,34 @@
             </div>
           </div>
           
-          <div v-if="detectionResults && detectionResults.data && detectionResults.data.length > 0" class="space-y-2">
-            <div v-for="detection in detectionResults.data.slice(0, 4)" :key="detection.id" 
-                 class="bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-lg p-3 border border-gray-200/50 hover:shadow-md transition-all duration-200">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                  <div :class="[
-                    'w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold',
-                    detection.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                  ]">
-                    <i :class="detection.status === 'completed' ? 'fas fa-check' : 'fas fa-times'" class="text-xs"></i>
+          <div v-if="detectionResults && detectionResults.data && detectionResults.data.length > 0" class="space-y-3">
+            <div class="grid grid-cols-2 gap-2">
+              <div v-for="detection in detectionResults.data.slice(0, 6)" :key="detection.id" 
+                   class="bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-lg p-3 border border-gray-200/50 hover:shadow-md transition-all duration-200">
+                <div class="flex flex-col space-y-2">
+                  <div class="flex items-center space-x-2">
+                    <div :class="[
+                      'w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold',
+                      detection.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    ]">
+                      <i :class="detection.status === 'completed' ? 'fas fa-check' : 'fas fa-times'" class="text-xs"></i>
+                    </div>
+                    <span :class="[
+                      'px-2 py-1 rounded-full text-xs font-medium',
+                      detection.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    ]">
+                      {{ detection.status }}
+                    </span>
                   </div>
                   <div>
                     <p class="text-xs font-medium text-gray-900 truncate">{{ detection.session_id }}</p>
                     <p class="text-xs text-gray-500">{{ new Date(detection.detected_at).toLocaleDateString() }}</p>
                   </div>
                 </div>
-                <div class="text-right">
-                  <span :class="[
-                    'px-2 py-1 rounded-full text-xs font-medium',
-                    detection.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                  ]">
-                    {{ detection.status }}
-                  </span>
-                </div>
               </div>
             </div>
             
-            <div v-if="detectionResults.data.length > 4" class="text-center pt-2">
+            <div v-if="detectionResults.data.length > 6" class="text-center pt-2">
               <button class="text-blue-600 hover:text-blue-800 text-xs font-medium">
                 View All {{ detectionResults.data.length }} Results
               </button>
