@@ -1210,10 +1210,24 @@ const updateIpAddress = async () => {
 
 // Chart methods
 const createDetectionChart = () => {
-  if (!detectionChart.value || !props.monitoringAnalytics) return
-  
-  const data = props.monitoringAnalytics.chart_data?.hourly || []
-  if (data.length === 0) return
+  try {
+    if (!detectionChart.value) {
+      console.warn('⚠️ Detection chart canvas not found')
+      return
+    }
+    
+    if (!props.monitoringAnalytics) {
+      console.warn('⚠️ Monitoring analytics data not available')
+      return
+    }
+    
+    const data = props.monitoringAnalytics.chart_data?.hourly || []
+    if (data.length === 0) {
+      console.warn('⚠️ No hourly chart data available')
+      return
+    }
+    
+    console.log('📊 Creating detection chart with', data.length, 'data points')
   
   const ctx = detectionChart.value.getContext('2d')
   
@@ -1262,13 +1276,26 @@ const createDetectionChart = () => {
       }
     }
   })
+  } catch (error) {
+    console.error('❌ Error creating detection chart:', error)
+    detectionChartInstance = null
+  }
 }
 
 const createPerformanceChart = () => {
-  if (!performanceChart.value) return
-  
-  const data = getChartData()
-  if (data.length === 0) return
+  try {
+    if (!performanceChart.value) {
+      console.warn('⚠️ Performance chart canvas not found')
+      return
+    }
+    
+    const data = getChartData()
+    if (data.length === 0) {
+      console.warn('⚠️ No performance chart data available')
+      return
+    }
+    
+    console.log('📊 Creating performance chart with', data.length, 'data points')
   
   const ctx = performanceChart.value.getContext('2d')
   
@@ -1345,6 +1372,10 @@ const createPerformanceChart = () => {
       }
     }
   })
+  } catch (error) {
+    console.error('❌ Error creating performance chart:', error)
+    performanceChartInstance = null
+  }
 }
 
 const updateCharts = () => {
@@ -1356,9 +1387,9 @@ const updateCharts = () => {
 
 onMounted(() => {
   // Debug: Log monitoring analytics data
-  console.log('🔍 Monitoring Analytics Data:', monitoringAnalytics)
-  console.log('🔍 Chart Data Available:', monitoringAnalytics?.chart_data?.hourly?.length > 0)
-  console.log('🔍 Hourly Data Count:', monitoringAnalytics?.chart_data?.hourly?.length || 0)
+  console.log('🔍 Monitoring Analytics Data:', props.monitoringAnalytics)
+  console.log('🔍 Chart Data Available:', props.monitoringAnalytics?.chart_data?.hourly?.length > 0)
+  console.log('🔍 Hourly Data Count:', props.monitoringAnalytics?.chart_data?.hourly?.length || 0)
   
   // Initialize charts
   updateCharts()
