@@ -206,7 +206,7 @@ def send_monitoring_data_to_server(rvm_id, monitoring_data):
         }
         
         response = requests.post(
-            f"{RVM_API_BASE_URL}/maintenance/{rvm_id}/monitoring",
+            f"{RVM_API_BASE_URL}/api/maintenance/{rvm_id}/monitoring",
             headers=headers,
             json=payload,
             timeout=10
