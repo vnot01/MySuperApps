@@ -384,13 +384,16 @@
               </div>
             </div>
             
-            <!-- Chart Placeholder -->
+            <!-- Multi-line Chart for Detection Trends -->
             <div class="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl p-6 border border-gray-200/50">
-              <div class="h-48 flex items-center justify-center text-gray-500">
+              <div v-if="monitoringAnalytics && monitoringAnalytics.chart_data && monitoringAnalytics.chart_data.hourly.length > 0" class="h-48">
+                <canvas ref="detectionChart" class="w-full h-full"></canvas>
+              </div>
+              <div v-else class="h-48 flex items-center justify-center text-gray-500">
                 <div class="text-center">
                   <i class="fas fa-chart-area text-4xl mb-3"></i>
-                  <p class="text-lg font-medium">Analytics Chart</p>
-                  <p class="text-sm">Real-time detection trends</p>
+                  <p class="text-lg font-medium">Detection Trends Chart</p>
+                  <p class="text-sm">Real-time detection trends will appear here</p>
                 </div>
               </div>
             </div>
@@ -539,13 +542,17 @@
           </div>
         </div>
 
-        <div v-if="monitoringSummary" class="space-y-6">
+        <div v-if="monitoringAnalytics && monitoringAnalytics.chart_data" class="space-y-6">
+          <!-- Multi-line Performance Chart -->
           <div class="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl p-6 border border-gray-200/50">
-            <div class="h-64 flex items-center justify-center text-gray-500">
+            <div v-if="getChartData().length > 0" class="h-64">
+              <canvas ref="performanceChart" class="w-full h-full"></canvas>
+            </div>
+            <div v-else class="h-64 flex items-center justify-center text-gray-500">
               <div class="text-center">
                 <i class="fas fa-chart-area text-4xl mb-3"></i>
                 <p class="text-lg font-medium">Performance Chart for {{ selectedPeriod }} view</p>
-                <p class="text-sm">Real-time performance metrics</p>
+                <p class="text-sm">Real-time performance metrics will appear here</p>
               </div>
             </div>
           </div>
@@ -879,7 +886,8 @@
 
 <script setup>
 import { router } from "@inertiajs/vue3"
-import { ref, computed, onMounted, onUnmounted } from "vue"
+import { ref, computed, onMounted, onUnmounted, nextTick } from "vue"
+import Chart from 'chart.js/auto'
 
 const props = defineProps({
   rvm: Object,
@@ -890,6 +898,7 @@ const props = defineProps({
   hardwareInfo: Object,
   monitoringStatus: Object,
   monitoringSummary: Object,
+  monitoringAnalytics: Object,
 })
 
 // Reactive variables
@@ -909,6 +918,12 @@ const currentTime = ref(new Date())
 const editIpForm = ref({
   ip_address: ''
 })
+
+// Chart references
+const detectionChart = ref(null)
+const performanceChart = ref(null)
+let detectionChartInstance = null
+let performanceChartInstance = null
 
 let refreshInterval = null
 let timeUpdateInterval = null
@@ -937,6 +952,24 @@ const lastRefreshAgo = computed(() => {
     return lastRefreshTime.value.toLocaleDateString()
   }
 })
+
+// Chart data computed properties
+const getChartData = () => {
+  if (!props.monitoringAnalytics || !props.monitoringAnalytics.chart_data) {
+    return []
+  }
+  
+  const data = props.monitoringAnalytics.chart_data[selectedPeriod.value] || []
+  return data.map(item => ({
+    time: new Date(item.time).toLocaleTimeString(),
+    cpu_percent: item.cpu_percent || 0,
+    memory_percent: item.memory_percent || 0,
+    gpu_memory_percent: item.gpu_memory_percent || 0,
+    disk_usage_percent: item.disk_usage_percent || 0,
+    processing_time_ms: item.processing_time_ms || 0,
+    detections_count: item.detections_count || 0,
+  }))
+}
 
 // Methods
 const goBack = () => {
@@ -1175,6 +1208,152 @@ const updateIpAddress = async () => {
   }
 }
 
+// Chart methods
+const createDetectionChart = () => {
+  if (!detectionChart.value || !props.monitoringAnalytics) return
+  
+  const data = props.monitoringAnalytics.chart_data?.hourly || []
+  if (data.length === 0) return
+  
+  const ctx = detectionChart.value.getContext('2d')
+  
+  if (detectionChartInstance) {
+    detectionChartInstance.destroy()
+  }
+  
+  detectionChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.map(item => new Date(item.time).toLocaleTimeString()),
+      datasets: [
+        {
+          label: 'Detections Count',
+          data: data.map(item => item.detections_count || 0),
+          borderColor: 'rgb(59, 130, 246)',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.4,
+          fill: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Detection Count'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Time'
+          }
+        }
+      }
+    }
+  })
+}
+
+const createPerformanceChart = () => {
+  if (!performanceChart.value) return
+  
+  const data = getChartData()
+  if (data.length === 0) return
+  
+  const ctx = performanceChart.value.getContext('2d')
+  
+  if (performanceChartInstance) {
+    performanceChartInstance.destroy()
+  }
+  
+  performanceChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.map(item => item.time),
+      datasets: [
+        {
+          label: 'CPU Usage (%)',
+          data: data.map(item => item.cpu_percent),
+          borderColor: 'rgb(239, 68, 68)',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          tension: 0.4,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Memory Usage (%)',
+          data: data.map(item => item.memory_percent),
+          borderColor: 'rgb(34, 197, 94)',
+          backgroundColor: 'rgba(34, 197, 94, 0.1)',
+          tension: 0.4,
+          yAxisID: 'y'
+        },
+        {
+          label: 'GPU Usage (%)',
+          data: data.map(item => item.gpu_memory_percent),
+          borderColor: 'rgb(168, 85, 247)',
+          backgroundColor: 'rgba(168, 85, 247, 0.1)',
+          tension: 0.4,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Disk Usage (%)',
+          data: data.map(item => item.disk_usage_percent),
+          borderColor: 'rgb(245, 158, 11)',
+          backgroundColor: 'rgba(245, 158, 11, 0.1)',
+          tension: 0.4,
+          yAxisID: 'y'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top'
+        }
+      },
+      scales: {
+        y: {
+          type: 'linear',
+          display: true,
+          position: 'left',
+          beginAtZero: true,
+          max: 100,
+          title: {
+            display: true,
+            text: 'Usage Percentage (%)'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Time'
+          }
+        }
+      }
+    }
+  })
+}
+
+const updateCharts = () => {
+  nextTick(() => {
+    createDetectionChart()
+    createPerformanceChart()
+  })
+}
+
 onMounted(() => {
   // Auto-refresh data every 30 seconds
   refreshInterval = setInterval(() => {
@@ -1182,12 +1361,13 @@ onMounted(() => {
     isRefreshing.value = true
     lastRefreshTime.value = new Date()
     router.reload({ 
-      only: ['detectionResults', 'rvm', 'healthStatus', 'apiStatus', 'hardwareInfo', 'monitoringStatus', 'monitoringSummary'], 
+      only: ['detectionResults', 'rvm', 'healthStatus', 'apiStatus', 'hardwareInfo', 'monitoringStatus', 'monitoringSummary', 'monitoringAnalytics'], 
       preserveState: true, 
       preserveScroll: true,
       onFinish: () => {
         console.log('✅ Maintenance data refreshed')
         isRefreshing.value = false
+        updateCharts()
       }
     })
   }, 30000) // Refresh every 30 seconds
@@ -1196,6 +1376,9 @@ onMounted(() => {
   timeUpdateInterval = setInterval(() => {
     currentTime.value = new Date()
   }, 1000)
+
+  // Initialize charts after component is mounted
+  updateCharts()
 })
 
 onUnmounted(() => {
@@ -1204,6 +1387,14 @@ onUnmounted(() => {
   }
   if (timeUpdateInterval) {
     clearInterval(timeUpdateInterval)
+  }
+  
+  // Destroy chart instances
+  if (detectionChartInstance) {
+    detectionChartInstance.destroy()
+  }
+  if (performanceChartInstance) {
+    performanceChartInstance.destroy()
   }
 })
 </script>

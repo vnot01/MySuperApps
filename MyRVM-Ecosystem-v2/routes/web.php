@@ -32,6 +32,7 @@ Route::middleware('auth')->group(function () {
     
     // Maintenance Routes
     Route::get('/maintenance/{rvm}', [MaintenanceController::class, 'show'])->name('maintenance.show');
+    Route::post('/maintenance/{rvm}/monitoring', [MaintenanceController::class, 'storeMonitoringData'])->name('maintenance.monitoring.store');
 });
 
 // Testing route (no auth required)

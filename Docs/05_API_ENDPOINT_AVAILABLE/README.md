@@ -792,44 +792,24 @@
 #### 4. Monitoring Status
 - **Endpoint**: `GET /api/monitoring/status`
 - **URL**: `http://100.117.234.2:5000/api/monitoring/status`
+- **Headers**: `X-RVM-ID: {rvm_id}` (optional, for server sync)
 - **Response**:
 ```json
 {
-    "status": "success",
-    "monitoring": {
-        "current_metrics": {
-            "timestamp": "2025-01-02T10:30:00Z",
-            "cpu_percent": 45.2,
-            "memory_percent": 67.8,
-            "gpu_memory_percent": 23.4,
-            "disk_usage_percent": 40.0,
-            "processing_time_ms": 2500.0,
-            "detections_count": 15,
-            "error_count": 0,
-            "api_requests_count": 25
-        },
-        "performance_summary": {
-            "average_cpu_usage": 42.5,
-            "average_memory_usage": 65.2,
-            "average_gpu_usage": 20.8,
-            "total_detections": 150,
-            "success_rate": 98.5,
-            "average_processing_time": 2300.0
-        },
-        "recent_alerts": [
-            {
-                "timestamp": "2025-01-02T10:25:00Z",
-                "level": "warning",
-                "message": "High memory usage detected",
-                "metric": "memory_percent",
-                "value": 85.2,
-                "threshold": 80.0
-            }
-        ],
-        "timestamp": "2025-01-02T10:30:00Z"
-    }
+    "cpu_usage": 45.2,
+    "memory_usage": 67.8,
+    "disk_usage": 40.0,
+    "gpu_usage": 23.4,
+    "alerts": [],
+    "timestamp": "2025-01-02T10:30:00Z",
+    "status": "success"
 }
 ```
+- **Features**:
+  - Real-time system metrics using `psutil` and `GPUtil`
+  - Automatic data sync to server database when `X-RVM-ID` header is provided
+  - Fallback to basic metrics if advanced monitoring is unavailable
+  - Data stored in `rvm_monitoring_metrics` table for historical analysis
 
 #### 5. Performance Summary
 - **Endpoint**: `GET /api/monitoring/summary`
@@ -1148,6 +1128,85 @@ api_key: 38bbe1d2ecf75df21546b05340f5878a24e74ed0d8b88d75db1ddeff198380c1
             "detection_count": 3
         }
     ]
+}
+```
+
+### 📊 Server Monitoring Endpoints
+
+#### 16. Store Monitoring Data
+- **Endpoint**: `POST /maintenance/{rvm}/monitoring`
+- **URL**: `http://100.123.143.87:8001/maintenance/1/monitoring`
+- **Headers**: `Authorization: Bearer {master_api_key}`
+- **Payload**:
+```json
+{
+    "timestamp": "2025-01-02T10:30:00Z",
+    "cpu_usage": 45.2,
+    "memory_usage": 67.8,
+    "gpu_usage": 23.4,
+    "disk_usage": 40.0,
+    "processing_time_ms": 2500.0,
+    "detections_count": 15,
+    "error_count": 0,
+    "api_requests_count": 25
+}
+```
+- **Response**:
+```json
+{
+    "success": true,
+    "message": "Monitoring data stored successfully",
+    "data": {
+        "id": 123,
+        "rvm_id": 1,
+        "timestamp": "2025-01-02T10:30:00Z",
+        "cpu_percent": 45.2,
+        "memory_percent": 67.8,
+        "gpu_memory_percent": 23.4,
+        "disk_usage_percent": 40.0
+    }
+}
+```
+
+#### 17. Get Monitoring Analytics
+- **Endpoint**: `GET /maintenance/{rvm}`
+- **URL**: `http://100.123.143.87:8001/maintenance/1`
+- **Headers**: `Authorization: Bearer {token}`
+- **Response**: Includes `monitoringAnalytics` with:
+```json
+{
+    "monitoringAnalytics": {
+        "chart_data": {
+            "hourly": [
+                {
+                    "time": "2025-01-02T10:00:00Z",
+                    "cpu_percent": 45.2,
+                    "memory_percent": 67.8,
+                    "gpu_memory_percent": 23.4,
+                    "disk_usage_percent": 40.0,
+                    "processing_time_ms": 2500.0,
+                    "detections_count": 15
+                }
+            ],
+            "daily": [...]
+        },
+        "average_metrics": {
+            "cpu_percent": 42.5,
+            "memory_percent": 65.2,
+            "gpu_memory_percent": 20.8,
+            "disk_usage_percent": 38.5,
+            "processing_time_ms": 2300.0,
+            "total_detections": 150,
+            "total_errors": 5,
+            "total_api_requests": 250
+        },
+        "recent_metrics": [...],
+        "data_availability": {
+            "has_data": true,
+            "last_update": "2025-01-02T10:30:00Z",
+            "total_records": 1440
+        }
+    }
 }
 ```
 

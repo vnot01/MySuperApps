@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ReverseVendingMachine;
 use App\Models\DetectionResult;
+use App\Models\RvmMonitoringMetric;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
@@ -64,6 +65,9 @@ class MaintenanceController extends Controller
         // Get monitoring summary from Jetson
         $monitoringSummary = $this->getRvmMonitoringSummary($rvm);
 
+        // Get monitoring analytics from database
+        $monitoringAnalytics = $this->getRvmMonitoringAnalytics($rvmId);
+
         return Inertia::render('Maintenance/Show', [
             'rvm' => $rvmInfo,
             'detectionResults' => $detectionResults,
@@ -73,6 +77,7 @@ class MaintenanceController extends Controller
             'hardwareInfo' => $hardwareInfo,
             'monitoringStatus' => $monitoringStatus,
             'monitoringSummary' => $monitoringSummary,
+            'monitoringAnalytics' => $monitoringAnalytics,
         ]);
     }
 
@@ -305,6 +310,9 @@ class MaintenanceController extends Controller
         // Get monitoring summary from Jetson
         $monitoringSummary = $this->getRvmMonitoringSummary($rvm);
 
+        // Get monitoring analytics from database
+        $monitoringAnalytics = $this->getRvmMonitoringAnalytics($rvmId);
+
         return Inertia::render('Maintenance/Show', [
             'rvm' => $rvmInfo,
             'detectionResults' => $detectionResults,
@@ -314,6 +322,130 @@ class MaintenanceController extends Controller
             'hardwareInfo' => $hardwareInfo,
             'monitoringStatus' => $monitoringStatus,
             'monitoringSummary' => $monitoringSummary,
+            'monitoringAnalytics' => $monitoringAnalytics,
         ])->with('success', 'IP address updated successfully');
+    }
+
+    /**
+     * Get RVM monitoring analytics from database
+     */
+    private function getRvmMonitoringAnalytics($rvmId)
+    {
+        try {
+            // Get chart data for different time periods
+            $hourlyData = RvmMonitoringMetric::getChartData($rvmId, 24, 'hour');
+            $dailyData = RvmMonitoringMetric::getChartData($rvmId, 7, 'hour'); // Last 7 days, grouped by hour
+            
+            // Get average metrics
+            $avgMetrics = RvmMonitoringMetric::getAverageMetrics($rvmId, 24);
+            
+            // Get recent metrics (last 10 records)
+            $recentMetrics = RvmMonitoringMetric::forRvm($rvmId)
+                ->recent(1) // Last 1 hour
+                ->orderBy('timestamp', 'desc')
+                ->limit(10)
+                ->get();
+
+            return [
+                'chart_data' => [
+                    'hourly' => $this->formatChartData($hourlyData),
+                    'daily' => $this->formatChartData($dailyData),
+                ],
+                'average_metrics' => $avgMetrics ? [
+                    'cpu_percent' => round($avgMetrics->avg_cpu ?? 0, 1),
+                    'memory_percent' => round($avgMetrics->avg_memory ?? 0, 1),
+                    'gpu_memory_percent' => round($avgMetrics->avg_gpu ?? 0, 1),
+                    'disk_usage_percent' => round($avgMetrics->avg_disk ?? 0, 1),
+                    'processing_time_ms' => round($avgMetrics->avg_processing_time ?? 0, 1),
+                    'total_detections' => $avgMetrics->total_detections ?? 0,
+                    'total_errors' => $avgMetrics->total_errors ?? 0,
+                    'total_api_requests' => $avgMetrics->total_api_requests ?? 0,
+                ] : null,
+                'recent_metrics' => $recentMetrics->map(function ($metric) {
+                    return [
+                        'timestamp' => $metric->timestamp->toISOString(),
+                        'cpu_percent' => $metric->cpu_percent,
+                        'memory_percent' => $metric->memory_percent,
+                        'gpu_memory_percent' => $metric->gpu_memory_percent,
+                        'disk_usage_percent' => $metric->disk_usage_percent,
+                        'processing_time_ms' => $metric->processing_time_ms,
+                        'detections_count' => $metric->detections_count,
+                    ];
+                }),
+                'data_availability' => [
+                    'has_data' => $recentMetrics->count() > 0,
+                    'last_update' => $recentMetrics->first()?->timestamp?->toISOString(),
+                    'total_records' => RvmMonitoringMetric::forRvm($rvmId)->count(),
+                ]
+            ];
+        } catch (\Exception $e) {
+            \Log::error("Failed to get monitoring analytics for RVM {$rvmId}: " . $e->getMessage());
+            return [
+                'chart_data' => [
+                    'hourly' => [],
+                    'daily' => [],
+                ],
+                'average_metrics' => null,
+                'recent_metrics' => [],
+                'data_availability' => [
+                    'has_data' => false,
+                    'last_update' => null,
+                    'total_records' => 0,
+                ]
+            ];
+        }
+    }
+
+    /**
+     * Format chart data for frontend consumption
+     */
+    private function formatChartData($data)
+    {
+        return $data->map(function ($item) {
+            return [
+                'time' => $item->time_group,
+                'cpu_percent' => round($item->cpu_percent ?? 0, 1),
+                'memory_percent' => round($item->memory_percent ?? 0, 1),
+                'gpu_memory_percent' => round($item->gpu_memory_percent ?? 0, 1),
+                'disk_usage_percent' => round($item->disk_usage_percent ?? 0, 1),
+                'processing_time_ms' => round($item->processing_time_ms ?? 0, 1),
+                'detections_count' => $item->detections_count ?? 0,
+            ];
+        });
+    }
+
+    /**
+     * Store monitoring data from Jetson
+     */
+    public function storeMonitoringData(Request $request, $rvmId)
+    {
+        try {
+            $validated = $request->validate([
+                'timestamp' => 'nullable|date',
+                'cpu_usage' => 'nullable|numeric|min:0|max:100',
+                'memory_usage' => 'nullable|numeric|min:0|max:100',
+                'gpu_usage' => 'nullable|numeric|min:0|max:100',
+                'disk_usage' => 'nullable|numeric|min:0|max:100',
+                'processing_time_ms' => 'nullable|numeric|min:0',
+                'detections_count' => 'nullable|integer|min:0',
+                'error_count' => 'nullable|integer|min:0',
+                'api_requests_count' => 'nullable|integer|min:0',
+            ]);
+
+            $metric = RvmMonitoringMetric::storeFromJetson($rvmId, $validated);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Monitoring data stored successfully',
+                'data' => $metric
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("Failed to store monitoring data for RVM {$rvmId}: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to store monitoring data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
