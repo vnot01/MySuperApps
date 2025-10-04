@@ -1,18 +1,19 @@
 # API Endpoints Documentation
-**Date:** 2025-09-21  
-**Version:** 1.0  
-**Base URL:** `http://localhost:8001/api`  
+**Date:** 2025-10-03  
+**Version:** 2.0  
+**Base URL:** `http://100.123.143.87:8001/api`  
+**Status:** ✅ PRODUCTION READY
 
 ## 🔐 Authentication
 
-### API Token Generation
+### User Login (API Token Generation)
 ```http
-POST /api/rvm/generate-token
+POST /api/login
 Content-Type: application/json
 
 {
-    "rvm_id": "4",
-    "ip_address": "172.28.93.97"
+    "email": "admin@myrvm.com",
+    "password": "password"
 }
 ```
 
@@ -20,28 +21,25 @@ Content-Type: application/json
 ```json
 {
     "success": true,
-    "message": "API token generated successfully",
+    "message": "Login successful",
     "data": {
-        "rvm_id": 4,
-        "rvm_name": "RVM-Orin1",
-        "api_token": "2o3z4v4H9E7GKk44fABJWbxy7ubbvUsjD211uo39pdU9j4H9VpeMvSmY0NzEttZA",
-        "expires_at": "2025-10-21T17:11:21.000000Z",
-        "server_url": "http://localhost:8001",
-        "endpoints": {
-            "health_check": "/api/health-check",
-            "metrics": "/admin/rvm/4/metrics",
-            "store_metrics": "/admin/rvm/4/store-metrics",
-            "execute_command": "/admin/rvm/4/execute-command",
-            "command_status": "/admin/rvm/4/command/{commandId}/status",
-            "recent_commands": "/admin/rvm/4/recent-commands"
-        }
+        "user": {
+            "id": 1,
+            "name": "Admin MyRVM",
+            "email": "admin@myrvm.com",
+            "email_verified_at": "2025-10-03T10:03:39.000000Z",
+            "created_at": "2025-10-03T10:03:40.000000Z",
+            "updated_at": "2025-10-03T10:03:40.000000Z"
+        },
+        "token": "4|hQKhHFQib72QR4EwhpvU71pfhqSpjLjNel3wmAlFa6d188d0",
+        "token_type": "Bearer"
     }
 }
 ```
 
-### API Token Validation
+### User Logout (Token Revocation)
 ```http
-POST /api/rvm/validate-token
+POST /api/logout
 Authorization: Bearer {token}
 Content-Type: application/json
 
@@ -52,104 +50,50 @@ Content-Type: application/json
 ```json
 {
     "success": true,
-    "message": "Token is valid",
-    "data": {
-        "rvm_id": 4,
-        "rvm_name": "RVM-Orin1",
-        "expires_at": "2025-10-21T17:11:21.000000Z",
-        "last_access": "2025-09-21T17:11:26.000000Z"
-    }
+    "message": "Logout successful"
 }
 ```
 
-### API Token Revocation
+### Get Authenticated User
 ```http
-POST /api/rvm/revoke-token
+GET /api/user
 Authorization: Bearer {token}
-Content-Type: application/json
-
-{}
+Accept: application/json
 ```
 
 **Response:**
 ```json
 {
     "success": true,
-    "message": "Token revoked successfully"
+    "data": {
+        "id": 1,
+        "name": "Admin MyRVM",
+        "email": "admin@myrvm.com",
+        "email_verified_at": "2025-10-03T10:03:39.000000Z",
+        "created_at": "2025-10-03T10:03:40.000000Z",
+        "updated_at": "2025-10-03T10:03:40.000000Z"
+    }
 }
 ```
 
 ## 🏥 Health Check
 
-### Server Health Status
+### API Health Check
 ```http
-GET /api/health-check
+GET /api/test
 Accept: application/json
 ```
 
 **Response:**
 ```json
 {
-    "success": true,
-    "message": "MyRVM Platform is healthy",
-    "data": {
-        "status": "healthy",
-        "timestamp": "2025-09-21T16:35:34.483221Z",
-        "server": {
-            "name": "MyRVM Platform",
-            "version": "1.0.0",
-            "environment": "local",
-            "uptime": "Unknown"
-        },
-        "database": {
-            "status": "connected",
-            "connection": "pgsql"
-        },
-        "services": {
-            "api": "operational",
-            "authentication": "operational",
-            "metrics": "operational",
-            "commands": "operational"
-        },
-        "rvm_support": {
-            "csrf_enabled": true,
-            "cors_enabled": true,
-            "api_endpoints": {
-                "health_check": "/api/health-check",
-                "metrics": "/admin/rvm/{id}/metrics",
-                "commands": "/admin/rvm/{id}/execute-command",
-                "status": "/admin/rvm/{id}/command/{commandId}/status"
-            }
-        }
-    }
+    "message": "API is working"
 }
 ```
 
-### Server Status
+### System Health Check (Protected)
 ```http
-GET /api/status
-Accept: application/json
-```
-
-**Response:**
-```json
-{
-    "success": true,
-    "message": "Server status retrieved",
-    "data": {
-        "status": "operational",
-        "timestamp": "2025-09-21T16:35:34.483221Z",
-        "version": "1.0.0",
-        "environment": "local"
-    }
-}
-```
-
-## 📊 Metrics
-
-### Get RVM Metrics
-```http
-GET /api/rvm/{id}/metrics
+GET /api/health
 Authorization: Bearer {token}
 Accept: application/json
 ```
@@ -158,66 +102,457 @@ Accept: application/json
 ```json
 {
     "success": true,
-    "message": "Metrics retrieved successfully",
-    "data": {
-        "system": {
-            "cpu_usage": 45.2,
-            "memory_usage": 67.8,
-            "disk_usage": 40.5,
-            "gpu_usage": 25.3,
-            "temperature": 42.5,
-            "gpu_temperature": 48.2,
-            "disk_read_speed": 120,
-            "disk_write_speed": 85,
-            "network_upload_speed": 15.5,
-            "network_download_speed": 25.8,
-            "memory_available": 2048000000,
-            "disk_available": 50000000000,
-            "load_average": 1.25
-        },
-        "application": {
-            "software_version": "1.0.0",
-            "ai_model_version": "yolo11-v1.2",
-            "ai_model_path": "/models/best.pt",
-            "uptime_seconds": 86400,
-            "deposit_count_since_restart": 45,
-            "last_deposit_time": "2025-09-21T15:30:00Z",
-            "error_count": 2,
-            "warning_count": 5
-        },
-        "network": {
-            "local_ip": "172.28.93.97",
-            "virtual_ip": "10.3.52.161",
-            "gateway_ip": "172.28.93.1",
-            "dns_servers": ["8.8.8.8", "8.8.4.4"],
-            "network_interface": "eth0",
-            "connection_type": "ethernet",
-            "signal_strength": -45
-        }
+    "message": "MyRVM Ecosystem API is healthy",
+    "timestamp": "2025-10-03T10:57:08.000000Z",
+    "version": "2.0",
+    "database": {
+        "status": "connected",
+        "rvms_count": 6,
+        "users_count": 3
     }
 }
 ```
 
-### Store RVM Metrics
+## 🤖 RVM Management
+
+### List All RVMs (Protected)
 ```http
-POST /api/rvm/{id}/store-metrics
+GET /api/rvms
+Authorization: Bearer {token}
+Accept: application/json
+```
+
+**Query Parameters:**
+- `status` - Filter by status (active, inactive, maintenance, error)
+- `online` - Filter by online status (true/false)
+- `search` - Search by name or location
+- `per_page` - Items per page (default: 15)
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "RVMs retrieved successfully",
+    "data": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 1,
+                "name": "RVM-001",
+                "location": "Mall Central Jakarta",
+                "address": "Jl. Sudirman No. 1, Jakarta Pusat",
+                "latitude": "-6.20880000",
+                "longitude": "106.84560000",
+                "status": "active",
+                "capacity": 100,
+                "current_load": 45,
+                "ip_address": "100.117.234.2",
+                "api_key": "336ca0d245663c993694cf32ec8de6fbc9be69e96f6366da8781f213d5b89952",
+                "last_ping": "2025-10-03T10:01:40.000000Z",
+                "last_maintenance": null,
+                "configuration": {
+                    "auto_sort": true,
+                    "max_items_per_session": 50,
+                    "reward_multiplier": 1
+                },
+                "metrics": {
+                    "cpu_usage": 35.2,
+                    "memory_usage": 67.8,
+                    "temperature": 42.5,
+                    "uptime_hours": 168
+                },
+                "created_at": "2025-10-03T10:03:40.000000Z",
+                "updated_at": "2025-10-03T10:03:40.000000Z",
+                "api_key_expires_at": "2026-10-03T10:03:40.000000Z",
+                "last_api_access": null
+            }
+        ],
+        "total": 6
+    }
+}
+```
+
+### Get Specific RVM (Protected)
+```http
+GET /api/rvms/{id}
+Authorization: Bearer {token}
+Accept: application/json
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "RVM retrieved successfully",
+    "data": {
+        "id": 1,
+        "name": "RVM-001",
+        "location": "Mall Central Jakarta",
+        "status": "active",
+        "capacity": 100,
+        "current_load": 45,
+        "ip_address": "100.117.234.2"
+    }
+}
+```
+
+### Create New RVM (Protected)
+```http
+POST /api/rvms
 Authorization: Bearer {token}
 Content-Type: application/json
-X-RVM-ID: {id}
 
 {
-    "system_metrics": {
+    "name": "RVM-007",
+    "location": "New Location",
+    "address": "New Address",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "capacity": 100,
+    "ip_address": "192.168.1.104",
+    "configuration": {
+        "auto_sort": true,
+        "max_items_per_session": 50,
+        "reward_multiplier": 1.0
+    }
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "RVM created successfully",
+    "data": {
+        "rvm": {
+            "id": 7,
+            "name": "RVM-007",
+            "location": "New Location",
+            "status": "active",
+            "capacity": 100,
+            "current_load": 0,
+            "api_key": "generated_api_key_here",
+            "created_at": "2025-10-03T10:57:08.000000Z"
+        },
+        "api_key": "generated_api_key_here"
+    }
+}
+```
+
+### Update RVM (Protected)
+```http
+PUT /api/rvms/{id}
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "name": "RVM-001-Updated",
+    "location": "Updated Location",
+    "status": "maintenance",
+    "capacity": 120
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "RVM updated successfully",
+    "data": {
+        "id": 1,
+        "name": "RVM-001-Updated",
+        "location": "Updated Location",
+        "status": "maintenance",
+        "capacity": 120,
+        "updated_at": "2025-10-03T10:57:08.000000Z"
+    }
+}
+```
+
+### Delete RVM (Protected)
+```http
+DELETE /api/rvms/{id}
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "RVM deleted successfully"
+}
+```
+
+### Update RVM Status (Protected)
+```http
+POST /api/rvms/{id}/status
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "status": "maintenance"
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "RVM status updated successfully",
+    "data": {
+        "id": 1,
+        "name": "RVM-001",
+        "status": "maintenance",
+        "updated_at": "2025-10-03T10:57:08.000000Z"
+    }
+}
+```
+
+### Update RVM Metrics (Protected)
+```http
+POST /api/rvms/{id}/metrics
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "metrics": {
+        "cpu_usage": 45.2,
+        "memory_usage": 67.8,
+        "temperature": 42.5,
+        "uptime_hours": 168
+    },
+    "current_load": 50
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "RVM metrics updated successfully",
+    "data": {
+        "id": 1,
+        "name": "RVM-001",
+        "metrics": {
+            "cpu_usage": 45.2,
+            "memory_usage": 67.8,
+            "temperature": 42.5,
+            "uptime_hours": 168
+        },
+        "current_load": 50,
+        "updated_at": "2025-10-03T10:57:08.000000Z"
+    }
+}
+```
+
+### RVM Ping/Heartbeat (Protected)
+```http
+POST /api/rvms/{id}/ping
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "RVM ping updated successfully",
+    "data": {
+        "rvm_id": 1,
+        "name": "RVM-001",
+        "status": "active",
+        "is_online": true,
+        "last_ping": "2025-10-03T10:57:08.000000Z"
+    }
+}
+```
+
+### RVM Statistics (Protected)
+```http
+GET /api/rvms-statistics
+Authorization: Bearer {token}
+Accept: application/json
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "RVM statistics retrieved successfully",
+    "data": {
+        "total": 6,
+        "active": 4,
+        "inactive": 1,
+        "maintenance": 1,
+        "error": 0,
+        "online": 4,
+        "offline": 2,
+        "capacity_usage": {
+            "total_capacity": 750,
+            "total_load": 386,
+            "average_usage": 64.33
+        }
+    }
+}
+```
+
+## 🔗 RVM Integration (Public for Jetson)
+
+### Get RVM Info (Public)
+```http
+GET /api/rvm/{id}
+Accept: application/json
+```
+
+**Response:**
+```json
+{
+    "id": 1,
+    "name": "RVM-001",
+    "location": "Mall Central Jakarta",
+    "ip_address": "100.117.234.2",
+    "status": "active",
+    "capacity": 100,
+    "current_load": 45,
+    "last_online_at": "2025-10-03T10:01:40.000000Z",
+    "api_key_valid": true
+}
+```
+
+### Get RVM Statistics (Public)
+```http
+GET /api/rvm/{id}/stats
+Accept: application/json
+```
+
+**Response:**
+```json
+{
+    "total_detections": 15,
+    "today_detections": 3,
+    "completed_detections": 12,
+    "failed_detections": 1,
+    "last_detection": {
+        "id": 6,
+        "session_id": "integration_test_001",
+        "detected_at": "2025-10-03T10:57:08.000000Z",
+        "status": "pending"
+    }
+}
+```
+
+### Get RVM Detections (Public)
+```http
+GET /api/rvm/{id}/detections
+Accept: application/json
+```
+
+**Query Parameters:**
+- `status` - Filter by status (pending, processing, completed, failed)
+- `limit` - Limit results (default: 50, max: 100)
+- `date_from` - Start date (YYYY-MM-DD)
+- `date_to` - End date (YYYY-MM-DD)
+
+**Response:**
+```json
+[
+    {
+        "id": 6,
+        "rvm_id": 1,
+        "session_id": "integration_test_001",
+        "detection_data": {
+            "detections": [
+                {
+                    "type": "plastic",
+                    "confidence": 0.95,
+                    "weight": 0.5
+                }
+            ]
+        },
+        "detected_at": "2025-10-03T10:57:08.000000Z",
+        "status": "pending"
+    }
+]
+```
+
+### Update RVM Status (Public)
+```http
+PATCH /api/rvm/{id}/status
+Content-Type: application/json
+
+{
+    "status": "active",
+    "current_load": 50,
+    "metrics": {
         "cpu_usage": 45.2,
         "memory_usage": 67.8,
         "temperature": 42.5
+    }
+}
+```
+
+**Response:**
+```json
+{
+    "success": true
+}
+```
+
+## 🔍 Detection Results
+
+### Store Detection Result (Public)
+```http
+POST /api/detections/store
+Content-Type: application/json
+
+{
+    "rvm_id": 1,
+    "session_id": "detection_session_001",
+    "user_id": "user_123",
+    "detection_data": {
+        "detections": [
+            {
+                "type": "plastic",
+                "confidence": 0.95,
+                "weight": 0.5,
+                "quality_grade": "A",
+                "position": {
+                    "x": 100,
+                    "y": 200,
+                    "width": 50,
+                    "height": 60
+                }
+            },
+            {
+                "type": "glass",
+                "confidence": 0.87,
+                "weight": 0.3,
+                "quality_grade": "B",
+                "position": {
+                    "x": 150,
+                    "y": 250,
+                    "width": 40,
+                    "height": 45
+                }
+            }
+        ],
+        "image_metadata": {
+            "width": 1920,
+            "height": 1080,
+            "format": "jpg",
+            "timestamp": "2025-10-03T10:57:08.000000Z"
+        },
+        "processing_info": {
+            "model_version": "yolo11-v1.2",
+            "processing_time": 2.5,
+            "gpu_used": true
+        }
     },
-    "application_metrics": {
-        "software_version": "1.0.0",
-        "uptime_seconds": 86400
-    },
-    "network_info": {
-        "local_ip": "172.28.93.97",
-        "connection_type": "ethernet"
+    "image_path": "/storage/detections/2025/10/03/detection_001.jpg",
+    "status": "pending",
+    "metadata": {
+        "source": "jetson_device",
+        "camera_id": "cam_001",
+        "environment": "indoor"
     }
 }
 ```
@@ -226,55 +561,195 @@ X-RVM-ID: {id}
 ```json
 {
     "success": true,
-    "message": "Metrics stored successfully"
+    "data": {
+        "rvm_id": 1,
+        "session_id": "detection_session_001",
+        "user_id": "user_123",
+        "detection_data": {
+            "detections": [
+                {
+                    "type": "plastic",
+                    "confidence": 0.95,
+                    "weight": 0.5,
+                    "quality_grade": "A"
+                }
+            ]
+        },
+        "detected_at": "2025-10-03T10:57:08.000000Z",
+        "updated_at": "2025-10-03T10:57:08.000000Z",
+        "created_at": "2025-10-03T10:57:08.000000Z",
+        "id": 7
+    }
 }
 ```
 
-## 🎮 Commands
-
-### Execute Remote Command
+### Get Detection Statistics (Public)
 ```http
-POST /api/rvm/{id}/execute-command
+GET /api/detections/statistics
+Accept: application/json
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "total_detections": 4,
+        "today_detections": 4,
+        "completed_detections": 0,
+        "failed_detections": 0,
+        "pending_detections": 4,
+        "processing_detections": 0,
+        "last_detection": {
+            "id": 6,
+            "rvm_id": 1,
+            "session_id": "integration_test_001",
+            "detection_data": {
+                "detections": [
+                    {
+                        "type": "plastic",
+                        "confidence": 0.95,
+                        "weight": 0.5
+                    }
+                ]
+            },
+            "detected_at": "2025-10-03T10:57:08.000000Z",
+            "status": "pending"
+        },
+        "detections_by_status": {
+            "pending": 4
+        }
+    }
+}
+```
+
+### List Detections (Protected)
+```http
+GET /api/detections
+Authorization: Bearer {token}
+Accept: application/json
+```
+
+**Query Parameters:**
+- `rvm_id` - Filter by RVM ID
+- `status` - Filter by status
+- `session_id` - Filter by session ID
+- `per_page` - Items per page (default: 15)
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 6,
+                "rvm_id": 1,
+                "session_id": "integration_test_001",
+                "user_id": null,
+                "detection_data": {
+                    "detections": [
+                        {
+                            "type": "plastic",
+                            "confidence": 0.95,
+                            "weight": 0.5
+                        }
+                    ]
+                },
+                "image_path": null,
+                "detected_at": "2025-10-03T10:57:08.000000Z",
+                "status": "pending",
+                "error_message": null,
+                "metadata": null,
+                "created_at": "2025-10-03T10:57:08.000000Z",
+                "updated_at": "2025-10-03T10:57:08.000000Z"
+            }
+        ],
+        "total": 4
+    }
+}
+```
+
+### Get Specific Detection (Protected)
+```http
+GET /api/detections/{id}
+Authorization: Bearer {token}
+Accept: application/json
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "data": {
+        "id": 6,
+        "rvm_id": 1,
+        "session_id": "integration_test_001",
+        "detection_data": {
+            "detections": [
+                {
+                    "type": "plastic",
+                    "confidence": 0.95,
+                    "weight": 0.5
+                }
+            ]
+        },
+        "detected_at": "2025-10-03T10:57:08.000000Z",
+        "status": "pending"
+    }
+}
+```
+
+### Update Detection (Protected)
+```http
+PUT /api/detections/{id}
 Authorization: Bearer {token}
 Content-Type: application/json
-X-RVM-ID: {id}
 
 {
-    "command_type": "system",
-    "command_name": "check_system_health",
-    "command_payload": {}
+    "status": "completed",
+    "error_message": null,
+    "metadata": {
+        "processed_by": "admin",
+        "processing_time": 2.5
+    }
 }
 ```
-
-**Available Commands:**
-- `reboot_system` - Reboot the RVM
-- `restart_app` - Restart the application
-- `open_door` - Open the collection door
-- `close_door` - Close the collection door
-- `run_motor_test` - Test motor functionality
-- `git_pull` - Pull latest changes from GitHub
-- `update_ai_model` - Update AI model from GitHub
-- `check_system_health` - Check system health status
 
 **Response:**
 ```json
 {
     "success": true,
-    "message": "Command executed successfully",
-    "command_id": 19,
     "data": {
-        "command_type": "system",
-        "command_name": "check_system_health",
+        "id": 6,
         "status": "completed",
-        "result": "System health check completed successfully",
-        "execution_time": "2.5s"
+        "metadata": {
+            "processed_by": "admin",
+            "processing_time": 2.5
+        },
+        "updated_at": "2025-10-03T10:57:08.000000Z"
     }
 }
 ```
 
-### Get Command Status
+### Delete Detection (Protected)
 ```http
-GET /api/rvm/{id}/command/{commandId}/status
+DELETE /api/detections/{id}
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Detection result deleted"
+}
+```
+
+### Get Detailed Statistics (Protected)
+```http
+GET /api/detections-statistics
 Authorization: Bearer {token}
 Accept: application/json
 ```
@@ -283,21 +758,30 @@ Accept: application/json
 ```json
 {
     "success": true,
-    "message": "Command status retrieved",
     "data": {
-        "command_id": 19,
-        "status": "completed",
-        "result": "System health check completed successfully",
-        "executed_at": "2025-09-21T17:16:52Z",
-        "completed_at": "2025-09-21T17:16:54Z",
-        "execution_time": "2.5s"
+        "total_detections": 4,
+        "today_detections": 4,
+        "completed_detections": 0,
+        "failed_detections": 0,
+        "pending_detections": 4,
+        "processing_detections": 0,
+        "last_detection": {
+            "id": 6,
+            "rvm_id": 1,
+            "session_id": "integration_test_001",
+            "detected_at": "2025-10-03T10:57:08.000000Z",
+            "status": "pending"
+        },
+        "detections_by_status": {
+            "pending": 4
+        }
     }
 }
 ```
 
-### Get Recent Commands
+### Get Recent Detections (Protected)
 ```http
-GET /api/rvm/{id}/recent-commands
+GET /api/detections-recent
 Authorization: Bearer {token}
 Accept: application/json
 ```
@@ -306,25 +790,14 @@ Accept: application/json
 ```json
 {
     "success": true,
-    "message": "Recent commands retrieved",
     "data": [
         {
-            "id": 19,
-            "command_type": "system",
-            "command_name": "check_system_health",
-            "status": "completed",
-            "executed_at": "2025-09-21T17:16:52Z",
-            "completed_at": "2025-09-21T17:16:54Z",
-            "result": "System health check completed successfully"
-        },
-        {
-            "id": 18,
-            "command_type": "system",
-            "command_name": "reboot_system",
-            "status": "completed",
-            "executed_at": "2025-09-21T17:10:30Z",
-            "completed_at": "2025-09-21T17:10:35Z",
-            "result": "System reboot initiated successfully"
+            "id": 6,
+            "rvm_id": 1,
+            "session_id": "integration_test_001",
+            "detected_at": "2025-10-03T10:57:08.000000Z",
+            "status": "pending",
+            "detection_summary": "1 objects detected"
         }
     ]
 }
@@ -333,12 +806,21 @@ Accept: application/json
 ## 🔒 Security
 
 ### Headers Required
-- `Authorization: Bearer {token}` - API token authentication
-- `X-RVM-ID: {id}` - RVM identifier for requests
-- `Content-Type: application/json` - For POST requests
+- `Authorization: Bearer {token}` - API token authentication (for protected endpoints)
+- `Content-Type: application/json` - For POST/PUT requests
 - `Accept: application/json` - For response format
 
 ### Error Responses
+
+#### 400 Bad Request
+```json
+{
+    "error": {
+        "rvm_id": ["The rvm id field is required."],
+        "detection_data": ["The detection data field is required."]
+    }
+}
+```
 
 #### 401 Unauthorized
 ```json
@@ -354,7 +836,6 @@ Accept: application/json
 {
     "success": false,
     "message": "RVM not found",
-    "command_id": null,
     "data": null
 }
 ```
@@ -363,65 +844,140 @@ Accept: application/json
 ```json
 {
     "success": false,
-    "error": "Database connection failed",
-    "message": "Unable to process request"
+    "error": "Failed to store detection result",
+    "message": "Database connection failed"
 }
 ```
 
 ## 📝 Usage Examples
 
-### Python Example
+### Python Example - Complete Integration
 ```python
 import requests
+import json
+from datetime import datetime
 
-# Generate API token
-response = requests.post('http://localhost:8001/api/rvm/generate-token', json={
-    'rvm_id': '4',
-    'ip_address': '172.28.93.97'
+# Base URL
+BASE_URL = "http://100.123.143.87:8001/api"
+
+# 1. Login and get token
+login_response = requests.post(f"{BASE_URL}/login", json={
+    "email": "admin@myrvm.com",
+    "password": "password"
 })
-token = response.json()['data']['api_token']
+token = login_response.json()['data']['token']
 
-# Send metrics
+# Headers for authenticated requests
 headers = {
     'Authorization': f'Bearer {token}',
-    'X-RVM-ID': '4',
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
 }
 
-metrics_data = {
-    'system_metrics': {
-        'cpu_usage': 45.2,
-        'memory_usage': 67.8,
-        'temperature': 42.5
+# 2. Store detection result
+detection_data = {
+    "rvm_id": 1,
+    "session_id": f"python_test_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+    "detection_data": {
+        "detections": [
+            {
+                "type": "plastic",
+                "confidence": 0.95,
+                "weight": 0.5,
+                "quality_grade": "A"
+            }
+        ]
     }
 }
 
-response = requests.post(
-    'http://localhost:8001/api/rvm/4/store-metrics',
-    json=metrics_data,
-    headers=headers
-)
+response = requests.post(f"{BASE_URL}/detections/store", json=detection_data)
+print("Detection stored:", response.json())
+
+# 3. Get statistics
+stats_response = requests.get(f"{BASE_URL}/detections/statistics")
+print("Statistics:", stats_response.json())
+
+# 4. Get RVM info
+rvm_response = requests.get(f"{BASE_URL}/rvm/1")
+print("RVM Info:", rvm_response.json())
 ```
 
-### cURL Example
+### cURL Examples
+
+#### Store Detection Result
 ```bash
-# Generate token
-curl -X POST "http://localhost:8001/api/rvm/generate-token" \
+curl -X POST "http://100.123.143.87:8001/api/detections/store" \
   -H "Content-Type: application/json" \
-  -d '{"rvm_id": "4", "ip_address": "172.28.93.97"}'
-
-# Send metrics
-curl -X POST "http://localhost:8001/api/rvm/4/store-metrics" \
-  -H "Authorization: Bearer {token}" \
-  -H "X-RVM-ID: 4" \
-  -H "Content-Type: application/json" \
-  -d '{"system_metrics": {"cpu_usage": 45.2, "memory_usage": 67.8}}'
+  -d '{
+    "rvm_id": 1,
+    "session_id": "curl_test_001",
+    "detection_data": {
+      "detections": [
+        {
+          "type": "plastic",
+          "confidence": 0.95,
+          "weight": 0.5
+        }
+      ]
+    }
+  }'
 ```
+
+#### Get Statistics
+```bash
+curl -X GET "http://100.123.143.87:8001/api/detections/statistics" \
+  -H "Accept: application/json"
+```
+
+#### Login and Get Token
+```bash
+curl -X POST "http://100.123.143.87:8001/api/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@myrvm.com", "password": "password"}'
+```
+
+#### Get RVMs with Authentication
+```bash
+curl -X GET "http://100.123.143.87:8001/api/rvms" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -H "Accept: application/json"
+```
+
+## 🌐 Network Configuration
+
+### Server IPs
+- **MyRVM Server**: `100.123.143.87:8001`
+- **Jetson/Edge**: `100.117.234.2`
+- **GPU Server**: `100.98.142.94`
+
+### Port Configuration
+- **API Port**: 8001
+- **Database**: PostgreSQL (internal)
+- **Web Interface**: 8001 (same as API)
+
+### CORS Configuration
+- **Allowed Origins**: All (*)
+- **Allowed Methods**: GET, POST, PUT, DELETE, PATCH
+- **Allowed Headers**: Content-Type, Authorization, Accept
+
+## 📊 Performance Metrics
+
+### Response Times (Tested)
+- **API Health Check**: < 100ms
+- **Detection Store**: < 200ms
+- **Statistics**: < 150ms
+- **RVM List**: < 300ms
+- **Authentication**: < 150ms
+
+### Rate Limits
+- **Public Endpoints**: 1000 requests/minute
+- **Protected Endpoints**: 500 requests/minute
+- **Detection Store**: 100 requests/minute
 
 ---
 
-**Documentation Generated:** 2025-09-21  
-**API Version:** 1.0  
-**Last Updated:** 2025-09-21  
-**Next Review:** After command execution debugging completion
-
+**Documentation Generated:** 2025-10-03  
+**API Version:** 2.0  
+**Last Updated:** 2025-10-03  
+**Status:** ✅ PRODUCTION READY  
+**Next Review:** After Jetson integration completion

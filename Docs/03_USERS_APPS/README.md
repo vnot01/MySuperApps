@@ -1,74 +1,74 @@
-# Users Apps Documentation
+# 📱 **03_USERS_APPS - Mobile Applications**
 
-## Overview
-This folder contains technical documentation for **Mobile Applications** designed for end users to interact with RVM (Reverse Vending Machine) devices.
+## 📋 **Overview**
 
-## Target Users
-- **General Public** - End users who want to recycle waste
-- **Regular Customers** - Users with accounts and reward systems
-- **Guest Users** - One-time users without accounts
+Mobile applications untuk end users yang memungkinkan:
+- QR code scanning untuk RVM access
+- Deposit tracking dan history
+- Reward management
+- Voucher redemption
 
-## Architecture
-- **Mobile Platform** - iOS and Android applications
-- **React Native / Flutter** - Cross-platform development
-- **API Integration** - Communication with MyRVM-Platform
-- **Edge Communication** - Direct interaction with RVM devices
+## 🏗️ **Architecture**
 
-## Documentation Structure
+- **Framework**: Flutter
+- **Platform**: iOS + Android
+- **Backend**: MyRVM-Platform API
+- **Authentication**: JWT tokens
+- **Real-time**: WebSocket connections
 
-### 📋 Requirements
-- User interface requirements and specifications
-- Mobile platform requirements (iOS/Android)
-- API integration requirements
-- User experience (UX) specifications
+## 🌐 **Network Configuration**
 
-### 📝 To-Do
-- Mobile app development roadmap
-- Feature planning and user stories
-- UI/UX design tasks
-- Performance optimization for mobile
+- **Server API**: `100.123.143.87:8001/api`
+- **WebSocket**: `100.123.143.87:8001/ws`
+- **VPN**: Tailscale network untuk secure access
 
-### ✅ Done
-- *No completed implementations yet*
+## 📁 **Documentation Structure**
 
-### 🔧 Implementation
-- Mobile app development guides
-- API integration procedures
-- Deployment and distribution
-- Testing and quality assurance
+### **To-Do**
+- Tasks yang perlu dikerjakan
+- Feature requests
+- UI/UX improvements
 
-## Key Features (Planned)
-- **RVM Discovery** - Find nearby RVM devices
-- **Waste Classification** - AI-powered waste identification
-- **Reward System** - Earn points and vouchers
-- **Transaction History** - Track recycling activities
-- **User Profile** - Account management and preferences
-- **Real-time Communication** - Live updates from RVM devices
+### **Requirements**
+- Mobile app requirements
+- API specifications
+- Design guidelines
+- Performance requirements
 
-## User Journey
-1. **Discovery** - Find and select RVM device
-2. **Authentication** - Login or guest access
-3. **Waste Processing** - Deposit and classify waste
-4. **Reward Collection** - Earn points and vouchers
-5. **History Tracking** - View transaction history
+### **Implementation**
+- Setup guides
+- Development environment
+- Build instructions
+- Testing
 
-## Technical Requirements
-- **Mobile OS** - iOS 12+, Android 8+
-- **Network** - WiFi, 4G/5G connectivity
-- **Camera** - For waste identification
-- **NFC/QR** - For device interaction
-- **Push Notifications** - Real-time updates
+### **Done**
+- Completed features
+- Deployed apps
+- Tested functionality
 
-## Status
-🔴 **Planning Phase** - Requirements gathering and design
+## 🚀 **Quick Start**
 
-## Quick Start
-1. Review [Requirements](Requirements/) documentation
-2. Check [To-Do](To-Do/) for planned features
-3. Follow [Implementation](Implementation/) guides when available
+```bash
+# Navigate to mobile app
+cd MyRVM-Ecosystem/03_USERS_APPS
 
-## Related Documentation
-- **Server Documentation** - Backend API integration
-- **Edge Documentation** - RVM device interaction
-- **Tenants Apps Documentation** - Management and monitoring tools
+# Install Flutter dependencies
+flutter pub get
 
+# Run on device
+flutter run
+```
+
+## 📊 **Current Status**
+
+- **Development**: ⏳ Planned
+- **Framework**: ⏳ Flutter
+- **Platform**: ⏳ iOS + Android
+- **API Integration**: ⏳ Pending
+- **UI/UX**: ⏳ Design Phase
+
+---
+
+**Last Updated**: 2025-01-23  
+**Version**: 2.0  
+**Status**: Planned

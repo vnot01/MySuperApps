@@ -104,7 +104,7 @@ print_success "✅ Directories created"
 print_status "Checking Flask installation..."
 if ! python3 -c "import flask" 2>/dev/null; then
     print_warning "Flask not found, installing requirements..."
-    pip install -r "$API_DIR/requirements.txt"
+    pip install -r "$DIRECT_DIR/requirements.txt"
     print_success "✅ Requirements installed"
 else
     print_success "✅ Flask is available"

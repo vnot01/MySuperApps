@@ -1,5 +1,0 @@
-{
-    "success": false,
-    "message": "Failed to retrieve tenant details",
-    "error": "No query results for model [App\\Models\\Tenant] 1"
-}

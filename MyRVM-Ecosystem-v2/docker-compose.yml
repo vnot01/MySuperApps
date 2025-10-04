@@ -1,0 +1,82 @@
+# version: '3.8'
+# name: myrvm_ecosystem
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: myrvm_ecosystem_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: myrvm_ecosystem
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - myrvm_network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: myrvm_ecosystem_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - myrvm_network
+
+  # Laravel Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: myrvm_ecosystem_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - ./storage:/var/www/html/storage
+    ports:
+      - "5173:5173"  # Vite dev server port
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=myrvm_ecosystem
+      - DB_USERNAME=docker
+      - DB_PASSWORD=docker
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - db
+      - redis
+    networks:
+      - myrvm_network
+
+  # Nginx Web Server
+  web:
+    image: nginx:alpine
+    container_name: myrvm_ecosystem_web
+    restart: unless-stopped
+    ports:
+      - "8001:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - myrvm_network
+
+volumes:
+  postgres_data:
+
+networks:
+  myrvm_network:
+    driver: bridge

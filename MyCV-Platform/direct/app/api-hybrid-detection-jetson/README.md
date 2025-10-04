@@ -21,6 +21,13 @@ cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection-jetson
 - `GET /api/status` - API status dengan informasi GPU Jetson
 - `GET /api/hardware` - Informasi hardware Jetson lengkap
 
+### Advanced Monitoring
+- `GET /api/monitoring/status` - Real-time monitoring status dan metrics
+- `GET /api/monitoring/summary` - Performance summary untuk periode tertentu
+- `GET /api/monitoring/alerts` - Recent alerts dan notifications
+
+**Note**: Advanced Monitoring System is located in `utils/python/advanced_monitoring.py`
+
 ### Upload & Processing
 - `POST /api/upload` - Upload gambar untuk deteksi
 - `GET /api/process/<session_id>` - Status pemrosesan
@@ -71,6 +78,11 @@ curl -X POST \
 - `OUTPUT_FOLDER`: Directory untuk output (default: `../../data-jetson/output/remote`)
 - `MAX_CONTENT_LENGTH`: Max file size (default: 16MB)
 
+### Dependencies
+All dependencies are now consolidated in the main project requirements.txt:
+- Main requirements: `/home/my/MySuperApps/MyCV-Platform/direct/requirements.txt`
+- Includes monitoring dependencies: `psutil`, `colorlog`, `pathlib2`, `jsonschema`
+
 ### Supported File Types
 - PNG, JPG, JPEG, GIF, BMP
 
@@ -89,6 +101,10 @@ curl -X POST \
 - ✅ **Summary JSON**: Structured results dengan detection_summary, class_summary, dan object_count
 - ✅ **Image URLs**: Direct download links untuk semua jenis visualisasi (best, yolo, sam, hybrid)
 - ✅ **Compare Visualization**: Summary image yang menggabungkan semua hasil
+- ✅ **Advanced Monitoring**: Real-time performance monitoring dengan alerts
+- ✅ **Performance Analytics**: Detailed performance metrics dan reporting
+- ✅ **Alert System**: Automated alerts untuk system health issues
+- ✅ **RVM Integration**: Multi-RVM support dengan secure authentication
 
 ## 🔍 Detection Models (Jetson)
 

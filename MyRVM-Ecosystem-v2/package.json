@@ -1,0 +1,27 @@
+{
+    "$schema": "https://json.schemastore.org/package.json",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite",
+        "dev:watch": "vite --host 0.0.0.0 --port 5173",
+        "dev:docker": "vite --host 0.0.0.0 --port 5173"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.0.0",
+        "autoprefixer": "^10.4.21",
+        "axios": "^1.12.2",
+        "concurrently": "^9.0.1",
+        "laravel-vite-plugin": "^2.0.1",
+        "postcss": "^8.5.6",
+        "tailwindcss": "^4.1.14",
+        "vite": "^7.0.7"
+    },
+    "dependencies": {
+        "@inertiajs/vue3": "^2.2.4",
+        "@tailwindcss/postcss": "^4.1.14",
+        "@vitejs/plugin-vue": "^6.0.1",
+        "vue": "^3.5.22"
+    }
+}

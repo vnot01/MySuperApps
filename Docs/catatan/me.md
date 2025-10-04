@@ -71,3 +71,35 @@ while self.is_running:
 - **`full`** - RVM penuh
 - **`error`** - RVM mengalami error
 - **`unknown`** - Status tidak diketahui
+
+---
+
+## 📝 **Catatan Pengembangan:**
+
+**⚠️ Penting:** Jangan membuat file dari dalam docker ya. Jika dilakukan maka akan ada masalah dengan permission file.
+
+**🔑 API Key:** `api_key_expires_at` apakah auto generate? Jika tolong jadikan 1 bulan.
+Kemudian ubah dokumentasi ini `/home/my/MySuperApps/Docs/01_SERVER/Requirements`
+
+**📚 Dokumentasi:** Jangan lupa ubah file-file yang sekiranya berhubungan dengan proses pengembangan sekarang. Pada folder `/home/my/MySuperApps/Docs/01_SERVER` ini adalah folder untuk dokumentasi pengembangan dari sudut pandang anda. Anda ada Server.
+
+---
+
+## 🎯 **Status RVM System:**
+
+Jadi status RVM itu ada 3:
+- **Status:** Aktif, Tidak Aktif, Maintenance 
+- **Status Koneksi:** Terhubung, Tidak Terhubung
+- **Status API:** Valid, Tidak Valid
+
+### 📋 **Kriteria Status:**
+
+1. **Status Aktif** Jika: `current_load >=0` dan `current_load <=100`
+   **Status Non Aktif** Jika: `current_load >=100` lalu muncul notifikasi (notifikasi belum di buat!)
+   **Status Maintenance** Jika: admin menekan action menu bar pada list RVM Maintenance akan mengubah status di basis data tabel reverse_vending_machine ke maintenance kemudian akan mengarah ke Halaman Maintenance Mode (Halaman belum di buat!)
+
+2. **Status Koneksi Aktif** Jika: berhasil terhubung dengan IP dari RVM atau Jetson atau Mesin RVM contohnya: `http://100.117.234.2:5000/api/health`
+   Jadi pengecekan melalui Pinging setiap beberapa detik dari si RVM atau si Jetson.
+
+3. **Status API Valid** Jika: berhasil terhubung API Endpoint dari IP si RVM atau si Jetson atau Mesin RVM contohnya: `http://100.117.234.2:5000/api/health`
+   Lakukan setiap beberapa detik juga.
