@@ -886,7 +886,7 @@
 
 <script setup>
 import { router } from "@inertiajs/vue3"
-import { ref, computed, onMounted, onUnmounted, nextTick } from "vue"
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue"
 import Chart from 'chart.js/auto'
 
 const props = defineProps({
@@ -1231,8 +1231,10 @@ const createDetectionChart = () => {
   
   const ctx = detectionChart.value.getContext('2d')
   
+  // Destroy existing chart if it exists
   if (detectionChartInstance) {
     detectionChartInstance.destroy()
+    detectionChartInstance = null
   }
   
   detectionChartInstance = new Chart(ctx, {
@@ -1299,8 +1301,10 @@ const createPerformanceChart = () => {
   
   const ctx = performanceChart.value.getContext('2d')
   
+  // Destroy existing chart if it exists
   if (performanceChartInstance) {
     performanceChartInstance.destroy()
+    performanceChartInstance = null
   }
   
   performanceChartInstance = new Chart(ctx, {
@@ -1380,10 +1384,27 @@ const createPerformanceChart = () => {
 
 const updateCharts = () => {
   nextTick(() => {
+    // Destroy existing charts first
+    if (detectionChartInstance) {
+      detectionChartInstance.destroy()
+      detectionChartInstance = null
+    }
+    if (performanceChartInstance) {
+      performanceChartInstance.destroy()
+      performanceChartInstance = null
+    }
+    
+    // Create new charts
     createDetectionChart()
     createPerformanceChart()
   })
 }
+
+// Watch for selectedPeriod changes
+watch(selectedPeriod, (newPeriod, oldPeriod) => {
+  console.log(`📊 Period changed from ${oldPeriod} to ${newPeriod}`)
+  updateCharts()
+})
 
 onMounted(() => {
   // Debug: Log monitoring analytics data
@@ -1421,6 +1442,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  // Clear intervals
   if (refreshInterval) {
     clearInterval(refreshInterval)
   }
@@ -1428,12 +1450,14 @@ onUnmounted(() => {
     clearInterval(timeUpdateInterval)
   }
   
-  // Destroy chart instances
+  // Destroy charts
   if (detectionChartInstance) {
     detectionChartInstance.destroy()
+    detectionChartInstance = null
   }
   if (performanceChartInstance) {
     performanceChartInstance.destroy()
+    performanceChartInstance = null
   }
 })
 </script>
