@@ -664,144 +664,6 @@
         </div>
       </div>
 
-      <!-- Recent Detection Results Table -->
-      <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-8">
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Recent Detection Results</h3>
-          <div class="flex items-center space-x-3">
-            <select 
-              v-model="detectionFilter"
-              class="block w-40 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-xl bg-white/80 backdrop-blur-sm"
-            >
-              <option value="all">All Status</option>
-              <option value="success">Success</option>
-              <option value="failed">Failed</option>
-            </select>
-            <button 
-              @click="refreshData"
-              class="p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 rounded-xl transition-all duration-200"
-            >
-              <i class="fas fa-sync-alt"></i>
-            </button>
-          </div>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50/80 backdrop-blur-sm">
-              <tr>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Session ID
-                </th>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Detected At
-                </th>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Summary
-                </th>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-if="filteredDetections.length === 0">
-                <td colspan="5" class="px-6 py-12 text-center">
-                  <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-search text-gray-400 text-2xl"></i>
-                  </div>
-                  <p class="text-gray-500 text-lg">No detection results found</p>
-                  <p class="text-gray-400 text-sm">Detection results will appear here when available</p>
-                </td>
-              </tr>
-              <tr v-for="detection in filteredDetections" :key="detection.id" class="hover:bg-gray-50/50 transition-colors">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {{ detection.session_id }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ new Date(detection.detected_at).toLocaleString() }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                  <span 
-                    :class="[
-                      'px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full',
-                      detection.status === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    ]"
-                  >
-                    <i :class="detection.status === 'success' ? 'fas fa-check-circle mr-1' : 'fas fa-times-circle mr-1'"></i>
-                    {{ detection.status }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ detection.detection_summary || 'N/A' }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button 
-                    @click="viewDetectionDetails(detection)" 
-                    class="text-blue-600 hover:text-blue-900 px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors"
-                  >
-                    View Details
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination -->
-        <div v-if="detectionResults.links && detectionResults.links.length > 3" class="mt-6 flex justify-between items-center">
-          <div class="flex-1 flex justify-between sm:hidden">
-            <button 
-              @click="goToPage(detectionResults.prev_page_url)" 
-              :disabled="!detectionResults.prev_page_url" 
-              class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <button 
-              @click="goToPage(detectionResults.next_page_url)" 
-              :disabled="!detectionResults.next_page_url" 
-              class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-          <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p class="text-sm text-gray-700">
-                Showing
-                <span class="font-medium">{{ detectionResults.from }}</span>
-                to
-                <span class="font-medium">{{ detectionResults.to }}</span>
-                of
-                <span class="font-medium">{{ detectionResults.total }}</span>
-                results
-              </p>
-            </div>
-            <div>
-              <nav class="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px" aria-label="Pagination">
-                <button 
-                  v-for="(link, index) in detectionResults.links" 
-                  :key="index"
-                  @click="goToPage(link.url)"
-                  :disabled="!link.url"
-                  :class="[
-                    'relative inline-flex items-center px-4 py-2 border text-sm font-medium',
-                    link.active ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
-                    index === 0 ? 'rounded-l-xl' : '',
-                    index === detectionResults.links.length - 1 ? 'rounded-r-xl' : ''
-                  ]"
-                  v-html="link.label"
-                >
-                </button>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <!-- Detection Details Modal -->
       <div v-if="showDetectionDetailsModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -991,7 +853,6 @@ const props = defineProps({
 // Reactive variables
 const isRefreshing = ref(false)
 const selectedPeriod = ref('daily')
-const detectionFilter = ref('all')
 const showDetectionDetailsModal = ref(false)
 const selectedDetection = ref(null)
 const showFullApiKey = ref(false)
@@ -1020,12 +881,6 @@ let refreshInterval = null
 let timeUpdateInterval = null
 
 // Computed properties
-const filteredDetections = computed(() => {
-  if (detectionFilter.value === 'all') {
-    return props.detectionResults.data
-  }
-  return props.detectionResults.data.filter(detection => detection.status === detectionFilter.value)
-})
 
 const lastRefreshAgo = computed(() => {
   const diff = currentTime.value - lastRefreshTime.value
@@ -1190,26 +1045,9 @@ const endMaintenance = () => {
   }
 }
 
-const viewDetectionDetails = (detection) => {
-  selectedDetection.value = detection
-  showDetectionDetailsModal.value = true
-}
-
 const closeDetectionDetailsModal = () => {
   showDetectionDetailsModal.value = false
   selectedDetection.value = null
-}
-
-const goToPage = (url) => {
-  if (url) {
-    router.get(url, {
-      filter: detectionFilter.value
-    }, {
-      preserveState: true,
-      preserveScroll: true,
-      only: ['detectionResults']
-    })
-  }
 }
 
 const copyApiKey = async () => {
