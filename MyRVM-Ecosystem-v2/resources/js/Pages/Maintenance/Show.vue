@@ -386,67 +386,67 @@
         
         <div v-if="monitoringStatus" class="space-y-4">
           <div class="grid grid-cols-2 gap-3">
-            <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-lg p-6 border border-blue-200/50">
-              <div class="flex items-center justify-between mb-3">
-                <p class="text-sm font-medium text-gray-600">CPU Usage</p>
-                <i class="fas fa-microchip text-blue-500 text-lg"></i>
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-8 border border-blue-200/50">
+              <div class="flex items-center justify-between mb-4">
+                <p class="text-lg font-semibold text-gray-700">CPU Usage</p>
+                <i class="fas fa-microchip text-blue-500 text-2xl"></i>
               </div>
-              <div class="flex items-center space-x-3">
-                <div class="flex-1 bg-gray-200 rounded-full h-3">
+              <div class="flex items-center space-x-4">
+                <div class="flex-1 bg-gray-200 rounded-full h-4">
                   <div 
-                    class="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500"
+                    class="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-500"
                     :style="{ width: `${monitoringStatus.cpu_usage || 0}%` }"
                   ></div>
                 </div>
-                <span class="text-lg font-bold text-gray-900">{{ monitoringStatus.cpu_usage || 0 }}%</span>
+                <span class="text-2xl font-bold text-gray-900">{{ monitoringStatus.cpu_usage || 0 }}%</span>
               </div>
             </div>
             
-            <div class="bg-gradient-to-br from-green-50 to-green-100/50 rounded-lg p-6 border border-green-200/50">
-              <div class="flex items-center justify-between mb-3">
-                <p class="text-sm font-medium text-gray-600">Memory Usage</p>
-                <i class="fas fa-memory text-green-500 text-lg"></i>
+            <div class="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-8 border border-green-200/50">
+              <div class="flex items-center justify-between mb-4">
+                <p class="text-lg font-semibold text-gray-700">Memory Usage</p>
+                <i class="fas fa-memory text-green-500 text-2xl"></i>
               </div>
-              <div class="flex items-center space-x-3">
-                <div class="flex-1 bg-gray-200 rounded-full h-3">
+              <div class="flex items-center space-x-4">
+                <div class="flex-1 bg-gray-200 rounded-full h-4">
                   <div 
-                    class="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-500"
+                    class="bg-gradient-to-r from-green-500 to-green-600 h-4 rounded-full transition-all duration-500"
                     :style="{ width: `${monitoringStatus.memory_usage || 0}%` }"
                   ></div>
                 </div>
-                <span class="text-lg font-bold text-gray-900">{{ monitoringStatus.memory_usage || 0 }}%</span>
+                <span class="text-2xl font-bold text-gray-900">{{ monitoringStatus.memory_usage || 0 }}%</span>
               </div>
             </div>
             
-            <div class="bg-gradient-to-br from-yellow-50 to-yellow-100/50 rounded-lg p-6 border border-yellow-200/50">
-              <div class="flex items-center justify-between mb-3">
-                <p class="text-sm font-medium text-gray-600">Disk Usage</p>
-                <i class="fas fa-hdd text-yellow-500 text-lg"></i>
+            <div class="bg-gradient-to-br from-yellow-50 to-yellow-100/50 rounded-xl p-8 border border-yellow-200/50">
+              <div class="flex items-center justify-between mb-4">
+                <p class="text-lg font-semibold text-gray-700">Disk Usage</p>
+                <i class="fas fa-hdd text-yellow-500 text-2xl"></i>
               </div>
-              <div class="flex items-center space-x-3">
-                <div class="flex-1 bg-gray-200 rounded-full h-3">
+              <div class="flex items-center space-x-4">
+                <div class="flex-1 bg-gray-200 rounded-full h-4">
                   <div 
-                    class="bg-gradient-to-r from-yellow-500 to-yellow-600 h-3 rounded-full transition-all duration-500"
+                    class="bg-gradient-to-r from-yellow-500 to-yellow-600 h-4 rounded-full transition-all duration-500"
                     :style="{ width: `${monitoringStatus.disk_usage || 0}%` }"
                   ></div>
                 </div>
-                <span class="text-lg font-bold text-gray-900">{{ monitoringStatus.disk_usage || 0 }}%</span>
+                <span class="text-2xl font-bold text-gray-900">{{ monitoringStatus.disk_usage || 0 }}%</span>
               </div>
             </div>
             
-            <div class="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-lg p-6 border border-purple-200/50">
-              <div class="flex items-center justify-between mb-3">
-                <p class="text-sm font-medium text-gray-600">GPU Usage</p>
-                <i class="fas fa-microchip text-purple-500 text-lg"></i>
+            <div class="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-8 border border-purple-200/50">
+              <div class="flex items-center justify-between mb-4">
+                <p class="text-lg font-semibold text-gray-700">GPU Usage</p>
+                <i class="fas fa-microchip text-purple-500 text-2xl"></i>
               </div>
-              <div class="flex items-center space-x-3">
-                <div class="flex-1 bg-gray-200 rounded-full h-3">
+              <div class="flex items-center space-x-4">
+                <div class="flex-1 bg-gray-200 rounded-full h-4">
                   <div 
-                    class="bg-gradient-to-r from-purple-500 to-purple-600 h-3 rounded-full transition-all duration-500"
+                    class="bg-gradient-to-r from-purple-500 to-purple-600 h-4 rounded-full transition-all duration-500"
                     :style="{ width: `${monitoringStatus.gpu_usage || 0}%` }"
                   ></div>
                 </div>
-                <span class="text-lg font-bold text-gray-900">{{ monitoringStatus.gpu_usage || 0 }}%</span>
+                <span class="text-2xl font-bold text-gray-900">{{ monitoringStatus.gpu_usage || 0 }}%</span>
               </div>
             </div>
           </div>
