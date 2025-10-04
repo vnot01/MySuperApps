@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Api\RvmController;
+use App\Http\Controllers\MaintenanceController;
 
 // Landing Page Route
 Route::get('/', [LandingController::class, 'index'])->name('landing');
@@ -24,7 +25,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/rvms', [RvmController::class, 'store'])->name('rvms.store');
     Route::get('/rvms/{rvm}', [RvmController::class, 'show'])->name('rvms.show');
     Route::put('/rvms/{rvm}/api', [RvmController::class, 'updateApi'])->name('rvms.api.update');
+    Route::put('/rvms/{rvm}/ip-address', [MaintenanceController::class, 'updateIpAddress'])->name('rvms.ip-address.update');
     Route::get('/rvms/{rvm}/edit', [RvmController::class, 'edit'])->name('rvms.edit');
     Route::put('/rvms/{rvm}', [RvmController::class, 'update'])->name('rvms.update');
     Route::delete('/rvms/{rvm}', [RvmController::class, 'destroy'])->name('rvms.destroy');
+    
+    // Maintenance Routes
+    Route::get('/maintenance/{rvm}', [MaintenanceController::class, 'show'])->name('maintenance.show');
 });
+
+// Testing route (no auth required)
+Route::get('/test-maintenance/{rvm}', [MaintenanceController::class, 'show'])->name('test.maintenance.show');

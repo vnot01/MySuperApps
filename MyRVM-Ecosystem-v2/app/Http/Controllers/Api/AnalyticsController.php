@@ -28,7 +28,7 @@ class AnalyticsController extends Controller
                 ],
                 'overview' => $this->getOverviewMetrics($startDate),
                 'rvm_performance' => $this->getRvmPerformanceMetrics($startDate),
-                'detection_analytics' => $this->getDetectionAnalytics($startDate),
+                'detection_analytics' => $this->getDetectionAnalyticsData($startDate),
                 'economy_analytics' => $this->getEconomyAnalytics($startDate),
                 'trends' => $this->getTrendsData($startDate),
                 'alerts' => $this->getSystemAlerts($startDate)
@@ -161,7 +161,7 @@ class AnalyticsController extends Controller
         });
     }
 
-    private function getDetectionAnalytics(Carbon $startDate): array
+    private function getDetectionAnalyticsData(Carbon $startDate): array
     {
         $detections = DetectionResult::where('created_at', '>=', $startDate)->get();
         

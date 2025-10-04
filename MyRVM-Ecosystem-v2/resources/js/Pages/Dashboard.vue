@@ -850,20 +850,26 @@ const toggleMaintenance = (rvmId, currentStatus) => {
   // Close menu
   activeRvmMenu.value = null
   
-  const newStatus = currentStatus === 'maintenance' ? 'active' : 'maintenance'
-  
-  // Update RVM status
-  router.patch(`/api/rvms/${rvmId}/status`, {
-    status: newStatus
-  }, {
-    onSuccess: () => {
-      // Show success message
-      console.log(`RVM ${rvmId} status updated to ${newStatus}`)
-    },
-    onError: (errors) => {
-      console.error('Failed to update RVM status:', errors)
-    }
-  })
+  if (currentStatus === 'maintenance') {
+    // End maintenance - update status to active
+    const newStatus = 'active'
+    
+    // Update RVM status
+    router.patch(`/api/rvms/${rvmId}/status`, {
+      status: newStatus
+    }, {
+      onSuccess: () => {
+        // Show success message
+        console.log(`RVM ${rvmId} status updated to ${newStatus}`)
+      },
+      onError: (errors) => {
+        console.error('Failed to update RVM status:', errors)
+      }
+    })
+  } else {
+    // Start maintenance - navigate to maintenance page
+    router.get(`/maintenance/${rvmId}`)
+  }
 }
 
 const deleteRvm = (rvmId, rvmName) => {
