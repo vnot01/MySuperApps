@@ -478,17 +478,112 @@ def monitoring_status():
         performance_summary = get_performance_summary(hours=1)  # Last hour
         alerts = get_alerts()
         
+        # If no current metrics available, get real-time system metrics
+        if not current_metrics:
+            import psutil
+            import GPUtil
+            
+            # Get real-time system metrics
+            cpu_usage = psutil.cpu_percent(interval=1)
+            memory = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
+            
+            # Get GPU usage if available
+            gpu_usage = 0
+            try:
+                gpus = GPUtil.getGPUs()
+                if gpus:
+                    gpu_usage = gpus[0].load * 100
+            except:
+                gpu_usage = 0
+            
+            return jsonify({
+                'cpu_usage': round(cpu_usage, 1),
+                'memory_usage': round(memory.percent, 1),
+                'disk_usage': round(disk.percent, 1),
+                'gpu_usage': round(gpu_usage, 1),
+                'alerts': alerts if alerts else [],
+                'timestamp': datetime.now().isoformat(),
+                'status': 'success'
+            })
+        
+        # Return structured data for frontend
         return jsonify({
-            'status': 'success',
-            'monitoring': {
-                'current_metrics': current_metrics.__dict__ if current_metrics else None,
-                'performance_summary': performance_summary,
-                'recent_alerts': alerts,
-                'timestamp': datetime.now().isoformat()
-            }
+            'cpu_usage': round(current_metrics.cpu_percent, 1),
+            'memory_usage': round(current_metrics.memory_percent, 1),
+            'disk_usage': round(current_metrics.disk_usage_percent, 1),
+            'gpu_usage': round(current_metrics.gpu_memory_percent, 1),
+            'alerts': alerts if alerts else [],
+            'timestamp': current_metrics.timestamp.isoformat(),
+            'status': 'success'
+        })
+    except Exception as e:
+        # Fallback to basic system metrics
+        try:
+            import psutil
+            cpu_usage = psutil.cpu_percent(interval=1)
+            memory = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
+            
+            return jsonify({
+                'cpu_usage': round(cpu_usage, 1),
+                'memory_usage': round(memory.percent, 1),
+                'disk_usage': round(disk.percent, 1),
+                'gpu_usage': 0,
+                'alerts': [],
+                'timestamp': datetime.now().isoformat(),
+                'status': 'fallback'
+            })
+        except Exception as fallback_error:
+            return jsonify({
+                'cpu_usage': 0,
+                'memory_usage': 0,
+                'disk_usage': 0,
+                'gpu_usage': 0,
+                'alerts': [],
+                'timestamp': datetime.now().isoformat(),
+                'status': 'error',
+                'message': f'Failed to get monitoring status: {str(e)}'
+            }), 500
+
+@app.route('/api/monitoring/status-new', methods=['GET'])
+def monitoring_status_new():
+    """Get current monitoring status with correct format for frontend"""
+    try:
+        import psutil
+        import GPUtil
+        
+        # Get real-time system metrics
+        cpu_usage = psutil.cpu_percent(interval=1)
+        memory = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
+        
+        # Get GPU usage if available
+        gpu_usage = 0
+        try:
+            gpus = GPUtil.getGPUs()
+            if gpus:
+                gpu_usage = gpus[0].load * 100
+        except:
+            gpu_usage = 0
+        
+        return jsonify({
+            'cpu_usage': round(cpu_usage, 1),
+            'memory_usage': round(memory.percent, 1),
+            'disk_usage': round(disk.percent, 1),
+            'gpu_usage': round(gpu_usage, 1),
+            'alerts': [],
+            'timestamp': datetime.now().isoformat(),
+            'status': 'success'
         })
     except Exception as e:
         return jsonify({
+            'cpu_usage': 0,
+            'memory_usage': 0,
+            'disk_usage': 0,
+            'gpu_usage': 0,
+            'alerts': [],
+            'timestamp': datetime.now().isoformat(),
             'status': 'error',
             'message': f'Failed to get monitoring status: {str(e)}'
         }), 500

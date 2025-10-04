@@ -22,6 +22,8 @@
         "@inertiajs/vue3": "^2.2.4",
         "@tailwindcss/postcss": "^4.1.14",
         "@vitejs/plugin-vue": "^6.0.1",
-        "vue": "^3.5.22"
+        "chart.js": "^4.5.0",
+        "vue": "^3.5.22",
+        "vue-chartjs": "^5.3.2"
     }
 }
