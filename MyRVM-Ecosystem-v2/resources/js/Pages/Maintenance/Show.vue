@@ -324,54 +324,54 @@
 
       <!-- Recent Detection Results and System Monitoring Section -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Recent Detection Results Card (Extra Large) -->
-        <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-8">
-          <div class="flex items-center justify-between mb-6">
-            <h3 class="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Recent Detection Results</h3>
-            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <i class="fas fa-eye text-white text-lg"></i>
+        <!-- Recent Detection Results Card (Larger) -->
+        <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Recent Detection Results</h3>
+            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+              <i class="fas fa-eye text-white text-sm"></i>
             </div>
           </div>
           
-          <div v-if="detectionResults && detectionResults.data && detectionResults.data.length > 0" class="space-y-5">
-            <div class="grid grid-cols-2 gap-4">
+          <div v-if="detectionResults && detectionResults.data && detectionResults.data.length > 0" class="space-y-4">
+            <div class="grid grid-cols-2 gap-3">
               <div v-for="detection in detectionResults.data.slice(0, 6)" :key="detection.id" 
-                   class="bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-xl p-5 border border-gray-200/50 hover:shadow-md transition-all duration-200">
-                <div class="flex flex-col space-y-4">
-                  <div class="flex items-center space-x-4">
+                   class="bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-xl p-4 border border-gray-200/50 hover:shadow-md transition-all duration-200">
+                <div class="flex flex-col space-y-3">
+                  <div class="flex items-center space-x-3">
                     <div :class="[
-                      'w-8 h-8 rounded-lg flex items-center justify-center text-base font-bold',
+                      'w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold',
                       detection.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     ]">
-                      <i :class="detection.status === 'completed' ? 'fas fa-check' : 'fas fa-times'" class="text-base"></i>
+                      <i :class="detection.status === 'completed' ? 'fas fa-check' : 'fas fa-times'" class="text-sm"></i>
                     </div>
                     <span :class="[
-                      'px-4 py-2 rounded-full text-base font-medium',
+                      'px-3 py-1 rounded-full text-sm font-medium',
                       detection.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     ]">
                       {{ detection.status }}
                     </span>
                   </div>
                   <div>
-                    <p class="text-base font-medium text-gray-900 truncate">{{ detection.session_id }}</p>
-                    <p class="text-base text-gray-500">{{ new Date(detection.detected_at).toLocaleDateString() }}</p>
+                    <p class="text-sm font-medium text-gray-900 truncate">{{ detection.session_id }}</p>
+                    <p class="text-sm text-gray-500">{{ new Date(detection.detected_at).toLocaleDateString() }}</p>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div v-if="detectionResults.data.length > 6" class="text-center pt-4">
-              <button class="text-blue-600 hover:text-blue-800 text-base font-medium">
+            <div v-if="detectionResults.data.length > 6" class="text-center pt-3">
+              <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                 View All {{ detectionResults.data.length }} Results
               </button>
             </div>
           </div>
           
-          <div v-else class="text-center py-10">
-            <div class="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <i class="fas fa-eye text-gray-400 text-xl"></i>
+          <div v-else class="text-center py-8">
+            <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+              <i class="fas fa-eye text-gray-400 text-lg"></i>
             </div>
-            <p class="text-gray-500 text-base">No detection results available</p>
+            <p class="text-gray-500 text-sm">No detection results available</p>
           </div>
         </div>
 
