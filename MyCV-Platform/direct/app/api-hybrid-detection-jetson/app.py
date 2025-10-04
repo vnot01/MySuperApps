@@ -23,6 +23,7 @@ import subprocess
 import threading
 from pathlib import Path
 import torch
+from utils.python.advanced_monitoring import start_monitoring, stop_monitoring, get_current_metrics, get_performance_summary, get_alerts
 
 # Add parent directory to path to import detection modules
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
@@ -467,6 +468,66 @@ def hardware_info():
             'status': 'error',
             'message': f'Failed to get hardware info: {str(e)}',
             'updated_at': datetime.now().isoformat()
+        }), 500
+
+@app.route('/api/monitoring/status', methods=['GET'])
+def monitoring_status():
+    """Get current monitoring status and metrics"""
+    try:
+        current_metrics = get_current_metrics()
+        performance_summary = get_performance_summary(hours=1)  # Last hour
+        alerts = get_alerts()
+        
+        return jsonify({
+            'status': 'success',
+            'monitoring': {
+                'current_metrics': current_metrics.__dict__ if current_metrics else None,
+                'performance_summary': performance_summary,
+                'recent_alerts': alerts,
+                'timestamp': datetime.now().isoformat()
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to get monitoring status: {str(e)}'
+        }), 500
+
+@app.route('/api/monitoring/summary', methods=['GET'])
+def monitoring_summary():
+    """Get performance summary for specified period"""
+    try:
+        hours = request.args.get('hours', 24, type=int)
+        summary = get_performance_summary(hours)
+        
+        return jsonify({
+            'status': 'success',
+            'summary': summary,
+            'period_hours': hours,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to get performance summary: {str(e)}'
+        }), 500
+
+@app.route('/api/monitoring/alerts', methods=['GET'])
+def monitoring_alerts():
+    """Get recent alerts"""
+    try:
+        alerts = get_alerts()
+        
+        return jsonify({
+            'status': 'success',
+            'alerts': alerts,
+            'count': len(alerts),
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to get alerts: {str(e)}'
         }), 500
 
 def get_jetson_info():
@@ -1311,11 +1372,15 @@ if __name__ == '__main__':
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     os.makedirs(OUTPUT_FOLDER, exist_ok=True)
     
+    # Start advanced monitoring
+    start_monitoring()
+    
     print("🚀 Starting MyCV-Platform Hybrid Detection API (Jetson)")
     print("📡 API will be available at: http://100.117.234.2:5000")
     print("📋 Available endpoints:")
     print("   GET  /api/health - Health check")
     print("   GET  /api/status - API status")
+    print("   GET  /api/hardware - Comprehensive hardware information")
     print("   POST /api/upload - Upload images for detection (with RVM support)")
     print("   GET  /api/process/<session_id> - Get processing status")
     print("   GET  /api/results/<session_id> - Get detection results")
@@ -1324,11 +1389,24 @@ if __name__ == '__main__':
     print("   POST /api/detections/search - Search detections (with RVM filtering)")
     print("   POST /api/rvm/validate - Validate RVM API key")
     print("   GET  /api/rvm/<rvm_id>/stats - Get RVM statistics")
+    print("   GET  /api/monitoring/status - Advanced monitoring status")
+    print("   GET  /api/monitoring/summary - Performance summary")
+    print("   GET  /api/monitoring/alerts - Recent alerts")
     print("=" * 60)
     print("🔐 RVM Integration:")
     print("   - Use X-RVM-API-Key header for authentication")
     print("   - Include rvm_id parameter for RVM-specific operations")
     print("   - Data stored in rvm_{id}/ structure")
     print("=" * 60)
+    print("📊 Advanced Monitoring:")
+    print("   - Real-time performance monitoring")
+    print("   - Alert system for system health")
+    print("   - Performance analytics and reporting")
+    print("=" * 60)
     
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    try:
+        app.run(host='0.0.0.0', port=5000, debug=False)
+    except KeyboardInterrupt:
+        print("\n🛑 Shutting down...")
+        stop_monitoring()
+        print("✅ Monitoring stopped")

@@ -7,6 +7,8 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Api\RvmController;
 use App\Http\Controllers\Api\RvmIntegrationController;
 use App\Http\Controllers\Api\DetectionResultController;
+use App\Http\Controllers\Api\EconomyController;
+use App\Http\Controllers\Api\AnalyticsController;
 
 // Public API Routes
 Route::get('/test', function () {
@@ -55,6 +57,25 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('detections', DetectionResultController::class);
     Route::get('/detections-statistics', [DetectionResultController::class, 'statistics']);
     Route::get('/detections-recent', [DetectionResultController::class, 'recent']);
+    
+    // Economy System Routes
+    Route::prefix('economy')->group(function () {
+        Route::get('/balance', [EconomyController::class, 'getBalance']);
+        Route::get('/transactions', [EconomyController::class, 'getTransactions']);
+        Route::post('/balance/add', [EconomyController::class, 'addBalance']);
+        Route::post('/balance/deduct', [EconomyController::class, 'deductBalance']);
+        Route::get('/vouchers/available', [EconomyController::class, 'getAvailableVouchers']);
+        Route::post('/vouchers/redeem', [EconomyController::class, 'redeemVoucher']);
+        Route::get('/vouchers/history', [EconomyController::class, 'getVoucherHistory']);
+        Route::post('/rewards/calculate', [EconomyController::class, 'calculateReward']);
+    });
+    
+    // Analytics Routes
+    Route::prefix('analytics')->group(function () {
+        Route::get('/dashboard', [AnalyticsController::class, 'getDashboardAnalytics']);
+        Route::get('/rvm/{rvmId}', [AnalyticsController::class, 'getRvmAnalytics']);
+        Route::get('/detections', [AnalyticsController::class, 'getDetectionAnalytics']);
+    });
 });
 
 // RVM Integration Routes (Public for Jetson access)

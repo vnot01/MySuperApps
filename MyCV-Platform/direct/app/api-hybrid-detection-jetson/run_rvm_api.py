@@ -82,6 +82,7 @@ def print_startup_info():
     print("\n📋 Available Endpoints:")
     print("   GET  /api/health - Health check")
     print("   GET  /api/status - API status")
+    print("   GET  /api/hardware - Comprehensive hardware information")
     print("   POST /api/upload - Upload images (with RVM support)")
     print("   GET  /api/process/<session_id> - Get processing status")
     print("   GET  /api/results/<session_id> - Get detection results")
@@ -89,11 +90,20 @@ def print_startup_info():
     print("   POST /api/detections/search - Search detections (with RVM filtering)")
     print("   POST /api/rvm/validate - Validate RVM API key")
     print("   GET  /api/rvm/<rvm_id>/stats - Get RVM statistics")
+    print("   GET  /api/monitoring/status - Advanced monitoring status")
+    print("   GET  /api/monitoring/summary - Performance summary")
+    print("   GET  /api/monitoring/alerts - Recent alerts")
     
     print("\n🔐 RVM Integration:")
     print("   - Use X-RVM-API-Key header for authentication")
     print("   - Include rvm_id parameter for RVM-specific operations")
     print("   - Data stored in rvm_{id}/ structure")
+    
+    print("\n📊 Advanced Monitoring:")
+    print("   - Real-time performance monitoring")
+    print("   - Alert system for system health")
+    print("   - Performance analytics and reporting")
+    print("   - Located in utils/python/advanced_monitoring.py")
     
     print("\n🧪 Testing:")
     print("   python3 test_rvm_integration.py - Quick integration test")
