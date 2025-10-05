@@ -360,36 +360,48 @@
                   <!-- Action Menu Bar -->
                   <div class="flex items-center space-x-1 pt-1">
                     <!-- View Results (Images) Button with Tooltip -->
-                    <div class="relative group">
+                    <div class="relative group" style="z-index: 50;">
                       <button 
                         @click="viewDetectionImages(detection)" 
                         class="flex items-center space-x-1 px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
                         :disabled="!detection.image_path"
                         :class="{ 'opacity-50 cursor-not-allowed': !detection.image_path }"
+                        @mouseenter="showTooltip = true"
+                        @mouseleave="showTooltip = false"
                       >
                         <i class="fas fa-image text-xs"></i>
                         <span>Images</span>
                       </button>
                       <!-- Tooltip -->
-                      <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                      <div 
+                        v-show="showTooltip"
+                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg whitespace-nowrap"
+                        style="z-index: 9999;"
+                      >
                         {{ detection.image_path ? 'View detection images' : 'No images available' }}
-                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                       </div>
                     </div>
                     
                     <!-- View Details Button with Tooltip -->
-                    <div class="relative group">
+                    <div class="relative group" style="z-index: 50;">
                       <button 
                         @click="viewDetectionDetails(detection)" 
                         class="flex items-center space-x-1 px-2 py-1 text-xs bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors"
+                        @mouseenter="showDetailsTooltip = true"
+                        @mouseleave="showDetailsTooltip = false"
                       >
                         <i class="fas fa-info-circle text-xs"></i>
                         <span>Details</span>
                       </button>
                       <!-- Tooltip -->
-                      <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                      <div 
+                        v-show="showDetailsTooltip"
+                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg whitespace-nowrap"
+                        style="z-index: 9999;"
+                      >
                         View detailed detection information
-                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                       </div>
                     </div>
                   </div>
@@ -894,6 +906,7 @@ const showDetectionDetailsModal = ref(false)
 const selectedDetection = ref(null)
 const showFullApiKey = ref(false)
 const showTooltip = ref(false)
+const showDetailsTooltip = ref(false)
 const showEditIpModal = ref(false)
 const isUpdatingIp = ref(false)
 const isTestingConnection = ref(false)
