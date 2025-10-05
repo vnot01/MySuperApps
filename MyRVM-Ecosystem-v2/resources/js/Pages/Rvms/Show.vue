@@ -586,8 +586,8 @@ const enterMaintenance = () => {
 }
 
 const enterPlayground = () => {
-  // TODO: Implement playground functionality
-  alert('Playground functionality will be implemented in future updates')
+  // Navigate to playground page
+  router.get(`/playground/${props.rvm.id}`)
 }
 
 const copyApiKey = () => {

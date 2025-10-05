@@ -34,6 +34,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/maintenance/{rvm}', [MaintenanceController::class, 'show'])->name('maintenance.show');
     Route::post('/maintenance/{rvm}/monitoring', [MaintenanceController::class, 'storeMonitoringData'])->name('maintenance.monitoring.store');
     Route::post('/maintenance/{rvm}/end', [MaintenanceController::class, 'endMaintenance'])->name('maintenance.end');
+    
+    // Playground Routes
+    Route::get('/playground/{rvm}', [PlaygroundController::class, 'show'])->name('playground.show');
 });
 
 // Testing route (no auth required)
