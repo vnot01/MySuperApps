@@ -165,10 +165,7 @@
                   <p class="text-sm opacity-75">{{ selectedCamera?.name || 'Camera' }} is ready</p>
                   <div class="mt-4 flex items-center justify-center space-x-2">
                     <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span class="text-xs">Ready for capture</span>
-                  </div>
-                  <div class="mt-2 text-xs opacity-60">
-                    Live streaming temporarily disabled
+                    <span class="text-xs">Ready for streaming</span>
                   </div>
                 </div>
               </div>
@@ -535,8 +532,8 @@ const startCamera = async () => {
         cameraLoading.value = false
         console.log('✅ Camera started successfully')
         
-        // Start live streaming (temporarily disabled)
-        // startLiveStream()
+        // Start live streaming
+        startLiveStream()
         
         refreshData() // Refresh to get latest status
       } else {
@@ -638,15 +635,30 @@ const startLiveStream = () => {
   console.log('🎬 Starting live stream for camera:', selectedCameraId.value)
   isStreaming.value = true
   
-  // Create stream URL with timestamp to prevent caching
-  const timestamp = Date.now()
-  streamUrl.value = `http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/stream?t=${timestamp}`
+  // Use capture base64 endpoint for live streaming
+  const updateStream = async () => {
+    try {
+      const response = await fetch(`http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/capture/base64`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.image_base64) {
+          streamUrl.value = `data:image/jpeg;base64,${data.image_base64}`
+        }
+      }
+    } catch (error) {
+      console.error('❌ Stream update error:', error)
+    }
+  }
   
-  // Update stream URL every 5 seconds to refresh the image
-  streamInterval.value = setInterval(() => {
-    const newTimestamp = Date.now()
-    streamUrl.value = `http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/stream?t=${newTimestamp}`
-  }, 5000)
+  // Initial stream update
+  updateStream()
+  
+  // Update stream every 2 seconds for smoother experience
+  streamInterval.value = setInterval(updateStream, 2000)
 }
 
 const stopLiveStream = () => {
