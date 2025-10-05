@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\Api\RvmController;
 use App\Http\Controllers\MaintenanceController;
+use App\Http\Controllers\PlaygroundController;
 
 // Landing Page Route
 Route::get('/', [LandingController::class, 'index'])->name('landing');
