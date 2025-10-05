@@ -366,15 +366,15 @@
                         class="flex items-center space-x-1 px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
                         :disabled="!detection.image_path"
                         :class="{ 'opacity-50 cursor-not-allowed': !detection.image_path }"
-                        @mouseenter="showTooltip = true"
-                        @mouseleave="showTooltip = false"
+                        @mouseenter="hoveredImageButtonId = detection.id"
+                        @mouseleave="hoveredImageButtonId = null"
                       >
                         <i class="fas fa-image text-xs"></i>
                         <span>Images</span>
                       </button>
                       <!-- Tooltip -->
                       <div 
-                        v-show="showTooltip"
+                        v-show="hoveredImageButtonId === detection.id"
                         class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg whitespace-nowrap"
                         style="z-index: 9999;"
                       >
@@ -388,15 +388,15 @@
                       <button 
                         @click="viewDetectionDetails(detection)" 
                         class="flex items-center space-x-1 px-2 py-1 text-xs bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors"
-                        @mouseenter="showDetailsTooltip = true"
-                        @mouseleave="showDetailsTooltip = false"
+                        @mouseenter="hoveredDetailsButtonId = detection.id"
+                        @mouseleave="hoveredDetailsButtonId = null"
                       >
                         <i class="fas fa-info-circle text-xs"></i>
                         <span>Details</span>
                       </button>
                       <!-- Tooltip -->
                       <div 
-                        v-show="showDetailsTooltip"
+                        v-show="hoveredDetailsButtonId === detection.id"
                         class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg whitespace-nowrap"
                         style="z-index: 9999;"
                       >
@@ -905,8 +905,8 @@ const selectedPeriod = ref('daily')
 const showDetectionDetailsModal = ref(false)
 const selectedDetection = ref(null)
 const showFullApiKey = ref(false)
-const showTooltip = ref(false)
-const showDetailsTooltip = ref(false)
+const hoveredImageButtonId = ref(null)
+const hoveredDetailsButtonId = ref(null)
 const showEditIpModal = ref(false)
 const isUpdatingIp = ref(false)
 const isTestingConnection = ref(false)
