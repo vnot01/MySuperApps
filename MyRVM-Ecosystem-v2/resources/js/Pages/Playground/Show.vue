@@ -91,18 +91,18 @@
             <!-- Camera Selection -->
             <div v-if="jetsonCameraInfo?.cameras_available?.length > 0" class="mb-4 p-4 bg-gray-50 rounded-lg">
               <h4 class="text-sm font-medium text-gray-700 mb-3">Select Camera:</h4>
-              <div class="space-y-3">
+              <div class="space-y-3 max-w-full overflow-hidden">
                 <!-- Camera Dropdown -->
-                <div class="flex items-center space-x-3">
-                  <label class="text-sm font-medium text-gray-600 w-20">Camera:</label>
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-600">Camera:</label>
                   <select 
                     v-model="selectedCameraId" 
                     @change="onCameraSelectionChange"
-                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm truncate"
                   >
                     <option value="">Select a camera...</option>
-                    <option v-for="camera in jetsonCameraInfo.cameras_available" :key="camera.id" :value="camera.id">
-                      {{ camera.name }} ({{ camera.path }})
+                    <option v-for="camera in jetsonCameraInfo.cameras_available" :key="camera.id" :value="camera.id" :title="`${camera.name} (${camera.path})`">
+                      {{ camera.name.length > 30 ? camera.name.substring(0, 30) + '...' : camera.name }} ({{ camera.path }})
                     </option>
                   </select>
                 </div>
