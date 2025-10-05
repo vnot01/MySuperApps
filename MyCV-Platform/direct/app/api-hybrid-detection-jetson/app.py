@@ -39,9 +39,13 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp'}
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
 
 # RVM Platform Integration
-RVM_API_BASE_URL = os.getenv('RVM_API_BASE_URL', 'http://localhost:8000')
+RVM_API_BASE_URL = os.getenv('RVM_API_BASE_URL', 'http://100.123.143.87:8001')
 RVM_API_KEY = os.getenv('RVM_API_KEY', '')  # Master API key for RVM platform
-RVM_CACHE_TTL = 300  # 5 minutes cache for RVM data
+RVM_CACHE_TTL = int(os.getenv('RVM_CACHE_TTL', '300'))  # 5 minutes cache for RVM data
+
+# Jetson API Configuration
+API_HOST = os.getenv('API_HOST', '100.117.234.2')
+API_PORT = int(os.getenv('API_PORT', '5000'))
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
@@ -642,7 +646,7 @@ def monitoring_status():
             
             # Send to server if RVM_ID is available
             rvm_id = request.headers.get('X-RVM-ID')
-            if rvm_id and RVM_API_BASE_URL != 'http://localhost:8000':
+            if rvm_id and RVM_API_BASE_URL and 'localhost' not in RVM_API_BASE_URL:
                 send_monitoring_data_to_server(rvm_id, monitoring_data)
             
             return jsonify({
@@ -704,7 +708,7 @@ def monitoring_status():
             
             # Send to server if RVM_ID is available
             rvm_id = request.headers.get('X-RVM-ID')
-            if rvm_id and RVM_API_BASE_URL != 'http://localhost:8000':
+            if rvm_id and RVM_API_BASE_URL and 'localhost' not in RVM_API_BASE_URL:
                 send_monitoring_data_to_server(rvm_id, monitoring_data)
             
             return jsonify({
@@ -1655,7 +1659,7 @@ if __name__ == '__main__':
     start_automatic_monitoring()
     
     print("🚀 Starting MyCV-Platform Hybrid Detection API (Jetson)")
-    print("📡 API will be available at: http://100.117.234.2:5000")
+    print(f"📡 API will be available at: http://{API_HOST}:{API_PORT}")
     print("📋 Available endpoints:")
     print("   GET  /api/health - Health check")
     print("   GET  /api/status - API status")
@@ -1676,6 +1680,8 @@ if __name__ == '__main__':
     print("   GET  /api/monitoring/status/auto - Get monitoring status")
     print("=" * 60)
     print("🔐 RVM Integration:")
+    print(f"   - Server: {RVM_API_BASE_URL}")
+    print(f"   - Jetson: http://{API_HOST}:{API_PORT}")
     print("   - Use X-RVM-API-Key header for authentication")
     print("   - Include rvm_id parameter for RVM-specific operations")
     print("   - Data stored in rvm_{id}/ structure")
@@ -1688,7 +1694,7 @@ if __name__ == '__main__':
     print("=" * 60)
     
     try:
-        app.run(host='0.0.0.0', port=5000, debug=False)
+        app.run(host='0.0.0.0', port=API_PORT, debug=False)
     except KeyboardInterrupt:
         print("\n🛑 Shutting down...")
         stop_monitoring()
