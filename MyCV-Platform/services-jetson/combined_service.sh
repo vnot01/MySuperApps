@@ -17,6 +17,19 @@ PROJECT_DIR="/home/my/MySuperApps/MyCV-Platform"
 SERVICES_DIR="${PROJECT_DIR}/services-jetson"
 API_SERVICE="${SERVICES_DIR}/api_service.sh"
 WEB_SERVICE="${SERVICES_DIR}/web_service.sh"
+API_DIR="/home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection-jetson"
+
+# Function to get dynamic API host from config
+get_api_host() {
+    local config_file="$API_DIR/rvm_config.env"
+    if [ -f "$config_file" ]; then
+        # Source the config file to get API_HOST
+        source "$config_file"
+        echo "${API_HOST:-100.117.234.2}"
+    else
+        echo "100.117.234.2"  # Default fallback
+    fi
+}
 
 # Function to print colored output
 print_status() {
@@ -152,8 +165,9 @@ start_all() {
     
     echo ""
     print_success "🎉 All Combined services started successfully!"
-    print_status "📡 API URL: http://100.117.234.2:5000"
-    print_status "🌐 Web URL: http://100.117.234.2:5002"
+    local api_host=$(get_api_host)
+    print_status "📡 API URL: http://$api_host:5000"
+    print_status "🌐 Web URL: http://$api_host:5002"
 }
 
 # Function to stop all services
@@ -186,10 +200,11 @@ status_all() {
     if api_running; then
         local api_pid=$(cat "/tmp/mycv-edge-api.pid" 2>/dev/null || echo "unknown")
         print_success "  ✅ RUNNING (PID: $api_pid)"
-        print_status "  📡 URL: http://100.117.234.2:5000"
+        local api_host=$(get_api_host)
+        print_status "  📡 URL: http://$api_host:5000"
         
         # Test API endpoint
-        if curl -s http://100.117.234.2:5000/api/health > /dev/null 2>&1; then
+        if curl -s http://$api_host:5000/api/health > /dev/null 2>&1; then
             print_success "  ✅ API endpoint responding"
         else
             print_warning "  ⚠️ API endpoint not responding"
@@ -205,10 +220,11 @@ status_all() {
     if web_running; then
         local web_pid=$(cat "/tmp/mycv_web.pid" 2>/dev/null || echo "unknown")
         print_success "  ✅ RUNNING (PID: $web_pid)"
-        print_status "  🌐 URL: http://100.117.234.2:5002"
+        local api_host=$(get_api_host)
+        print_status "  🌐 URL: http://$api_host:5002"
         
         # Test Web endpoint
-        if curl -s http://100.117.234.2:5002/health > /dev/null 2>&1; then
+        if curl -s http://$api_host:5002/health > /dev/null 2>&1; then
             print_success "  ✅ Web endpoint responding"
         else
             print_warning "  ⚠️ Web endpoint not responding"

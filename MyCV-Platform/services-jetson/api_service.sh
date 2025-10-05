@@ -35,6 +35,18 @@ PID_FILE="/tmp/mycv-edge-api.pid"
 LOG_FILE="/tmp/mycv-edge-api.log"
 API_SCRIPT="app.py"
 
+# Function to get dynamic API host from config
+get_api_host() {
+    local config_file="$API_DIR/rvm_config.env"
+    if [ -f "$config_file" ]; then
+        # Source the config file to get API_HOST
+        source "$config_file"
+        echo "${API_HOST:-100.117.234.2}"
+    else
+        echo "100.117.234.2"  # Default fallback
+    fi
+}
+
 # Function to check if API is running
 is_running() {
     # First check if PID file exists and process is running
@@ -63,22 +75,32 @@ is_running() {
     return 1  # Not running
 }
 
-# Function to start API
+# Function to start API with automatic monitoring
 start_api() {
     if is_running; then
         print_warning "API is already running (PID: $(cat $PID_FILE))"
         return 0
     fi
     
-    print_status "🚀 Starting MyCV-Edge-API Service (Jetson)..."
+    print_status "🚀 Starting MyCV-Edge-API Service with automatic monitoring (Jetson)..."
     
     # Change to API directory
     cd "$API_DIR"
     
+    # Load environment variables
+    if [ -f "rvm_config.env" ]; then
+        source rvm_config.env
+        print_status "📋 Loaded RVM configuration"
+        print_status "🔗 Server: $RVM_API_BASE_URL"
+        print_status "🔑 RVM IDs: $RVM_IDS"
+    else
+        print_warning "⚠️  rvm_config.env not found, using defaults"
+    fi
+    
     # Activate virtual environment
     source ../../venv/bin/activate
     
-    # Start API in background
+    # Start API in background with monitoring
     nohup python3 "$API_SCRIPT" > "$LOG_FILE" 2>&1 &
     local pid=$!
     
@@ -88,33 +110,37 @@ start_api() {
     # Wait a moment for the service to start
     sleep 3
     
+    # Get dynamic API host
+    local api_host=$(get_api_host)
+    
     # Check if process is still running
-    # if ps -p "$pid" > /dev/null 2>&1; then
-    #     print_success "✅ API Service started successfully!"
-    #     print_status "📡 API URL: http://100.117.234.2:5000"
-    #     print_status "📋 PID: $pid"
-    #     print_status "📄 Log: $LOG_FILE"
-    #     print_status "🔧 Use './api_service.sh stop' to stop the service"
+    if ps -p "$pid" > /dev/null 2>&1; then
+        print_success "✅ API Service started successfully with automatic monitoring!"
+        print_status "📡 API URL: http://$api_host:5000"
+        print_status "📋 PID: $pid"
+        print_status "📄 Log: $LOG_FILE"
+        print_status "📊 Monitoring: Automatic data collection every 30 seconds"
+        print_status "🔧 Use './api_service.sh stop' to stop the service"
         
-    #     # Test API endpoint
-    #     sleep 2
-    #     if curl -s http://100.117.234.2:5000/api/health > /dev/null 2>&1; then
-    #         print_success "✅ API endpoint is responding"
-    #     else
-    #         print_warning "⚠️  API started but endpoint not responding yet"
-    #     fi
-    # else
-    #     print_error "❌ Failed to start API Service"
-    #     print_error "📄 Check log: $LOG_FILE"
-    #     rm -f "$PID_FILE"
+        # Test API endpoint
+        sleep 2
+        if curl -s http://$api_host:5000/api/health > /dev/null 2>&1; then
+            print_success "✅ API endpoint is responding"
+        else
+            print_warning "⚠️  API started but endpoint not responding yet"
+        fi
+    else
+        print_error "❌ Failed to start API Service"
+        print_error "📄 Check log: $LOG_FILE"
+        rm -f "$PID_FILE"
         
-    #     # Show last few lines of log
-    #     if [ -f "$LOG_FILE" ]; then
-    #         print_error "Last log entries:"
-    #         tail -5 "$LOG_FILE" | sed 's/^/   /'
-    #     fi
-    #     return 1
-    # fi
+        # Show last few lines of log
+        if [ -f "$LOG_FILE" ]; then
+            print_error "Last log entries:"
+            tail -5 "$LOG_FILE" | sed 's/^/   /'
+        fi
+        return 1
+    fi
 }
 
 # Function to stop API
@@ -149,21 +175,32 @@ stop_api() {
     print_success "✅ API Service stopped successfully!"
 }
 
-# Function to restart API
+# Function to restart API with monitoring
 restart_api() {
-    print_status "🔄 Restarting MyCV-Edge-API Service..."
-    stop_api
+    print_status "🔄 Restarting Jetson API with automatic monitoring..."
+    
+    # Kill existing processes
+    pkill -f "python.*app.py" 2>/dev/null || true
+    pkill -f "uvicorn.*app:app" 2>/dev/null || true
+    
+    # Wait a moment
     sleep 2
+    
+    # Start the API with automatic monitoring
     start_api
+    
+    print_success "✅ Jetson API restarted with automatic monitoring"
+    print_status "📊 Monitoring will send data every 30 seconds to server"
 }
 
 # Function to show status
 show_status() {
     if is_running; then
         local pid=$(cat "$PID_FILE")
+        local api_host=$(get_api_host)
         print_success "✅ API Service is RUNNING"
         print_status "📋 PID: $pid"
-        print_status "📡 URL: http://100.98.142.94:5000"
+        print_status "📡 URL: http://$api_host:5000"
         print_status "📄 Log: $LOG_FILE"
         
         # Show recent log entries
@@ -211,7 +248,8 @@ show_help() {
     echo "  $0 status   # Check if running"
     echo "  $0 logs     # View logs"
     echo ""
-    echo "API will be available at: http://100.98.142.94:5000"
+    local api_host=$(get_api_host)
+    echo "API will be available at: http://$api_host:5000"
     echo "Logs are stored at: $LOG_FILE"
     echo "PID file: $PID_FILE"
 }

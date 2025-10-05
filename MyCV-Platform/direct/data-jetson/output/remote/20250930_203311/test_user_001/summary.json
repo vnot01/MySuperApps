@@ -1,0 +1,80 @@
+{
+  "detection_summary": [
+    {
+      "id": 0,
+      "name": "116.dishwasher-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            256.18243408203125,
+            107.73143005371094,
+            593.7510986328125,
+            363.18035888671875
+          ],
+          "confidence": 0.9642068147659302,
+          "class_id": 0,
+          "class_name": "dishwasher"
+        }
+      ],
+      "detection_count": 1,
+      "summary_images_url": "http://100.117.234.2:5000/api/download/session_e209fb20/116.dishwasher-best_pt-compare.png",
+      "images": {
+        "best": "http://100.117.234.2:5000/api/download/session_e209fb20/116.dishwasher-best_pt-best.png",
+        "yolo": "http://100.117.234.2:5000/api/download/session_e209fb20/116.dishwasher-yolo11m-detection.png",
+        "sam": "http://100.117.234.2:5000/api/download/session_e209fb20/116.dishwasher-best_pt-segmentation.png",
+        "hybrid": "http://100.117.234.2:5000/api/download/session_e209fb20/116.dishwasher-best_pt-hybrid.png"
+      }
+    },
+    {
+      "id": 1,
+      "name": "140.mineral_broken-best_pt-detection.json",
+      "datas": [
+        {
+          "bbox": [
+            246.43603515625,
+            132.68112182617188,
+            512.7777709960938,
+            283.94879150390625
+          ],
+          "confidence": 0.8844398856163025,
+          "class_id": 3,
+          "class_name": "non_mineral"
+        },
+        {
+          "bbox": [
+            246.0247802734375,
+            128.3162841796875,
+            510.6409912109375,
+            283.616943359375
+          ],
+          "confidence": 0.5113438963890076,
+          "class_id": 2,
+          "class_name": "mineral"
+        }
+      ],
+      "detection_count": 2,
+      "summary_images_url": "http://100.117.234.2:5000/api/download/session_e209fb20/140.mineral_broken-best_pt-compare.png",
+      "images": {
+        "best": "http://100.117.234.2:5000/api/download/session_e209fb20/140.mineral_broken-best_pt-best.png",
+        "yolo": "http://100.117.234.2:5000/api/download/session_e209fb20/140.mineral_broken-yolo11m-detection.png",
+        "sam": "http://100.117.234.2:5000/api/download/session_e209fb20/140.mineral_broken-best_pt-segmentation.png",
+        "hybrid": "http://100.117.234.2:5000/api/download/session_e209fb20/140.mineral_broken-best_pt-hybrid.png"
+      }
+    }
+  ],
+  "class_summary": [
+    {
+      "class_name": "dishwasher",
+      "count": 1
+    },
+    {
+      "class_name": "mineral",
+      "count": 1
+    },
+    {
+      "class_name": "non_mineral",
+      "count": 1
+    }
+  ],
+  "object_count": 2
+}

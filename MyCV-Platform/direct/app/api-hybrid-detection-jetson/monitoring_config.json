@@ -1,0 +1,8 @@
+{
+  "monitoring_interval": 30,
+  "alert_cooldown": 300,
+  "max_history_size": 1000,
+  "enable_alerts": true,
+  "enable_analytics": true,
+  "log_level": "INFO"
+}

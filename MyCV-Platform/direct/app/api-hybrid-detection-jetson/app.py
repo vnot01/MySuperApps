@@ -197,17 +197,30 @@ def send_monitoring_data_to_server(rvm_id, monitoring_data):
             'Content-Type': 'application/json'
         }
         
-        # Prepare monitoring data for server
+        # Helper function to handle float values
+        def safe_float(value, default=0.0):
+            try:
+                if value is None:
+                    return default
+                val = float(value)
+                # Check for NaN or infinity
+                if val != val or val == float('inf') or val == float('-inf'):
+                    return default
+                return val
+            except (ValueError, TypeError):
+                return default
+        
+        # Prepare monitoring data for server with safe float handling
         payload = {
             'timestamp': monitoring_data.get('timestamp', datetime.now().isoformat()),
-            'cpu_usage': monitoring_data.get('cpu_usage'),
-            'memory_usage': monitoring_data.get('memory_usage'),
-            'gpu_usage': monitoring_data.get('gpu_usage'),
-            'disk_usage': monitoring_data.get('disk_usage'),
-            'processing_time_ms': monitoring_data.get('processing_time_ms'),
-            'detections_count': monitoring_data.get('detections_count', 0),
-            'error_count': monitoring_data.get('error_count', 0),
-            'api_requests_count': monitoring_data.get('api_requests_count', 0),
+            'cpu_usage': safe_float(monitoring_data.get('cpu_usage'), 0.0),
+            'memory_usage': safe_float(monitoring_data.get('memory_usage'), 0.0),
+            'gpu_usage': safe_float(monitoring_data.get('gpu_usage'), 0.0),
+            'disk_usage': safe_float(monitoring_data.get('disk_usage'), 0.0),
+            'processing_time_ms': safe_float(monitoring_data.get('processing_time_ms'), 0.0),
+            'detections_count': int(monitoring_data.get('detections_count', 0)),
+            'error_count': int(monitoring_data.get('error_count', 0)),
+            'api_requests_count': int(monitoring_data.get('api_requests_count', 0)),
         }
         
         response = requests.post(
@@ -232,8 +245,11 @@ def collect_and_send_monitoring_data():
     """Collect monitoring data and send to server automatically"""
     global monitoring_active
     
+
+    print("🔧 Monitoring thread started, waiting for activation...")
     while monitoring_active:
         try:
+            print(f"📊 Collecting monitoring data at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             # Get current system metrics
             import psutil
             import GPUtil
@@ -288,6 +304,9 @@ def start_automatic_monitoring():
         monitoring_thread.daemon = True
         monitoring_thread.start()
         print(f"🚀 Automatic monitoring started (interval: {monitoring_interval}s)")
+        print(f"🔧 Monitoring thread started: {monitoring_thread.is_alive()}")
+    else:
+        print("⚠️ Monitoring already active")
 
 def stop_automatic_monitoring():
     """Stop automatic monitoring data collection"""
@@ -1632,10 +1651,7 @@ if __name__ == '__main__':
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     os.makedirs(OUTPUT_FOLDER, exist_ok=True)
     
-    # Start advanced monitoring
-    start_monitoring()
-    
-    # Start automatic monitoring data collection
+    # Start automatic monitoring data collection (without Flask context)
     start_automatic_monitoring()
     
     print("🚀 Starting MyCV-Platform Hybrid Detection API (Jetson)")
