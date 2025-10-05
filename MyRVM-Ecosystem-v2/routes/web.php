@@ -47,6 +47,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/playground/{rvm}/cameras/{cameraId}/start', [PlaygroundController::class, 'startCamera'])->name('playground.cameras.start');
     Route::post('/playground/{rvm}/cameras/{cameraId}/capture', [PlaygroundController::class, 'captureImage'])->name('playground.cameras.capture');
     Route::post('/playground/{rvm}/cameras/{cameraId}/capture/base64', [PlaygroundController::class, 'captureImageBase64'])->name('playground.cameras.capture.base64');
+    Route::post('/playground/{rvm}/cameras/{cameraId}/capture-save', [PlaygroundController::class, 'captureAndSaveImage'])->name('playground.cameras.capture.save');
 });
 
 // Testing route (no auth required)

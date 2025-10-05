@@ -557,20 +557,26 @@ const captureImage = async () => {
   try {
     console.log('📸 Attempting to capture image from camera:', selectedCameraId.value)
     
-    const response = await fetch(`http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/capture`, {
+    // Use Laravel endpoint that saves to storage
+    const response = await fetch(`/playground/${props.rvm.id}/cameras/${selectedCameraId.value}/capture-save`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        save_path: `/tmp/playground_capture_${selectedCameraId.value}_${Date.now()}.jpg`
-      })
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      }
     })
     
     if (response.ok) {
       const data = await response.json()
-      console.log('✅ Image captured successfully:', data)
+      console.log('✅ Image captured and saved successfully:', data)
       if (data.success) {
-        console.log('📁 Image saved to:', data.result)
+        console.log('📁 Image saved to storage:', data.storage_path)
+        console.log('🌐 Public URL:', data.public_url)
+        console.log('📂 File path:', data.file_path)
+        console.log('⏰ Timestamp:', data.timestamp)
+        
         // TODO: Display captured image or add to results
+        // You can now access the image via data.public_url
       } else {
         console.error('❌ Capture failed:', data.error)
         cameraError.value = data.error || 'Failed to capture image'

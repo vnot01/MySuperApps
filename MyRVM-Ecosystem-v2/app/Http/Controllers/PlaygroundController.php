@@ -449,4 +449,80 @@ class PlaygroundController extends Controller
 
         return response()->json(['error' => 'Failed to capture base64 image'], 500);
     }
+
+    /**
+     * Capture and save image to storage
+     */
+    public function captureAndSaveImage(Request $request, $rvmId, $cameraId)
+    {
+        $rvm = ReverseVendingMachine::findOrFail($rvmId);
+        
+        if (!$rvm->ip_address) {
+            return response()->json(['error' => 'RVM IP address not configured'], 400);
+        }
+
+        try {
+            // Create directory structure: storage/app/public/playground/{rvm_id}/{timestamp}
+            $timestamp = now()->format('Y-m-d_H-i-s');
+            $storagePath = "playground/{$rvmId}/{$timestamp}";
+            $fullPath = storage_path("app/public/{$storagePath}");
+            
+            if (!file_exists($fullPath)) {
+                mkdir($fullPath, 0755, true);
+            }
+
+            // Request Jetson to capture image with our storage path
+            $filename = "camera_{$cameraId}_capture.jpg";
+            $jetsonPath = "{$fullPath}/{$filename}";
+            
+            $response = Http::timeout(15)->post("http://{$rvm->ip_address}:5000/api/cameras/{$cameraId}/capture", [
+                'save_path' => $jetsonPath
+            ]);
+            
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                if ($data['success'] && file_exists($jetsonPath)) {
+                    // Create symlink if it doesn't exist
+                    $this->ensureStorageSymlink();
+                    
+                    // Return public URL
+                    $publicUrl = asset("storage/{$storagePath}/{$filename}");
+                    
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Image captured and saved successfully',
+                        'camera_id' => $cameraId,
+                        'file_path' => $jetsonPath,
+                        'public_url' => $publicUrl,
+                        'storage_path' => "{$storagePath}/{$filename}",
+                        'timestamp' => $timestamp
+                    ]);
+                } else {
+                    return response()->json(['error' => 'Failed to save image to storage'], 500);
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error("Failed to capture and save image from camera {$cameraId} for RVM {$rvmId}: " . $e->getMessage());
+        }
+
+        return response()->json(['error' => 'Failed to capture and save image'], 500);
+    }
+
+    /**
+     * Ensure storage symlink exists
+     */
+    private function ensureStorageSymlink()
+    {
+        $link = public_path('storage');
+        $target = storage_path('app/public');
+        
+        if (!file_exists($link)) {
+            try {
+                symlink($target, $link);
+            } catch (\Exception $e) {
+                \Log::error("Failed to create storage symlink: " . $e->getMessage());
+            }
+        }
+    }
 }
