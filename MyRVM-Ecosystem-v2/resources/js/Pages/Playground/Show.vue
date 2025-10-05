@@ -165,7 +165,10 @@
                   <p class="text-sm opacity-75">{{ selectedCamera?.name || 'Camera' }} is ready</p>
                   <div class="mt-4 flex items-center justify-center space-x-2">
                     <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span class="text-xs">Ready for streaming</span>
+                    <span class="text-xs">Ready for capture</span>
+                  </div>
+                  <div class="mt-2 text-xs opacity-60">
+                    Live streaming temporarily disabled
                   </div>
                 </div>
               </div>
@@ -532,8 +535,8 @@ const startCamera = async () => {
         cameraLoading.value = false
         console.log('✅ Camera started successfully')
         
-        // Start live streaming
-        startLiveStream()
+        // Start live streaming (temporarily disabled)
+        // startLiveStream()
         
         refreshData() // Refresh to get latest status
       } else {
@@ -605,6 +608,7 @@ const captureImage = async () => {
         console.log('🌐 Public URL:', data.public_url)
         console.log('📂 File path:', data.file_path)
         console.log('⏰ Timestamp:', data.timestamp)
+        console.log('📸 Capture successful - Image is real-time!')
         
         // TODO: Display captured image or add to results
         // You can now access the image via data.public_url
