@@ -88,23 +88,40 @@
               </div>
             </div>
             
-            <!-- Camera Information -->
+            <!-- Camera Selection -->
             <div v-if="jetsonCameraInfo?.cameras_available?.length > 0" class="mb-4 p-4 bg-gray-50 rounded-lg">
-              <h4 class="text-sm font-medium text-gray-700 mb-2">Available Cameras:</h4>
-              <div class="grid grid-cols-1 gap-2">
-                <div v-for="camera in jetsonCameraInfo.cameras_available" :key="camera.id" 
-                     class="flex items-center justify-between p-2 bg-white rounded border">
-                  <div class="flex items-center space-x-2">
-                    <div :class="[
-                      'w-2 h-2 rounded-full',
-                      camera.status === 'active' ? 'bg-green-500' : 'bg-yellow-500'
-                    ]"></div>
-                    <span class="text-sm font-medium">{{ camera.name }}</span>
-                    <span class="text-xs text-gray-500">({{ camera.path }})</span>
-                  </div>
-                  <div class="flex items-center space-x-1">
-                    <span v-if="camera.is_streaming" class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Streaming</span>
-                    <span v-else class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Idle</span>
+              <h4 class="text-sm font-medium text-gray-700 mb-3">Select Camera:</h4>
+              <div class="space-y-3">
+                <!-- Camera Dropdown -->
+                <div class="flex items-center space-x-3">
+                  <label class="text-sm font-medium text-gray-600 w-20">Camera:</label>
+                  <select 
+                    v-model="selectedCameraId" 
+                    @change="onCameraSelectionChange"
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  >
+                    <option value="">Select a camera...</option>
+                    <option v-for="camera in jetsonCameraInfo.cameras_available" :key="camera.id" :value="camera.id">
+                      {{ camera.name }} ({{ camera.path }})
+                    </option>
+                  </select>
+                </div>
+                
+                <!-- Selected Camera Info -->
+                <div v-if="selectedCamera" class="p-3 bg-white rounded-lg border">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                      <div :class="[
+                        'w-2 h-2 rounded-full',
+                        selectedCamera.status === 'active' ? 'bg-green-500' : 'bg-yellow-500'
+                      ]"></div>
+                      <span class="text-sm font-medium">{{ selectedCamera.name }}</span>
+                      <span class="text-xs text-gray-500">({{ selectedCamera.path }})</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                      <span v-if="selectedCamera.is_streaming" class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Streaming</span>
+                      <span v-else class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Idle</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -146,7 +163,7 @@
             <div class="mt-4 flex flex-wrap gap-2">
               <button 
                 @click="startCamera"
-                :disabled="!jetsonCameraInfo?.camera_ready || cameraActive || cameraLoading"
+                :disabled="!selectedCameraId || cameraActive || cameraLoading"
                 class="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg transition-colors flex items-center"
               >
                 <i v-if="cameraLoading" class="fas fa-spinner fa-spin mr-2"></i>
@@ -169,6 +186,14 @@
                 <i class="fas fa-camera mr-2"></i>
                 Capture Image
               </button>
+            </div>
+            
+            <!-- Camera Selection Help -->
+            <div v-if="!selectedCameraId" class="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div class="flex items-center">
+                <i class="fas fa-info-circle text-yellow-600 mr-2"></i>
+                <span class="text-sm text-yellow-700">Please select a camera from the dropdown above to enable camera controls.</span>
+              </div>
             </div>
           </div>
 
@@ -411,6 +436,17 @@ const cameraError = ref('')
 const cameraLoading = ref(false)
 const detectionResults = ref([])
 
+// Camera selection
+const selectedCameraId = ref('')
+
+// Computed properties
+const selectedCamera = computed(() => {
+  if (!selectedCameraId.value || !props.jetsonCameraInfo?.cameras_available) {
+    return null
+  }
+  return props.jetsonCameraInfo.cameras_available.find(camera => camera.id === selectedCameraId.value)
+})
+
 // Actions
 const goBack = () => {
   router.get('/dashboard')
@@ -425,53 +461,49 @@ const refreshData = async () => {
   }
 }
 
+const onCameraSelectionChange = () => {
+  console.log('📷 Camera selection changed:', selectedCameraId.value)
+  console.log('📷 Selected camera:', selectedCamera.value)
+  
+  // Reset camera state when selection changes
+  if (cameraActive.value) {
+    cameraActive.value = false
+  }
+  cameraError.value = ''
+}
+
 const startCamera = async () => {
+  if (!selectedCameraId.value) {
+    cameraError.value = 'Please select a camera first'
+    return
+  }
+  
   try {
     cameraLoading.value = true
     cameraError.value = ''
-    console.log('🎥 Attempting to initialize camera...')
+    console.log('🎥 Attempting to start camera:', selectedCameraId.value)
     
-    // Initialize camera first
-    const initResponse = await fetch(`http://${props.rvm.ip_address}:5000/api/camera/initialize`, {
+    // Start camera using the selected camera ID
+    const startResponse = await fetch(`http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     })
     
-    if (initResponse.ok) {
-      const initData = await initResponse.json()
-      console.log('📋 Camera initialization response:', initData)
+    if (startResponse.ok) {
+      const startData = await startResponse.json()
+      console.log('📋 Camera start response:', startData)
       
-      if (initData.status === 'success') {
-        console.log('✅ Camera initialized successfully')
-        
-        // Start camera stream
-        const streamResponse = await fetch(`http://${props.rvm.ip_address}:5000/api/camera/start_stream`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        })
-        
-        if (streamResponse.ok) {
-          cameraActive.value = true
-          console.log('✅ Camera started successfully')
-          refreshStatus() // Refresh to get latest status
-        } else {
-          console.error('❌ Failed to start camera stream')
-          cameraError.value = 'Failed to start camera stream'
-        }
+      if (startData.success) {
+        cameraActive.value = true
+        console.log('✅ Camera started successfully')
+        refreshStatus() // Refresh to get latest status
       } else {
-        console.error('❌ Failed to initialize camera:', initData.message)
-        
-        // Show user-friendly error message
-        if (initData.message && initData.message.includes('OpenCV not installed')) {
-          cameraError.value = 'OpenCV not installed on Jetson. Camera functionality unavailable.'
-          console.warn('⚠️ OpenCV is not installed on Jetson. Camera functionality unavailable.')
-        } else {
-          cameraError.value = initData.message || 'Failed to initialize camera'
-        }
+        console.error('❌ Failed to start camera:', startData.error)
+        cameraError.value = startData.error || 'Failed to start camera'
       }
     } else {
-      console.error('❌ Camera initialization failed - HTTP error')
-      cameraError.value = 'Camera initialization failed - HTTP error'
+      console.error('❌ Camera start failed - HTTP error')
+      cameraError.value = 'Camera start failed - HTTP error'
     }
   } catch (error) {
     console.error('❌ Error starting camera:', error)
@@ -482,8 +514,12 @@ const startCamera = async () => {
 }
 
 const stopCamera = async () => {
+  if (!selectedCameraId.value) {
+    return
+  }
+  
   try {
-    const response = await fetch(`http://${props.rvm.ip_address}:5000/api/camera/stop_stream`, {
+    const response = await fetch(`http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/stop`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     })
@@ -491,8 +527,9 @@ const stopCamera = async () => {
     if (response.ok) {
       cameraActive.value = false
       console.log('✅ Camera stopped successfully')
+      refreshStatus() // Refresh to get latest status
     } else {
-      console.error('❌ Failed to stop camera stream')
+      console.error('❌ Failed to stop camera')
     }
   } catch (error) {
     console.error('❌ Error stopping camera:', error)
@@ -500,23 +537,25 @@ const stopCamera = async () => {
 }
 
 const captureImage = async () => {
-  if (cameraActive.value) {
-    try {
-      const response = await fetch(`http://${props.rvm.ip_address}:5000/api/camera/capture`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        console.log('✅ Image captured:', data.filename)
-        // TODO: Display captured image or add to results
-      } else {
-        console.error('❌ Failed to capture image')
-      }
-    } catch (error) {
-      console.error('❌ Error capturing image:', error)
+  if (!cameraActive.value || !selectedCameraId.value) {
+    return
+  }
+  
+  try {
+    const response = await fetch(`http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/capture`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      console.log('✅ Image captured:', data)
+      // TODO: Display captured image or add to results
+    } else {
+      console.error('❌ Failed to capture image')
     }
+  } catch (error) {
+    console.error('❌ Error capturing image:', error)
   }
 }
 
