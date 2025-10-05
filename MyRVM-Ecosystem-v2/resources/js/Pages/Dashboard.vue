@@ -851,16 +851,11 @@ const toggleMaintenance = (rvmId, currentStatus) => {
   activeRvmMenu.value = null
   
   if (currentStatus === 'maintenance') {
-    // End maintenance - update status to active
-    const newStatus = 'active'
-    
-    // Update RVM status
-    router.patch(`/api/rvms/${rvmId}/status`, {
-      status: newStatus
-    }, {
+    // End maintenance - use new maintenance endpoint
+    router.post(`/maintenance/${rvmId}/end`, {}, {
       onSuccess: () => {
         // Show success message
-        console.log(`RVM ${rvmId} status updated to ${newStatus}`)
+        console.log(`RVM ${rvmId} maintenance ended successfully`)
       },
       onError: (errors) => {
         console.error('Failed to update RVM status:', errors)
