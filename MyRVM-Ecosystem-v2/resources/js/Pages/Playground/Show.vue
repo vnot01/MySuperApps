@@ -555,20 +555,33 @@ const captureImage = async () => {
   }
   
   try {
+    console.log('📸 Attempting to capture image from camera:', selectedCameraId.value)
+    
     const response = await fetch(`http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/capture`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        save_path: `/tmp/playground_capture_${selectedCameraId.value}_${Date.now()}.jpg`
+      })
     })
     
     if (response.ok) {
       const data = await response.json()
-      console.log('✅ Image captured:', data)
-      // TODO: Display captured image or add to results
+      console.log('✅ Image captured successfully:', data)
+      if (data.success) {
+        console.log('📁 Image saved to:', data.result)
+        // TODO: Display captured image or add to results
+      } else {
+        console.error('❌ Capture failed:', data.error)
+        cameraError.value = data.error || 'Failed to capture image'
+      }
     } else {
-      console.error('❌ Failed to capture image')
+      console.error('❌ Failed to capture image - HTTP error')
+      cameraError.value = 'Capture failed - HTTP error'
     }
   } catch (error) {
     console.error('❌ Error capturing image:', error)
+    cameraError.value = 'Network error: ' + error.message
   }
 }
 
