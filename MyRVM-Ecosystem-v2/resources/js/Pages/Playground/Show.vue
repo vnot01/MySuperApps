@@ -134,10 +134,21 @@
                 <p class="text-lg">Camera Feed Not Active</p>
                 <p class="text-sm opacity-75">Click "Start Camera" to begin</p>
               </div>
-              <div v-else class="w-full h-full bg-gray-800 flex items-center justify-center">
+              <div v-else-if="cameraLoading" class="w-full h-full bg-gray-800 flex items-center justify-center">
                 <div class="text-center text-white">
                   <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                  <p>Connecting to camera...</p>
+                  <p>Starting camera...</p>
+                </div>
+              </div>
+              <div v-else class="w-full h-full bg-gray-800 flex items-center justify-center">
+                <div class="text-center text-white">
+                  <i class="fas fa-video text-4xl mb-4 text-green-500"></i>
+                  <p class="text-lg">Camera Active</p>
+                  <p class="text-sm opacity-75">{{ selectedCamera?.name || 'Camera' }} is ready</p>
+                  <div class="mt-4 flex items-center justify-center space-x-2">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-xs">Live</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -495,20 +506,22 @@ const startCamera = async () => {
       
       if (startData.success) {
         cameraActive.value = true
+        cameraLoading.value = false
         console.log('✅ Camera started successfully')
         refreshData() // Refresh to get latest status
       } else {
         console.error('❌ Failed to start camera:', startData.error)
         cameraError.value = startData.error || 'Failed to start camera'
+        cameraLoading.value = false
       }
     } else {
       console.error('❌ Camera start failed - HTTP error')
       cameraError.value = 'Camera start failed - HTTP error'
+      cameraLoading.value = false
     }
   } catch (error) {
     console.error('❌ Error starting camera:', error)
     cameraError.value = 'Network error: ' + error.message
-  } finally {
     cameraLoading.value = false
   }
 }
