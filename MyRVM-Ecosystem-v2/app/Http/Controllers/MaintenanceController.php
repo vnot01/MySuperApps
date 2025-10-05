@@ -469,7 +469,7 @@ class MaintenanceController extends Controller
             'last_maintenance' => now()
         ]);
 
-        return redirect()->route('rvms.show', $rvmId)
+        return redirect()->route('dashboard')
             ->with('success', 'Maintenance ended successfully. RVM is now active.');
     }
 }
