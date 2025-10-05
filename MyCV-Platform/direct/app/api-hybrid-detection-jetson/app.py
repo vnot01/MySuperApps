@@ -29,6 +29,10 @@ from utils.python.advanced_monitoring import start_monitoring, stop_monitoring, 
 # Add parent directory to path to import detection modules
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
 
+# Import camera service
+sys.path.append(os.path.join(os.path.dirname(__file__), 'utils', 'services'))
+from camera_service import get_camera_service
+
 app = Flask(__name__)
 CORS(app, origins=["*"])
 
@@ -820,156 +824,334 @@ def monitoring_auto_status():
         'timestamp': datetime.now().isoformat()
     })
 
-# Camera Management Endpoints
-@app.route('/api/camera/status', methods=['GET'])
-def camera_status():
-    """Get camera status"""
-    return jsonify({
-        'camera_available': camera_available,
-        'camera_initialized': camera_initialized,
-        'camera_streaming': camera_streaming,
-        'timestamp': datetime.now().isoformat()
-    })
+# ============================================================================
+# CAMERA CONTROL ENDPOINTS
+# ============================================================================
 
-@app.route('/api/camera/initialize', methods=['POST'])
-def initialize_camera():
-    """Initialize camera"""
-    global camera, camera_available, camera_initialized
-    
+@app.route('/api/cameras', methods=['GET'])
+def get_cameras():
+    """Get list of available cameras"""
     try:
-        # Check if OpenCV is available
-        try:
-            import cv2
-        except ImportError:
-            return jsonify({
-                'status': 'error',
-                'message': 'OpenCV not installed - camera functionality unavailable',
-                'camera_available': False
-            })
+        camera_service = get_camera_service()
+        if not camera_service.is_initialized:
+            camera_service.initialize()
         
-        # Try to initialize camera
-        camera = cv2.VideoCapture(0)
+        cameras = camera_service.detect_cameras()
+        return jsonify({
+            'success': True,
+            'cameras': cameras,
+            'total': len(cameras)
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/cameras/<camera_id>/info', methods=['GET'])
+def get_camera_info(camera_id):
+    """Get detailed camera information"""
+    try:
+        camera_service = get_camera_service()
+        if not camera_service.is_initialized:
+            camera_service.initialize()
         
-        if camera.isOpened():
-            camera_available = True
-            camera_initialized = True
-            print("✅ Camera initialized successfully")
+        status = camera_service.get_camera_status(camera_id)
+        return jsonify({
+            'success': True,
+            'camera_id': camera_id,
+            'info': status
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/cameras/<camera_id>/start', methods=['POST'])
+def start_camera(camera_id):
+    """Start camera for capture/streaming"""
+    try:
+        camera_service = get_camera_service()
+        if not camera_service.is_initialized:
+            camera_service.initialize()
+        
+        success = camera_service.start_camera(camera_id)
+        if success:
             return jsonify({
-                'status': 'success',
-                'message': 'Camera initialized successfully',
-                'camera_available': True
+                'success': True,
+                'message': f'Camera {camera_id} started successfully',
+                'camera_id': camera_id
             })
         else:
-            camera_available = False
-            camera_initialized = False
-            print("❌ Failed to initialize camera")
             return jsonify({
-                'status': 'error',
-                'message': 'Failed to initialize camera',
-                'camera_available': False
+                'success': False,
+                'error': f'Failed to start camera {camera_id}'
+            }), 400
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/cameras/<camera_id>/stop', methods=['POST'])
+def stop_camera(camera_id):
+    """Stop camera"""
+    try:
+        camera_service = get_camera_service()
+        success = camera_service.stop_camera(camera_id)
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f'Camera {camera_id} stopped successfully',
+                'camera_id': camera_id
             })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to stop camera {camera_id}'
+            }), 400
     except Exception as e:
-        camera_available = False
-        camera_initialized = False
-        print(f"❌ Camera initialization error: {e}")
         return jsonify({
-            'status': 'error',
-            'message': f'Camera initialization error: {str(e)}',
-            'camera_available': False
-        })
+            'success': False,
+            'error': str(e)
+        }), 500
 
-@app.route('/api/camera/start_stream', methods=['POST'])
-def start_camera_stream():
-    """Start camera streaming"""
-    global camera_streaming
-    
-    if not camera_initialized:
-        return jsonify({
-            'status': 'error',
-            'message': 'Camera not initialized'
-        })
-    
+@app.route('/api/cameras/<camera_id>/restart', methods=['POST'])
+def restart_camera(camera_id):
+    """Restart camera"""
     try:
-        camera_streaming = True
-        print("📹 Camera streaming started")
-        return jsonify({
-            'status': 'success',
-            'message': 'Camera streaming started',
-            'streaming': True
-        })
+        camera_service = get_camera_service()
+        success = camera_service.restart_camera(camera_id)
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f'Camera {camera_id} restarted successfully',
+                'camera_id': camera_id
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to restart camera {camera_id}'
+            }), 400
     except Exception as e:
-        print(f"❌ Error starting camera stream: {e}")
         return jsonify({
-            'status': 'error',
-            'message': f'Error starting camera stream: {str(e)}'
-        })
+            'success': False,
+            'error': str(e)
+        }), 500
 
-@app.route('/api/camera/stop_stream', methods=['POST'])
-def stop_camera_stream():
-    """Stop camera streaming"""
-    global camera_streaming
-    
-    try:
-        camera_streaming = False
-        print("🛑 Camera streaming stopped")
-        return jsonify({
-            'status': 'success',
-            'message': 'Camera streaming stopped',
-            'streaming': False
-        })
-    except Exception as e:
-        print(f"❌ Error stopping camera stream: {e}")
-        return jsonify({
-            'status': 'error',
-            'message': f'Error stopping camera stream: {str(e)}'
-        })
-
-@app.route('/api/camera/capture', methods=['POST'])
-def capture_image():
+@app.route('/api/cameras/<camera_id>/capture', methods=['POST'])
+def capture_camera_image(camera_id):
     """Capture image from camera"""
-    if not camera_initialized or not camera_streaming:
-        return jsonify({
-            'status': 'error',
-            'message': 'Camera not ready for capture'
-        })
-    
     try:
-        # Check if OpenCV is available
-        try:
-            import cv2
-        except ImportError:
-            return jsonify({
-                'status': 'error',
-                'message': 'OpenCV not installed - camera capture unavailable'
-            })
+        camera_service = get_camera_service()
+        if not camera_service.is_initialized:
+            camera_service.initialize()
         
-        ret, frame = camera.read()
-        if ret:
-            # Save captured image
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f'capture_{timestamp}.jpg'
-            filepath = os.path.join(OUTPUT_FOLDER, filename)
-            
-            cv2.imwrite(filepath, frame)
-            
+        # Get save path from request
+        save_path = request.json.get('save_path') if request.json else None
+        
+        success, result = camera_service.capture_image(camera_id, save_path)
+        
+        if success:
             return jsonify({
-                'status': 'success',
+                'success': True,
                 'message': 'Image captured successfully',
-                'filename': filename,
-                'filepath': filepath,
-                'timestamp': timestamp
+                'camera_id': camera_id,
+                'result': result
             })
         else:
             return jsonify({
-                'status': 'error',
-                'message': 'Failed to capture image'
-            })
+                'success': False,
+                'error': result
+            }), 400
     except Exception as e:
-        print(f"❌ Error capturing image: {e}")
         return jsonify({
-            'status': 'error',
-            'message': f'Error capturing image: {str(e)}'
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/cameras/<camera_id>/capture/base64', methods=['POST'])
+def capture_image_base64(camera_id):
+    """Capture image and return as base64"""
+    try:
+        camera_service = get_camera_service()
+        if not camera_service.is_initialized:
+            camera_service.initialize()
+        
+        success, result = camera_service.capture_image(camera_id, save_path=None)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'Image captured successfully',
+                'camera_id': camera_id,
+                'image_base64': result,
+                'timestamp': datetime.now().isoformat()
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': result
+            }), 400
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/cameras/status', methods=['GET'])
+def get_all_cameras_status():
+    """Get status of all cameras"""
+    try:
+        camera_service = get_camera_service()
+        if not camera_service.is_initialized:
+            camera_service.initialize()
+        
+        status = camera_service.get_all_cameras_status()
+        return jsonify({
+            'success': True,
+            'status': status,
+            'timestamp': datetime.now().isoformat()
         })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/cameras/status/simple', methods=['GET'])
+def get_simple_cameras_status():
+    """Get simplified status of all cameras with device names"""
+    try:
+        camera_service = get_camera_service()
+        if not camera_service.is_initialized:
+            camera_service.initialize()
+        
+        status = camera_service.get_simple_cameras_status()
+        return jsonify({
+            'success': True,
+            'status': status,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/cameras/remote', methods=['GET'])
+def get_remote_cameras_info():
+    """Get remote camera information with v4l2 and USB device mapping"""
+    try:
+        camera_service = get_camera_service()
+        if not camera_service.is_initialized:
+            camera_service.initialize()
+        
+        remote_info = camera_service.get_remote_cameras_info()
+        return jsonify({
+            'success': True,
+            'remote_info': remote_info,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/cameras/discovery', methods=['GET'])
+def discover_cameras():
+    """Discover all available cameras with detailed device information"""
+    try:
+        camera_service = get_camera_service()
+        if not camera_service.is_initialized:
+            camera_service.initialize()
+        
+        # Get both simple and remote info
+        simple_status = camera_service.get_simple_cameras_status()
+        remote_info = camera_service.get_remote_cameras_info()
+        
+        return jsonify({
+            'success': True,
+            'discovery': {
+                'simple_status': simple_status,
+                'remote_info': remote_info,
+                'dashboard_ready': True
+            },
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/cameras/dashboard', methods=['GET'])
+def get_dashboard_cameras():
+    """Get camera information optimized for admin dashboard"""
+    try:
+        camera_service = get_camera_service()
+        if not camera_service.is_initialized:
+            camera_service.initialize()
+        
+        remote_info = camera_service.get_remote_cameras_info()
+        
+        # Format for dashboard consumption
+        dashboard_cameras = []
+        for cam_id, camera in remote_info['cameras'].items():
+            dashboard_cameras.append({
+                'id': camera['id'],
+                'name': camera['device_name'],
+                'path': camera['device_path'],
+                'usb_info': camera['usb_info'],
+                'status': camera['status'],
+                'is_streaming': camera['is_streaming'],
+                'frame_count': camera['frame_count'],
+                'uptime': camera['uptime_seconds'],
+                'remote_ready': camera['remote_ready']
+            })
+        
+        return jsonify({
+            'success': True,
+            'camera_info': {
+                'total_cameras': remote_info['total_cameras'],
+                'active_cameras': remote_info['active_cameras'],
+                'service_status': remote_info['service_status'],
+                'remote_capable': remote_info['remote_capable'],
+                'cameras': dashboard_cameras,
+                'usb_devices': remote_info['usb_devices']
+            },
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/cameras/<camera_id>/status', methods=['GET'])
+def get_camera_status_endpoint(camera_id):
+    """Get specific camera status"""
+    try:
+        camera_service = get_camera_service()
+        status = camera_service.get_camera_status(camera_id)
+        
+        return jsonify({
+            'success': True,
+            'camera_id': camera_id,
+            'status': status,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+# ============================================================================
+# END CAMERA CONTROL ENDPOINTS
+# ============================================================================
 
 def get_jetson_info():
     """Get Jetson device information"""

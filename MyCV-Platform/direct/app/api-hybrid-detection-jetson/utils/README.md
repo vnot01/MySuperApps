@@ -7,9 +7,15 @@ Utility scripts and tools for MyCV-Edge-API hardware monitoring and system manag
 ```
 utils/
 ├── python/                    # Python utility scripts
-│   └── get_jetpack_versions.py    # JetPack and L4T version detection
+│   ├── get_jetpack_versions.py    # JetPack and L4T version detection
+│   └── camera_utils.py            # Camera utility functions
+├── services/                  # Service modules
+│   ├── camera_service.py          # Camera control service
+│   ├── api_client.py              # API client untuk RVM communication
+│   └── internal_*.py              # Internal RVM services
 ├── shell/                     # Shell utility scripts
-│   └── install_v4l_utils.sh      # v4l-utils installation script
+│   ├── install_v4l_utils.sh      # v4l-utils installation script
+│   └── camera_control.sh         # Camera control shell script
 ├── config/                    # Configuration files
 └── README.md                  # This file
 ```
@@ -37,6 +43,22 @@ python3 get_jetpack_versions.py
 - Version compatibility matching
 - Used by hardware monitoring API
 
+### camera_utils.py
+Camera utility functions untuk camera operations dan management.
+
+**Usage:**
+```bash
+cd utils/python
+python3 -c "from camera_utils import *; print('Camera utils loaded')"
+```
+
+**Features:**
+- Camera device detection
+- Image processing utilities
+- Camera status monitoring
+- Device capability checking
+- Used by camera control API
+
 ## 🐚 Shell Utils
 
 ### install_v4l_utils.sh
@@ -53,6 +75,37 @@ chmod +x utils/shell/install_v4l_utils.sh
 - Camera device detection
 - Video device enumeration
 - Used by camera monitoring API
+
+### camera_control.sh
+Shell script interface untuk camera control operations.
+
+**Usage:**
+```bash
+chmod +x utils/shell/camera_control.sh
+
+# List cameras
+./utils/shell/camera_control.sh list
+
+# Start camera
+./utils/shell/camera_control.sh start 0
+
+# Capture image
+./utils/shell/camera_control.sh capture 0 /tmp/image.jpg
+
+# Test camera
+./utils/shell/camera_control.sh test 0
+
+# Get status
+./utils/shell/camera_control.sh status 0
+```
+
+**Features:**
+- Camera listing dan discovery
+- Camera start/stop operations
+- Image capture dengan file save
+- Camera testing dan validation
+- Status monitoring
+- Command-line interface untuk camera control
 
 ## 🔧 Configuration
 

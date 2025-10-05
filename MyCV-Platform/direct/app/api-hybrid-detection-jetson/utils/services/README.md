@@ -8,6 +8,7 @@ Services untuk polling status RVM dari MyRVM-Platform server. RVM dapat beropera
 utils/services/
 ├── __init__.py                      # Package initialization
 ├── api_client.py                   # API client untuk komunikasi dengan server
+├── camera_service.py               # Camera control service dengan smart detection
 ├── internal_health_monitor.py      # Internal health monitoring service
 ├── internal_status_poller.py       # Internal status polling service
 ├── internal_service_manager.py     # Internal service manager untuk mengelola semua services
@@ -158,6 +159,44 @@ all_status = manager.get_all_status()
 # Stop all services
 manager.stop_all_services()
 ```
+
+### 5. CameraService (`camera_service.py`)
+
+**Purpose**: Advanced camera control service dengan smart detection
+
+**Key Features**:
+- Smart camera detection dengan functional filtering
+- USB device mapping dengan v4l2 correlation
+- Remote camera API untuk dashboard integration
+- Real-time camera status monitoring
+- Device name detection dari USB info
+
+**Usage**:
+```python
+from camera_service import get_camera_service
+
+# Initialize camera service
+camera_service = get_camera_service()
+camera_service.initialize()
+
+# Get dashboard-ready camera info
+dashboard_info = camera_service.get_remote_cameras_info()
+
+# Get simple camera status
+simple_status = camera_service.get_simple_cameras_status()
+
+# Start camera
+camera_service.start_camera("0")
+
+# Capture image
+success, result = camera_service.capture_image("0", "/tmp/capture.jpg")
+```
+
+**API Endpoints**:
+- `/api/cameras/dashboard` - Dashboard-ready camera info
+- `/api/cameras/remote` - Remote camera info dengan USB mapping
+- `/api/cameras/status/simple` - Simple camera status
+- `/api/cameras/discovery` - Comprehensive camera discovery
 
 ## 📊 RVM Status Types
 

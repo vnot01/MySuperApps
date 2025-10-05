@@ -45,6 +45,26 @@ This directory contains the RVM-integrated version of MyCV-Platform.
 - `GET /api/detections` - Get detections with RVM filtering
 - `POST /api/detections/search` - Search with RVM filtering
 
+### Camera Control
+- `GET /api/cameras` - List semua camera yang tersedia
+- `GET /api/cameras/<camera_id>/info` - Informasi detail camera
+- `POST /api/cameras/<camera_id>/start` - Start camera untuk capture/streaming
+- `POST /api/cameras/<camera_id>/stop` - Stop camera
+- `POST /api/cameras/<camera_id>/restart` - Restart camera
+- `GET /api/cameras/<camera_id>/stream` - Status streaming camera
+- `POST /api/cameras/<camera_id>/capture` - Capture image dari camera
+- `POST /api/cameras/<camera_id>/capture/base64` - Capture image dan return sebagai base64
+- `GET /api/cameras/<camera_id>/settings` - Get camera settings
+- `POST /api/cameras/<camera_id>/settings` - Update camera settings
+- `GET /api/cameras/status` - Status semua camera (detailed)
+- `GET /api/cameras/status/simple` - Status camera sederhana dengan device names
+- `GET /api/cameras/remote` - Info camera dengan v4l2 dan USB mapping
+- `GET /api/cameras/dashboard` - Info camera optimized untuk admin dashboard
+- `GET /api/cameras/discovery` - Comprehensive camera discovery
+- `GET /api/cameras/<camera_id>/status` - Status camera spesifik
+- `POST /api/cameras/<camera_id>/stream/start` - Start camera streaming
+- `POST /api/cameras/<camera_id>/stream/stop` - Stop camera streaming
+
 ### RVM Integration
 - `POST /api/rvm/validate` - Validate RVM API key
 - `GET /api/rvm/{id}/stats` - Get RVM statistics

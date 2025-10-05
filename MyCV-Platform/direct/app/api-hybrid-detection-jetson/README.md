@@ -1,11 +1,16 @@
 # MyCV-Platform Hybrid Detection API (Jetson) | 🚀 Jetson API
 
-RESTful API untuk deteksi objek dan segmentasi menggunakan YOLO + SAM2 pada NVIDIA Jetson Orin.
+RESTful API untuk deteksi objek, segmentasi, dan camera control menggunakan YOLO + SAM2 pada NVIDIA Jetson Orin.
 
 ## 🚀 Quick Start
 
 ### 1. Jalankan API Server di Jetson
 ```bash
+# Via service management (recommended)
+cd /home/my/MySuperApps/MyCV-Platform
+./run_services-jetson.sh start
+
+# Atau langsung
 cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection-jetson
 ./run_api.sh
 ```
@@ -13,6 +18,7 @@ cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection-jetson
 ### 2. Akses API
 - **URL**: http://100.117.234.2:5000
 - **Health Check**: http://100.117.234.2:5000/api/health
+- **Camera Control**: http://100.117.234.2:5000/api/cameras
 
 ## 📋 API Endpoints
 
@@ -28,6 +34,28 @@ cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection-jetson
 
 **Note**: Advanced Monitoring System is located in `utils/python/advanced_monitoring.py`
 
+### Camera Control
+- `GET /api/cameras` - List semua camera yang tersedia
+- `GET /api/cameras/<camera_id>/info` - Informasi detail camera
+- `POST /api/cameras/<camera_id>/start` - Start camera untuk capture/streaming
+- `POST /api/cameras/<camera_id>/stop` - Stop camera
+- `POST /api/cameras/<camera_id>/restart` - Restart camera
+- `GET /api/cameras/<camera_id>/stream` - Status streaming camera
+- `POST /api/cameras/<camera_id>/capture` - Capture image dari camera
+- `POST /api/cameras/<camera_id>/capture/base64` - Capture image dan return sebagai base64
+- `GET /api/cameras/<camera_id>/settings` - Get camera settings
+- `POST /api/cameras/<camera_id>/settings` - Update camera settings
+- `GET /api/cameras/status` - Status semua camera (detailed)
+- `GET /api/cameras/status/simple` - Status camera sederhana dengan device names
+- `GET /api/cameras/remote` - Info camera dengan v4l2 dan USB mapping
+- `GET /api/cameras/dashboard` - Info camera optimized untuk admin dashboard
+- `GET /api/cameras/discovery` - Comprehensive camera discovery
+- `GET /api/cameras/<camera_id>/status` - Status camera spesifik
+- `POST /api/cameras/<camera_id>/stream/start` - Start camera streaming
+- `POST /api/cameras/<camera_id>/stream/stop` - Stop camera streaming
+
+**Note**: Camera Control System is located in `utils/services/camera_service.py` and `utils/python/camera_utils.py`
+
 ### Upload & Processing
 - `POST /api/upload` - Upload gambar untuk deteksi
 - `GET /api/process/<session_id>` - Status pemrosesan
@@ -38,6 +66,99 @@ cd /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection-jetson
 - `GET /api/backup/<session_id>` - Buat dan unduh TAR.GZ backup satu sesi
 - `GET /api/detections` - Semua deteksi terbaru dengan pagination (Query Parameters)
 - `POST /api/detections/search` - Search detections dengan JSON body
+
+## 📷 Camera Control
+
+### Menggunakan curl untuk camera control:
+```bash
+# List semua camera
+curl -X GET http://100.117.234.2:5000/api/cameras
+
+# Start camera
+curl -X POST http://100.117.234.2:5000/api/cameras/0/start
+
+# Capture image dan save ke file
+curl -X POST http://100.117.234.2:5000/api/cameras/0/capture \
+  -H "Content-Type: application/json" \
+  -d '{"save_path": "/tmp/capture.jpg"}'
+
+# Capture image dan return base64
+curl -X POST http://100.117.234.2:5000/api/cameras/0/capture/base64
+
+# Get camera status
+curl -X GET http://100.117.234.2:5000/api/cameras/0/status
+
+# Stop camera
+curl -X POST http://100.117.234.2:5000/api/cameras/0/stop
+```
+
+### Menggunakan shell script:
+```bash
+# List cameras
+./utils/shell/camera_control.sh list
+
+# Start camera
+./utils/shell/camera_control.sh start 0
+
+# Capture image
+./utils/shell/camera_control.sh capture 0 /tmp/image.jpg
+
+# Test camera
+./utils/shell/camera_control.sh test 0
+
+# Get camera status
+./utils/shell/camera_control.sh status 0
+```
+
+### Camera Control Examples:
+
+#### List Available Cameras:
+```bash
+curl -X GET http://100.117.234.2:5000/api/cameras
+```
+
+#### Start Camera:
+```bash
+curl -X POST http://100.117.234.2:5000/api/cameras/0/start
+```
+
+#### Capture Image:
+```bash
+# Capture to file
+curl -X POST http://100.117.234.2:5000/api/cameras/0/capture \
+  -H "Content-Type: application/json" \
+  -d '{"save_path": "/tmp/capture.jpg"}'
+
+# Capture as base64
+curl -X POST http://100.117.234.2:5000/api/cameras/0/capture/base64
+```
+
+#### Get Camera Status:
+```bash
+# Get detailed status (full camera info)
+curl -X GET http://100.117.234.2:5000/api/cameras/status
+
+# Get simplified status (clean output with device names)
+curl -X GET http://100.117.234.2:5000/api/cameras/status/simple
+
+# Get remote camera info (with v4l2 and USB mapping)
+curl -X GET http://100.117.234.2:5000/api/cameras/remote
+
+# Get dashboard-ready camera info (optimized for admin dashboard)
+curl -X GET http://100.117.234.2:5000/api/cameras/dashboard
+# Response structure: {"camera_info": {...}, "success": true, "timestamp": "..."}
+
+# Get camera discovery (comprehensive info)
+curl -X GET http://100.117.234.2:5000/api/cameras/discovery
+
+# Get specific camera status
+curl -X GET http://100.117.234.2:5000/api/cameras/0/status
+```
+
+#### Start Camera Streaming:
+```bash
+curl -X POST http://100.117.234.2:5000/api/cameras/0/stream/start
+```
 
 ## 📤 Upload Images
 
@@ -57,7 +178,14 @@ curl -X POST \
 ├── app.py                 # Flask API server untuk Jetson
 ├── requirements.txt       # Python dependencies
 ├── run_api.sh            # API launcher script untuk Jetson
-└── README.md             # Documentation
+├── README.md             # Documentation
+└── utils/                 # Utility modules
+    ├── services/          # Service modules
+    │   └── camera_service.py  # Camera control service
+    ├── python/            # Python utilities
+    │   └── camera_utils.py    # Camera utility functions
+    └── shell/             # Shell scripts
+        └── camera_control.sh  # Shell script for camera control
 
 ./direct/data-jetson/
 ├── input/remote/         # Uploaded images
@@ -71,12 +199,54 @@ curl -X POST \
         └── *.json        # Detection data
 ```
 
+## 🔧 Service Management
+
+### Using run_services-jetson.sh (Recommended):
+```bash
+cd /home/my/MySuperApps/MyCV-Platform
+
+# Start all services (API + Web)
+./run_services-jetson.sh start
+
+# Check status
+./run_services-jetson.sh status
+
+# Stop services
+./run_services-jetson.sh stop
+
+# Restart services
+./run_services-jetson.sh restart
+
+# View logs
+./run_services-jetson.sh logs
+```
+
+### Direct API Management:
+```bash
+cd /home/my/MySuperApps/MyCV-Platform/services-jetson
+
+# Start API service
+./api_service.sh start
+
+# Stop API service
+./api_service.sh stop
+
+# Check API status
+./api_service.sh status
+```
+
 ## 🔧 Configuration
 
 ### Environment Variables
+- `API_HOST`: Server IP address (default: 100.117.234.2)
+- `API_PORT`: API port (default: 5000)
+- `RVM_API_BASE_URL`: Central server URL
+- `RVM_IDS`: Comma-separated RVM IDs
 - `UPLOAD_FOLDER`: Directory untuk upload (default: `../../data-jetson/input/remote`)
 - `OUTPUT_FOLDER`: Directory untuk output (default: `../../data-jetson/output/remote`)
 - `MAX_CONTENT_LENGTH`: Max file size (default: 16MB)
+- `API_HOST`: API host untuk Jetson (default: `100.117.234.2`)
+- `API_PORT`: API port untuk Jetson (default: `5000`)
 
 ### Dependencies
 All dependencies are now consolidated in the main project requirements.txt:
@@ -105,6 +275,15 @@ All dependencies are now consolidated in the main project requirements.txt:
 - ✅ **Performance Analytics**: Detailed performance metrics dan reporting
 - ✅ **Alert System**: Automated alerts untuk system health issues
 - ✅ **RVM Integration**: Multi-RVM support dengan secure authentication
+- ✅ **Camera Control**: USB camera detection dan control dengan smart filtering
+- ✅ **Camera Streaming**: Real-time camera streaming support
+- ✅ **Image Capture**: Capture images dari camera dengan base64 atau file save
+- ✅ **Camera Management**: Start, stop, restart camera operations
+- ✅ **Camera Status**: Real-time camera status monitoring
+- ✅ **Remote Camera API**: Dashboard-ready camera info dengan device names
+- ✅ **USB Device Mapping**: Automatic USB device correlation dengan v4l2
+- ✅ **Smart Detection**: Functional camera filtering (exclude metadata devices)
+- ✅ **Dashboard Integration**: Optimized JSON output untuk admin dashboard
 
 ## 🔍 Detection Models (Jetson)
 

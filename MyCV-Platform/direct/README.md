@@ -61,9 +61,10 @@ direct/
 ### 3. Jetson API (`app/api-hybrid-detection-jetson/`)
 - **Framework**: Flask
 - **Purpose**: Edge device detection with RVM integration
-- **Features**: Multi-Jetson support, RVM authentication, database integration, hardware monitoring
+- **Features**: Multi-Jetson support, RVM authentication, database integration, hardware monitoring, remote camera control
 - **Port**: 5000 (default)
 - **Hardware Info**: `/api/hardware` endpoint for comprehensive Jetson hardware information
+- **Camera Control**: Remote camera API dengan smart detection dan USB device mapping
 
 ## ✅ Features
 
@@ -72,6 +73,8 @@ direct/
 - ✅ **RVM Integration**: Multi-Jetson support dengan authentication
 - ✅ **GPU Support**: Optimized untuk NVIDIA GPU
 - ✅ **Hardware Monitoring**: Comprehensive Jetson hardware information
+- ✅ **Remote Camera Control**: Smart camera detection dengan USB device mapping
+- ✅ **Camera API**: Dashboard-ready camera info dengan device names
 - ✅ **Virtual Environment**: Shared virtual environment
 - ✅ **Production Ready**: Siap untuk deployment
 
@@ -82,6 +85,7 @@ direct/
 - **🔧 Simple Setup**: Setup sekali, run di mana saja
 - **🚀 Multi-Environment**: Web, GPU Server, Jetson API
 - **🔗 RVM Integration**: Support multiple Jetson machines
+- **📷 Remote Camera Control**: Smart camera detection dengan USB mapping
 - **⚡ Performance**: Optimized untuk setiap environment
 
 ## 🔗 RVM Integration
@@ -98,6 +102,30 @@ direct/
 - `POST /api/detections/search` - Search detections dengan RVM filter
 - `POST /api/rvm/validate` - Validate RVM API key
 - `GET /api/rvm/{rvm_id}/stats` - Get RVM statistics
+
+## 📷 Remote Camera Control
+
+### **Smart Camera Detection:**
+- **Functional Filtering**: Hanya camera yang benar-benar functional yang terdeteksi
+- **USB Device Mapping**: Automatic correlation antara v4l2 dan USB devices
+- **Device Name Detection**: Nama device otomatis dari USB info
+- **Dashboard Integration**: Optimized JSON output untuk admin dashboard
+
+### **Camera API Endpoints:**
+- `GET /api/cameras/dashboard` - Dashboard-ready camera info dengan device names
+- `GET /api/cameras/remote` - Remote camera info dengan v4l2 dan USB mapping
+- `GET /api/cameras/status/simple` - Simple camera status dengan device names
+- `GET /api/cameras/discovery` - Comprehensive camera discovery
+- `POST /api/cameras/{id}/start` - Start camera untuk capture/streaming
+- `POST /api/cameras/{id}/capture` - Capture image dari camera
+- `POST /api/cameras/{id}/capture/base64` - Capture image sebagai base64
+
+### **Camera Control Features:**
+- **Real-time Status**: Live camera status monitoring
+- **Image Capture**: Capture images dengan file save atau base64
+- **Camera Management**: Start, stop, restart operations
+- **Streaming Support**: Real-time camera streaming
+- **Device Information**: Detailed camera dan USB device info
 
 ### **Configuration:**
 - **RVM API Base URL**: `http://100.123.143.87:8000/api`
