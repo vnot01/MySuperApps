@@ -129,6 +129,18 @@ start_api() {
         else
             print_warning "⚠️  API started but endpoint not responding yet"
         fi
+        
+        # Start automatic monitoring after API is confirmed running
+        print_status "📊 Starting automatic monitoring data collection..."
+        sleep 5  # Wait for API to fully initialize
+        
+        # Start monitoring via API endpoint
+        if curl -s -X POST http://$api_host:5000/api/monitoring/start > /dev/null 2>&1; then
+            print_success "✅ Automatic monitoring started successfully"
+            print_status "📊 Data will be sent to server every 30 seconds"
+        else
+            print_warning "⚠️  Monitoring endpoint not available yet, will retry automatically"
+        fi
     else
         print_error "❌ Failed to start API Service"
         print_error "📄 Check log: $LOG_FILE"
@@ -152,6 +164,12 @@ stop_api() {
     
     local pid=$(cat "$PID_FILE")
     print_status "🛑 Stopping MyCV-Edge-API Service (PID: $pid)..."
+    
+    # Stop monitoring first
+    local api_host=$(get_api_host)
+    if curl -s -X POST http://$api_host:5000/api/monitoring/stop > /dev/null 2>&1; then
+        print_status "🛑 Stopped automatic monitoring"
+    fi
     
     # Kill the process
     kill "$pid" 2>/dev/null || true
@@ -179,6 +197,12 @@ stop_api() {
 restart_api() {
     print_status "🔄 Restarting Jetson API with automatic monitoring..."
     
+    # Stop monitoring first
+    local api_host=$(get_api_host)
+    if curl -s -X POST http://$api_host:5000/api/monitoring/stop > /dev/null 2>&1; then
+        print_status "🛑 Stopped existing monitoring"
+    fi
+    
     # Kill existing processes
     pkill -f "python.*app.py" 2>/dev/null || true
     pkill -f "uvicorn.*app:app" 2>/dev/null || true
@@ -202,6 +226,15 @@ show_status() {
         print_status "📋 PID: $pid"
         print_status "📡 URL: http://$api_host:5000"
         print_status "📄 Log: $LOG_FILE"
+        
+        # Check monitoring status
+        print_status "📊 Monitoring Status:"
+        local monitoring_status=$(curl -s http://$api_host:5000/api/monitoring/status/auto 2>/dev/null | grep -o '"monitoring_active":[^,]*' | cut -d':' -f2)
+        if [ "$monitoring_status" = "true" ]; then
+            print_success "✅ Automatic monitoring is ACTIVE"
+        else
+            print_warning "⚠️  Automatic monitoring is INACTIVE"
+        fi
         
         # Show recent log entries
         if [ -f "$LOG_FILE" ]; then
