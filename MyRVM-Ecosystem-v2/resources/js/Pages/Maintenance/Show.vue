@@ -359,22 +359,39 @@
                   
                   <!-- Action Menu Bar -->
                   <div class="flex items-center space-x-1 pt-1">
-                    <button 
-                      @click="viewDetectionImages(detection)" 
-                      class="flex items-center space-x-1 px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
-                      :disabled="!detection.image_path"
-                      :class="{ 'opacity-50 cursor-not-allowed': !detection.image_path }"
-                    >
-                      <i class="fas fa-image text-xs"></i>
-                      <span>Images</span>
-                    </button>
-                    <button 
-                      @click="viewDetectionDetails(detection)" 
-                      class="flex items-center space-x-1 px-2 py-1 text-xs bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors"
-                    >
-                      <i class="fas fa-info-circle text-xs"></i>
-                      <span>Details</span>
-                    </button>
+                    <!-- View Results (Images) Button with Tooltip -->
+                    <div class="relative group">
+                      <button 
+                        @click="viewDetectionImages(detection)" 
+                        class="flex items-center space-x-1 px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
+                        :disabled="!detection.image_path"
+                        :class="{ 'opacity-50 cursor-not-allowed': !detection.image_path }"
+                      >
+                        <i class="fas fa-image text-xs"></i>
+                        <span>Images</span>
+                      </button>
+                      <!-- Tooltip -->
+                      <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                        {{ detection.image_path ? 'View detection images' : 'No images available' }}
+                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                      </div>
+                    </div>
+                    
+                    <!-- View Details Button with Tooltip -->
+                    <div class="relative group">
+                      <button 
+                        @click="viewDetectionDetails(detection)" 
+                        class="flex items-center space-x-1 px-2 py-1 text-xs bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors"
+                      >
+                        <i class="fas fa-info-circle text-xs"></i>
+                        <span>Details</span>
+                      </button>
+                      <!-- Tooltip -->
+                      <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                        View detailed detection information
+                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
