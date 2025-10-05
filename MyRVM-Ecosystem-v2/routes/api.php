@@ -25,6 +25,12 @@ Route::prefix('detections')->group(function () {
         ->name('detections.statistics.public');
 });
 
+// Monitoring Routes (Public for Jetson access)
+Route::prefix('maintenance')->group(function () {
+    Route::post('/{rvm}/monitoring', [\App\Http\Controllers\MaintenanceController::class, 'storeMonitoringData'])
+        ->name('maintenance.monitoring.store.public');
+});
+
 // Protected API Routes
 Route::middleware('auth:sanctum')->group(function () {
     // Authentication

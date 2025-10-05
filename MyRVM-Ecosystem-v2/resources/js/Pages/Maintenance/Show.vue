@@ -322,188 +322,324 @@
         </div>
       </div>
 
-      <!-- Analytics and Monitoring Section -->
+      <!-- Recent Detection Results and System Monitoring Section -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- RVM Analytics Card -->
-        <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-8">
-          <div class="flex items-center justify-between mb-6">
-            <h3 class="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">RVM Analytics</h3>
-            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <i class="fas fa-chart-line text-white text-lg"></i>
+        <!-- Recent Detection Results Card (Compact) -->
+        <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Recent Detection Results</h3>
+            <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <i class="fas fa-eye text-white text-xs"></i>
             </div>
           </div>
           
-          <div v-if="analytics" class="space-y-6">
-            <div class="grid grid-cols-2 gap-4">
-              <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200/50">
-                <div class="flex items-center justify-between">
+          <div v-if="detectionResults && detectionResults.data && detectionResults.data.length > 0" class="space-y-2">
+            <div class="grid grid-cols-2 gap-2">
+              <div v-for="detection in detectionResults.data.slice(0, 6)" :key="detection.id" 
+                   class="bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-lg p-3 border border-gray-200/50 hover:shadow-md transition-all duration-200">
+                <div class="flex flex-col space-y-2">
+                  <div class="flex items-center space-x-2">
+                    <div :class="[
+                      'w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold',
+                      detection.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    ]">
+                      <i :class="detection.status === 'completed' ? 'fas fa-check' : 'fas fa-times'" class="text-xs"></i>
+                    </div>
+                    <span :class="[
+                      'px-2 py-1 rounded-full text-xs font-medium',
+                      detection.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    ]">
+                      {{ detection.status }}
+                    </span>
+                  </div>
                   <div>
-                    <p class="text-sm font-medium text-gray-600">Total Detections</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ analytics.total_detections || 0 }}</p>
+                    <p class="text-xs font-medium text-gray-900 truncate">{{ detection.session_id }}</p>
+                    <p class="text-xs text-gray-500">{{ new Date(detection.detected_at).toLocaleDateString() }}</p>
                   </div>
-                  <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-eye text-white"></i>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-6 border border-green-200/50">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-sm font-medium text-gray-600">Success Rate</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ analytics.success_rate || 0 }}%</p>
-                  </div>
-                  <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-check-circle text-white"></i>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="bg-gradient-to-br from-yellow-50 to-yellow-100/50 rounded-xl p-6 border border-yellow-200/50">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-sm font-medium text-gray-600">Avg Processing</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ analytics.average_processing_time ? analytics.average_processing_time.toFixed(2) + 's' : 'N/A' }}</p>
-                  </div>
-                  <div class="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-clock text-white"></i>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-6 border border-purple-200/50">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-sm font-medium text-gray-600">Confidence</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ analytics.average_confidence ? (analytics.average_confidence * 100).toFixed(1) + '%' : 'N/A' }}</p>
-                  </div>
-                  <div class="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-bullseye text-white"></i>
+                  
+                  <!-- Action Menu Bar -->
+                  <div class="flex items-center space-x-1 pt-1">
+                    <!-- View Results (Images) Button with Tooltip -->
+                    <div class="relative group" style="z-index: 50;">
+                      <button 
+                        @click="viewDetectionImages(detection)" 
+                        class="flex items-center space-x-1 px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
+                        :disabled="!detection.image_path"
+                        :class="{ 'opacity-50 cursor-not-allowed': !detection.image_path }"
+                        @mouseenter="hoveredImageButtonId = detection.id"
+                        @mouseleave="hoveredImageButtonId = null"
+                      >
+                        <i class="fas fa-image text-xs"></i>
+                        <span>Images</span>
+                      </button>
+                      <!-- Tooltip -->
+                      <div 
+                        v-show="hoveredImageButtonId === detection.id"
+                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg whitespace-nowrap"
+                        style="z-index: 9999;"
+                      >
+                        {{ detection.image_path ? 'View detection images' : 'No images available' }}
+                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    </div>
+                    
+                    <!-- View Details Button with Tooltip -->
+                    <div class="relative group" style="z-index: 50;">
+                      <button 
+                        @click="viewDetectionDetails(detection)" 
+                        class="flex items-center space-x-1 px-2 py-1 text-xs bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors"
+                        @mouseenter="hoveredDetailsButtonId = detection.id"
+                        @mouseleave="hoveredDetailsButtonId = null"
+                      >
+                        <i class="fas fa-info-circle text-xs"></i>
+                        <span>Details</span>
+                      </button>
+                      <!-- Tooltip -->
+                      <div 
+                        v-show="hoveredDetailsButtonId === detection.id"
+                        class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg whitespace-nowrap"
+                        style="z-index: 9999;"
+                      >
+                        View detailed detection information
+                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             
-            <!-- Multi-line Chart for Detection Trends -->
-            <div class="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl p-6 border border-gray-200/50">
-              <div v-if="monitoringAnalytics && monitoringAnalytics.chart_data && monitoringAnalytics.chart_data.hourly.length > 0" class="h-48">
-                <canvas ref="detectionChart" class="w-full h-full"></canvas>
-              </div>
-              <div v-else class="h-48 flex items-center justify-center text-gray-500">
-                <div class="text-center">
-                  <i class="fas fa-chart-area text-4xl mb-3"></i>
-                  <p class="text-lg font-medium">Detection Trends Chart</p>
-                  <p class="text-sm">Real-time detection trends will appear here</p>
-                </div>
-              </div>
+            <div v-if="detectionResults.data.length > 6" class="text-center pt-2">
+              <button class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                View All {{ detectionResults.data.length }} Results
+              </button>
             </div>
           </div>
           
-          <div v-else class="text-center py-12">
-            <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <i class="fas fa-chart-line text-gray-400 text-2xl"></i>
+          <div v-else class="text-center py-6">
+            <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+              <i class="fas fa-eye text-gray-400 text-sm"></i>
             </div>
-            <p class="text-gray-500 text-lg">No analytics data available</p>
-            <p class="text-gray-400 text-sm">Data will appear when detections are processed</p>
+            <p class="text-gray-500 text-xs">No detection results available</p>
           </div>
         </div>
 
-        <!-- Monitoring Status Card -->
-        <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-8">
-          <div class="flex items-center justify-between mb-6">
-            <h3 class="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">System Monitoring</h3>
-            <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-              <i class="fas fa-heartbeat text-white text-lg"></i>
+        <!-- System Monitoring Card -->
+        <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">System Monitoring</h3>
+          <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+            <i class="fas fa-heartbeat text-white text-sm"></i>
+          </div>
+        </div>
+        
+        <div v-if="monitoringStatus" class="space-y-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-8 border border-blue-200/50">
+              <div class="flex items-center justify-between mb-4">
+                <p class="text-lg font-semibold text-gray-700">CPU Usage</p>
+                <i class="fas fa-microchip text-blue-500 text-2xl"></i>
+              </div>
+              <div class="flex items-center space-x-4">
+                <div class="flex-1 bg-gray-200 rounded-full h-4">
+                  <div 
+                    class="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-500"
+                    :style="{ width: `${monitoringStatus.cpu_usage || 0}%` }"
+                  ></div>
+                </div>
+                <span class="text-2xl font-bold text-gray-900">{{ monitoringStatus.cpu_usage || 0 }}%</span>
+              </div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-8 border border-green-200/50">
+              <div class="flex items-center justify-between mb-4">
+                <p class="text-lg font-semibold text-gray-700">Memory Usage</p>
+                <i class="fas fa-memory text-green-500 text-2xl"></i>
+              </div>
+              <div class="flex items-center space-x-4">
+                <div class="flex-1 bg-gray-200 rounded-full h-4">
+                  <div 
+                    class="bg-gradient-to-r from-green-500 to-green-600 h-4 rounded-full transition-all duration-500"
+                    :style="{ width: `${monitoringStatus.memory_usage || 0}%` }"
+                  ></div>
+                </div>
+                <span class="text-2xl font-bold text-gray-900">{{ monitoringStatus.memory_usage || 0 }}%</span>
+              </div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-yellow-50 to-yellow-100/50 rounded-xl p-8 border border-yellow-200/50">
+              <div class="flex items-center justify-between mb-4">
+                <p class="text-lg font-semibold text-gray-700">Disk Usage</p>
+                <i class="fas fa-hdd text-yellow-500 text-2xl"></i>
+              </div>
+              <div class="flex items-center space-x-4">
+                <div class="flex-1 bg-gray-200 rounded-full h-4">
+                  <div 
+                    class="bg-gradient-to-r from-yellow-500 to-yellow-600 h-4 rounded-full transition-all duration-500"
+                    :style="{ width: `${monitoringStatus.disk_usage || 0}%` }"
+                  ></div>
+                </div>
+                <span class="text-2xl font-bold text-gray-900">{{ monitoringStatus.disk_usage || 0 }}%</span>
+              </div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-8 border border-purple-200/50">
+              <div class="flex items-center justify-between mb-4">
+                <p class="text-lg font-semibold text-gray-700">GPU Usage</p>
+                <i class="fas fa-microchip text-purple-500 text-2xl"></i>
+              </div>
+              <div class="flex items-center space-x-4">
+                <div class="flex-1 bg-gray-200 rounded-full h-4">
+                  <div 
+                    class="bg-gradient-to-r from-purple-500 to-purple-600 h-4 rounded-full transition-all duration-500"
+                    :style="{ width: `${monitoringStatus.gpu_usage || 0}%` }"
+                  ></div>
+                </div>
+                <span class="text-2xl font-bold text-gray-900">{{ monitoringStatus.gpu_usage || 0 }}%</span>
+              </div>
             </div>
           </div>
           
-          <div v-if="monitoringStatus" class="space-y-6">
-            <div class="grid grid-cols-2 gap-4">
-              <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200/50">
-                <div class="flex items-center justify-between mb-2">
-                  <p class="text-sm font-medium text-gray-600">CPU Usage</p>
-                  <i class="fas fa-microchip text-blue-500"></i>
-                </div>
-                <div class="flex items-center space-x-2">
-                  <div class="flex-1 bg-gray-200 rounded-full h-2">
-                    <div 
-                      class="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-500"
-                      :style="{ width: `${monitoringStatus.cpu_usage || 0}%` }"
-                    ></div>
-                  </div>
-                  <span class="text-sm font-bold text-gray-900">{{ monitoringStatus.cpu_usage || 0 }}%</span>
-                </div>
+          <!-- Alerts Section -->
+          <div v-if="monitoringStatus.alerts && monitoringStatus.alerts.length > 0" class="space-y-2">
+            <h4 class="text-sm font-semibold text-gray-900">Active Alerts</h4>
+            <div v-for="alert in monitoringStatus.alerts" :key="alert.timestamp" class="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start space-x-2">
+              <i class="fas fa-exclamation-triangle text-red-500 mt-0.5 text-sm"></i>
+              <div>
+                <p class="text-xs font-medium text-red-800">{{ alert.message }}</p>
+                <p class="text-xs text-red-600">{{ new Date(alert.timestamp).toLocaleDateString() }}</p>
               </div>
-              
-              <div class="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-6 border border-green-200/50">
-                <div class="flex items-center justify-between mb-2">
-                  <p class="text-sm font-medium text-gray-600">Memory Usage</p>
-                  <i class="fas fa-memory text-green-500"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div v-else class="text-center py-6">
+          <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+            <i class="fas fa-heartbeat text-gray-400 text-sm"></i>
+          </div>
+          <p class="text-gray-500 text-xs">No monitoring data available</p>
+        </div>
+        </div>
+      </div>
+
+      <!-- RVM Analytics Card (Full width, above Performance Trends) -->
+      <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-8">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">RVM Analytics</h3>
+          <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+            <i class="fas fa-chart-line text-white text-lg"></i>
+          </div>
+        </div>
+        
+        <div v-if="detectionResults && detectionResults.data && detectionResults.data.length > 0" class="space-y-6">
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200/50">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-600">Total Detections</p>
+                  <p class="text-3xl font-bold text-gray-900">{{ detectionResults.data.length }}</p>
                 </div>
-                <div class="flex items-center space-x-2">
-                  <div class="flex-1 bg-gray-200 rounded-full h-2">
-                    <div 
-                      class="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-500"
-                      :style="{ width: `${monitoringStatus.memory_usage || 0}%` }"
-                    ></div>
-                  </div>
-                  <span class="text-sm font-bold text-gray-900">{{ monitoringStatus.memory_usage || 0 }}%</span>
-                </div>
-              </div>
-              
-              <div class="bg-gradient-to-br from-yellow-50 to-yellow-100/50 rounded-xl p-6 border border-yellow-200/50">
-                <div class="flex items-center justify-between mb-2">
-                  <p class="text-sm font-medium text-gray-600">Disk Usage</p>
-                  <i class="fas fa-hdd text-yellow-500"></i>
-                </div>
-                <div class="flex items-center space-x-2">
-                  <div class="flex-1 bg-gray-200 rounded-full h-2">
-                    <div 
-                      class="bg-gradient-to-r from-yellow-500 to-yellow-600 h-2 rounded-full transition-all duration-500"
-                      :style="{ width: `${monitoringStatus.disk_usage || 0}%` }"
-                    ></div>
-                  </div>
-                  <span class="text-sm font-bold text-gray-900">{{ monitoringStatus.disk_usage || 0 }}%</span>
-                </div>
-              </div>
-              
-              <div class="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-6 border border-purple-200/50">
-                <div class="flex items-center justify-between mb-2">
-                  <p class="text-sm font-medium text-gray-600">GPU Usage</p>
-                  <i class="fas fa-microchip text-purple-500"></i>
-                </div>
-                <div class="flex items-center space-x-2">
-                  <div class="flex-1 bg-gray-200 rounded-full h-2">
-                    <div 
-                      class="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full transition-all duration-500"
-                      :style="{ width: `${monitoringStatus.gpu_usage || 0}%` }"
-                    ></div>
-                  </div>
-                  <span class="text-sm font-bold text-gray-900">{{ monitoringStatus.gpu_usage || 0 }}%</span>
+                <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
+                  <i class="fas fa-eye text-white"></i>
                 </div>
               </div>
             </div>
             
-            <!-- Alerts Section -->
-            <div v-if="monitoringStatus.alerts && monitoringStatus.alerts.length > 0" class="space-y-3">
-              <h4 class="text-lg font-semibold text-gray-900">Active Alerts</h4>
-              <div v-for="alert in monitoringStatus.alerts" :key="alert.timestamp" class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start space-x-3">
-                <i class="fas fa-exclamation-triangle text-red-500 mt-1"></i>
+            <div class="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-6 border border-green-200/50">
+              <div class="flex items-center justify-between">
                 <div>
-                  <p class="text-sm font-medium text-red-800">{{ alert.message }}</p>
-                  <p class="text-xs text-red-600">{{ new Date(alert.timestamp).toLocaleString() }}</p>
+                  <p class="text-sm font-medium text-gray-600">Success Rate</p>
+                  <p class="text-3xl font-bold text-gray-900">{{ successRate }}%</p>
+                </div>
+                <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
+                  <i class="fas fa-check-circle text-white"></i>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-yellow-50 to-yellow-100/50 rounded-xl p-6 border border-yellow-200/50">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-600">Waste Types</p>
+                  <p class="text-3xl font-bold text-gray-900">{{ uniqueWasteTypes }}</p>
+                </div>
+                <div class="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center">
+                  <i class="fas fa-recycle text-white"></i>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-6 border border-purple-200/50">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-600">Avg Confidence</p>
+                  <p class="text-3xl font-bold text-gray-900">{{ averageConfidence }}%</p>
+                </div>
+                <div class="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center">
+                  <i class="fas fa-bullseye text-white"></i>
                 </div>
               </div>
             </div>
           </div>
           
-          <div v-else class="text-center py-12">
-            <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <i class="fas fa-heartbeat text-gray-400 text-2xl"></i>
+          <!-- Pie Charts for RVM Analytics -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Detection Types Pie Chart -->
+            <div class="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl p-6 border border-gray-200/50">
+              <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-chart-pie text-blue-500 mr-2"></i>
+                Detection Types
+              </h4>
+              <div v-if="detectionTypesData && detectionTypesData.length > 0" class="h-48">
+                <canvas ref="detectionTypesChart" class="w-full h-full"></canvas>
+              </div>
+              <div v-else class="h-48 flex items-center justify-center text-gray-500">
+                <div class="text-center">
+                  <i class="fas fa-chart-pie text-4xl mb-3"></i>
+                  <p class="text-sm">Detection types will appear here</p>
+                </div>
+              </div>
             </div>
-            <p class="text-gray-500 text-lg">No monitoring data available</p>
-            <p class="text-gray-400 text-sm">System metrics will appear here</p>
+            
+            <!-- Detection Status Pie Chart -->
+            <div class="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl p-6 border border-gray-200/50">
+              <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                Detection Status
+              </h4>
+              <div v-if="detectionStatusData && detectionStatusData.length > 0" class="h-48">
+                <canvas ref="detectionStatusChart" class="w-full h-full"></canvas>
+              </div>
+              <div v-else class="h-48 flex items-center justify-center text-gray-500">
+                <div class="text-center">
+                  <i class="fas fa-check-circle text-4xl mb-3"></i>
+                  <p class="text-sm">Detection status will appear here</p>
+                </div>
+              </div>
+            </div>
           </div>
+          
+          <!-- Multi-line Chart for Detection Trends -->
+          <div class="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl p-6 border border-gray-200/50">
+            <div v-if="monitoringAnalytics && monitoringAnalytics.chart_data && monitoringAnalytics.chart_data.hourly.length > 0" class="h-48">
+              <canvas ref="detectionChart" class="w-full h-full"></canvas>
+            </div>
+            <div v-else class="h-48 flex items-center justify-center text-gray-500">
+              <div class="text-center">
+                <i class="fas fa-chart-area text-4xl mb-3"></i>
+                <p class="text-lg font-medium">Detection Trends Chart</p>
+                <p class="text-sm">Real-time detection trends will appear here</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div v-else class="text-center py-12">
+          <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-chart-line text-gray-400 text-2xl"></i>
+          </div>
+          <p class="text-gray-500 text-lg">No analytics data available</p>
+          <p class="text-gray-400 text-sm">Data will appear when detections are processed</p>
         </div>
       </div>
 
@@ -577,144 +713,6 @@
         </div>
       </div>
 
-      <!-- Recent Detection Results Table -->
-      <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-8">
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Recent Detection Results</h3>
-          <div class="flex items-center space-x-3">
-            <select 
-              v-model="detectionFilter"
-              class="block w-40 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-xl bg-white/80 backdrop-blur-sm"
-            >
-              <option value="all">All Status</option>
-              <option value="success">Success</option>
-              <option value="failed">Failed</option>
-            </select>
-            <button 
-              @click="refreshData"
-              class="p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 rounded-xl transition-all duration-200"
-            >
-              <i class="fas fa-sync-alt"></i>
-            </button>
-          </div>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50/80 backdrop-blur-sm">
-              <tr>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Session ID
-                </th>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Detected At
-                </th>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Summary
-                </th>
-                <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-if="filteredDetections.length === 0">
-                <td colspan="5" class="px-6 py-12 text-center">
-                  <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-search text-gray-400 text-2xl"></i>
-                  </div>
-                  <p class="text-gray-500 text-lg">No detection results found</p>
-                  <p class="text-gray-400 text-sm">Detection results will appear here when available</p>
-                </td>
-              </tr>
-              <tr v-for="detection in filteredDetections" :key="detection.id" class="hover:bg-gray-50/50 transition-colors">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {{ detection.session_id }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ new Date(detection.detected_at).toLocaleString() }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                  <span 
-                    :class="[
-                      'px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full',
-                      detection.status === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    ]"
-                  >
-                    <i :class="detection.status === 'success' ? 'fas fa-check-circle mr-1' : 'fas fa-times-circle mr-1'"></i>
-                    {{ detection.status }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ detection.detection_summary || 'N/A' }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button 
-                    @click="viewDetectionDetails(detection)" 
-                    class="text-blue-600 hover:text-blue-900 px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors"
-                  >
-                    View Details
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination -->
-        <div v-if="detectionResults.links && detectionResults.links.length > 3" class="mt-6 flex justify-between items-center">
-          <div class="flex-1 flex justify-between sm:hidden">
-            <button 
-              @click="goToPage(detectionResults.prev_page_url)" 
-              :disabled="!detectionResults.prev_page_url" 
-              class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <button 
-              @click="goToPage(detectionResults.next_page_url)" 
-              :disabled="!detectionResults.next_page_url" 
-              class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-          <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p class="text-sm text-gray-700">
-                Showing
-                <span class="font-medium">{{ detectionResults.from }}</span>
-                to
-                <span class="font-medium">{{ detectionResults.to }}</span>
-                of
-                <span class="font-medium">{{ detectionResults.total }}</span>
-                results
-              </p>
-            </div>
-            <div>
-              <nav class="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px" aria-label="Pagination">
-                <button 
-                  v-for="(link, index) in detectionResults.links" 
-                  :key="index"
-                  @click="goToPage(link.url)"
-                  :disabled="!link.url"
-                  :class="[
-                    'relative inline-flex items-center px-4 py-2 border text-sm font-medium',
-                    link.active ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
-                    index === 0 ? 'rounded-l-xl' : '',
-                    index === detectionResults.links.length - 1 ? 'rounded-r-xl' : ''
-                  ]"
-                  v-html="link.label"
-                >
-                </button>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <!-- Detection Details Modal -->
       <div v-if="showDetectionDetailsModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -886,7 +884,7 @@
 
 <script setup>
 import { router } from "@inertiajs/vue3"
-import { ref, computed, onMounted, onUnmounted, nextTick } from "vue"
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from "vue"
 import Chart from 'chart.js/auto'
 
 const props = defineProps({
@@ -904,11 +902,11 @@ const props = defineProps({
 // Reactive variables
 const isRefreshing = ref(false)
 const selectedPeriod = ref('daily')
-const detectionFilter = ref('all')
 const showDetectionDetailsModal = ref(false)
 const selectedDetection = ref(null)
 const showFullApiKey = ref(false)
-const showTooltip = ref(false)
+const hoveredImageButtonId = ref(null)
+const hoveredDetailsButtonId = ref(null)
 const showEditIpModal = ref(false)
 const isUpdatingIp = ref(false)
 const isTestingConnection = ref(false)
@@ -922,19 +920,17 @@ const editIpForm = ref({
 // Chart references
 const detectionChart = ref(null)
 const performanceChart = ref(null)
+const detectionTypesChart = ref(null)
+const detectionStatusChart = ref(null)
 let detectionChartInstance = null
 let performanceChartInstance = null
+let detectionTypesChartInstance = null
+let detectionStatusChartInstance = null
 
 let refreshInterval = null
 let timeUpdateInterval = null
 
 // Computed properties
-const filteredDetections = computed(() => {
-  if (detectionFilter.value === 'all') {
-    return props.detectionResults.data
-  }
-  return props.detectionResults.data.filter(detection => detection.status === detectionFilter.value)
-})
 
 const lastRefreshAgo = computed(() => {
   const diff = currentTime.value - lastRefreshTime.value
@@ -955,12 +951,18 @@ const lastRefreshAgo = computed(() => {
 
 // Chart data computed properties
 const getChartData = () => {
+  console.log('🔍 getChartData called with selectedPeriod:', selectedPeriod.value)
+  console.log('🔍 monitoringAnalytics:', props.monitoringAnalytics)
+  
   if (!props.monitoringAnalytics || !props.monitoringAnalytics.chart_data) {
+    console.warn('⚠️ No monitoringAnalytics or chart_data available')
     return []
   }
   
   const data = props.monitoringAnalytics.chart_data[selectedPeriod.value] || []
-  return data.map(item => ({
+  console.log('🔍 Chart data for', selectedPeriod.value, ':', data)
+  
+  const formattedData = data.map(item => ({
     time: new Date(item.time).toLocaleTimeString(),
     cpu_percent: item.cpu_percent || 0,
     memory_percent: item.memory_percent || 0,
@@ -969,7 +971,110 @@ const getChartData = () => {
     processing_time_ms: item.processing_time_ms || 0,
     detections_count: item.detections_count || 0,
   }))
+  
+  console.log('🔍 Raw data items:', data.length)
+  console.log('🔍 Formatted data items:', formattedData.length)
+  
+  console.log('🔍 Formatted chart data:', formattedData)
+  return formattedData
 }
+
+// Pie chart data for detection types
+const detectionTypesData = computed(() => {
+  if (!props.detectionResults?.data) return []
+  
+  const typeCounts = {}
+  props.detectionResults.data.forEach(detection => {
+    if (detection.detection_data?.objects) {
+      detection.detection_data.objects.forEach(obj => {
+        const type = obj.class_name || 'unknown'
+        typeCounts[type] = (typeCounts[type] || 0) + 1
+      })
+    }
+  })
+  
+  return Object.entries(typeCounts).map(([type, count]) => ({
+    label: type.replace('_', ' ').toUpperCase(),
+    value: count,
+    color: getTypeColor(type)
+  }))
+})
+
+// Pie chart data for detection status
+const detectionStatusData = computed(() => {
+  if (!props.detectionResults?.data) return []
+  
+  let successCount = 0
+  let rejectCount = 0
+  
+  props.detectionResults.data.forEach(detection => {
+    if (detection.status === 'completed') {
+      successCount++
+    } else {
+      rejectCount++
+    }
+  })
+  
+  return [
+    { label: 'Success', value: successCount, color: '#10B981' },
+    { label: 'Rejected', value: rejectCount, color: '#EF4444' }
+  ]
+})
+
+// Helper function to get colors for different waste types
+const getTypeColor = (type) => {
+  const colors = {
+    'plastic_bottle': '#3B82F6',
+    'glass_bottle': '#8B5CF6',
+    'aluminum_can': '#F59E0B',
+    'paper': '#10B981',
+    'cardboard': '#84CC16',
+    'unknown': '#6B7280'
+  }
+  return colors[type] || '#6B7280'
+}
+
+// Computed properties for analytics
+const successRate = computed(() => {
+  if (!props.detectionResults?.data || props.detectionResults.data.length === 0) return 0
+  
+  const successCount = props.detectionResults.data.filter(detection => detection.status === 'completed').length
+  return Math.round((successCount / props.detectionResults.data.length) * 100)
+})
+
+const uniqueWasteTypes = computed(() => {
+  if (!props.detectionResults?.data) return 0
+  
+  const types = new Set()
+  props.detectionResults.data.forEach(detection => {
+    if (detection.detection_data?.objects) {
+      detection.detection_data.objects.forEach(obj => {
+        types.add(obj.class_name || 'unknown')
+      })
+    }
+  })
+  return types.size
+})
+
+const averageConfidence = computed(() => {
+  if (!props.detectionResults?.data) return 0
+  
+  let totalConfidence = 0
+  let count = 0
+  
+  props.detectionResults.data.forEach(detection => {
+    if (detection.detection_data?.objects) {
+      detection.detection_data.objects.forEach(obj => {
+        if (obj.confidence) {
+          totalConfidence += obj.confidence
+          count++
+        }
+      })
+    }
+  })
+  
+  return count > 0 ? Math.round((totalConfidence / count) * 100) : 0
+})
 
 // Methods
 const goBack = () => {
@@ -1007,21 +1112,25 @@ const viewDetectionDetails = (detection) => {
   showDetectionDetailsModal.value = true
 }
 
+const viewDetectionImages = (detection) => {
+  if (!detection.image_path) {
+    alert('No images available for this detection')
+    return
+  }
+  
+  // Open images in new tab or modal
+  if (detection.image_path.startsWith('http')) {
+    window.open(detection.image_path, '_blank')
+  } else {
+    // If it's a local path, construct the full URL
+    const imageUrl = `${window.location.origin}/storage/${detection.image_path}`
+    window.open(imageUrl, '_blank')
+  }
+}
+
 const closeDetectionDetailsModal = () => {
   showDetectionDetailsModal.value = false
   selectedDetection.value = null
-}
-
-const goToPage = (url) => {
-  if (url) {
-    router.get(url, {
-      filter: detectionFilter.value
-    }, {
-      preserveState: true,
-      preserveScroll: true,
-      only: ['detectionResults']
-    })
-  }
 }
 
 const copyApiKey = async () => {
@@ -1210,15 +1319,31 @@ const updateIpAddress = async () => {
 
 // Chart methods
 const createDetectionChart = () => {
-  if (!detectionChart.value || !props.monitoringAnalytics) return
-  
-  const data = props.monitoringAnalytics.chart_data?.hourly || []
-  if (data.length === 0) return
+  try {
+    if (!detectionChart.value) {
+      console.warn('⚠️ Detection chart canvas not found')
+      return
+    }
+    
+    if (!props.monitoringAnalytics) {
+      console.warn('⚠️ Monitoring analytics data not available')
+      return
+    }
+    
+    const data = props.monitoringAnalytics.chart_data?.hourly || []
+    if (data.length === 0) {
+      console.warn('⚠️ No hourly chart data available')
+      return
+    }
+    
+    console.log('📊 Creating detection chart with', data.length, 'data points')
   
   const ctx = detectionChart.value.getContext('2d')
   
+  // Destroy existing chart if it exists
   if (detectionChartInstance) {
     detectionChartInstance.destroy()
+    detectionChartInstance = null
   }
   
   detectionChartInstance = new Chart(ctx, {
@@ -1262,18 +1387,33 @@ const createDetectionChart = () => {
       }
     }
   })
+  } catch (error) {
+    console.error('❌ Error creating detection chart:', error)
+    detectionChartInstance = null
+  }
 }
 
 const createPerformanceChart = () => {
-  if (!performanceChart.value) return
-  
-  const data = getChartData()
-  if (data.length === 0) return
+  try {
+    if (!performanceChart.value) {
+      console.warn('⚠️ Performance chart canvas not found')
+      return
+    }
+    
+    const data = getChartData()
+    if (data.length === 0) {
+      console.warn('⚠️ No performance chart data available')
+      return
+    }
+    
+    console.log('📊 Creating performance chart with', data.length, 'data points')
   
   const ctx = performanceChart.value.getContext('2d')
   
+  // Destroy existing chart if it exists
   if (performanceChartInstance) {
     performanceChartInstance.destroy()
+    performanceChartInstance = null
   }
   
   performanceChartInstance = new Chart(ctx, {
@@ -1345,16 +1485,181 @@ const createPerformanceChart = () => {
       }
     }
   })
+  } catch (error) {
+    console.error('❌ Error creating performance chart:', error)
+    performanceChartInstance = null
+  }
+}
+
+const createDetectionTypesChart = () => {
+  try {
+    if (!detectionTypesChart.value) {
+      console.warn('⚠️ Detection types chart canvas not found')
+      return
+    }
+    
+    const data = detectionTypesData.value
+    if (data.length === 0) {
+      console.warn('⚠️ No detection types data available')
+      return
+    }
+    
+    console.log('📊 Creating detection types pie chart with', data.length, 'types')
+    
+    const ctx = detectionTypesChart.value.getContext('2d')
+    
+    // Destroy existing chart if it exists
+    if (detectionTypesChartInstance) {
+      detectionTypesChartInstance.destroy()
+      detectionTypesChartInstance = null
+    }
+    
+    detectionTypesChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: data.map(item => item.label),
+        datasets: [{
+          data: data.map(item => item.value),
+          backgroundColor: data.map(item => item.color),
+          borderColor: data.map(item => item.color),
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              padding: 20,
+              usePointStyle: true
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const total = context.dataset.data.reduce((a, b) => a + b, 0)
+                const percentage = ((context.parsed / total) * 100).toFixed(1)
+                return `${context.label}: ${context.parsed} (${percentage}%)`
+              }
+            }
+          }
+        }
+      }
+    })
+  } catch (error) {
+    console.error('❌ Error creating detection types chart:', error)
+    detectionTypesChartInstance = null
+  }
+}
+
+const createDetectionStatusChart = () => {
+  try {
+    if (!detectionStatusChart.value) {
+      console.warn('⚠️ Detection status chart canvas not found')
+      return
+    }
+    
+    const data = detectionStatusData.value
+    if (data.length === 0) {
+      console.warn('⚠️ No detection status data available')
+      return
+    }
+    
+    console.log('📊 Creating detection status pie chart with', data.length, 'statuses')
+    
+    const ctx = detectionStatusChart.value.getContext('2d')
+    
+    // Destroy existing chart if it exists
+    if (detectionStatusChartInstance) {
+      detectionStatusChartInstance.destroy()
+      detectionStatusChartInstance = null
+    }
+    
+    detectionStatusChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: data.map(item => item.label),
+        datasets: [{
+          data: data.map(item => item.value),
+          backgroundColor: data.map(item => item.color),
+          borderColor: data.map(item => item.color),
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              padding: 20,
+              usePointStyle: true
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const total = context.dataset.data.reduce((a, b) => a + b, 0)
+                const percentage = ((context.parsed / total) * 100).toFixed(1)
+                return `${context.label}: ${context.parsed} (${percentage}%)`
+              }
+            }
+          }
+        }
+      }
+    })
+  } catch (error) {
+    console.error('❌ Error creating detection status chart:', error)
+    detectionStatusChartInstance = null
+  }
 }
 
 const updateCharts = () => {
   nextTick(() => {
+    // Destroy existing charts first
+    if (detectionChartInstance) {
+      detectionChartInstance.destroy()
+      detectionChartInstance = null
+    }
+    if (performanceChartInstance) {
+      performanceChartInstance.destroy()
+      performanceChartInstance = null
+    }
+    if (detectionTypesChartInstance) {
+      detectionTypesChartInstance.destroy()
+      detectionTypesChartInstance = null
+    }
+    if (detectionStatusChartInstance) {
+      detectionStatusChartInstance.destroy()
+      detectionStatusChartInstance = null
+    }
+    
+    // Create new charts
     createDetectionChart()
     createPerformanceChart()
+    createDetectionTypesChart()
+    createDetectionStatusChart()
   })
 }
 
+// Watch for selectedPeriod changes
+watch(selectedPeriod, (newPeriod, oldPeriod) => {
+  console.log(`📊 Period changed from ${oldPeriod} to ${newPeriod}`)
+  updateCharts()
+})
+
 onMounted(() => {
+  // Debug: Log monitoring analytics data
+  console.log('🔍 Monitoring Analytics Data:', props.monitoringAnalytics)
+  console.log('🔍 Chart Data Available:', props.monitoringAnalytics?.chart_data?.hourly?.length > 0)
+  console.log('🔍 Hourly Data Count:', props.monitoringAnalytics?.chart_data?.hourly?.length || 0)
+  
+  // Initialize charts
+  updateCharts()
+  
   // Auto-refresh data every 30 seconds
   refreshInterval = setInterval(() => {
     console.log('🔄 Auto-refreshing maintenance data...')
@@ -1382,6 +1687,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  // Clear intervals
   if (refreshInterval) {
     clearInterval(refreshInterval)
   }
@@ -1389,12 +1695,22 @@ onUnmounted(() => {
     clearInterval(timeUpdateInterval)
   }
   
-  // Destroy chart instances
+  // Destroy charts
   if (detectionChartInstance) {
     detectionChartInstance.destroy()
+    detectionChartInstance = null
   }
   if (performanceChartInstance) {
     performanceChartInstance.destroy()
+    performanceChartInstance = null
+  }
+  if (detectionTypesChartInstance) {
+    detectionTypesChartInstance.destroy()
+    detectionTypesChartInstance = null
+  }
+  if (detectionStatusChartInstance) {
+    detectionStatusChartInstance.destroy()
+    detectionStatusChartInstance = null
   }
 })
 </script>

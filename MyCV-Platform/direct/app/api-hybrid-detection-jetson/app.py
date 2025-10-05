@@ -54,6 +54,11 @@ processing_results = {}
 rvm_cache = {}
 rvm_cache_timestamps = {}
 
+# Monitoring data collection
+monitoring_interval = 30  # seconds
+monitoring_thread = None
+monitoring_active = False
+
 def allowed_file(filename):
     """Check if file extension is allowed"""
     return '.' in filename and \
@@ -206,7 +211,7 @@ def send_monitoring_data_to_server(rvm_id, monitoring_data):
         }
         
         response = requests.post(
-            f"{RVM_API_BASE_URL}/maintenance/{rvm_id}/monitoring",
+            f"{RVM_API_BASE_URL}/api/maintenance/{rvm_id}/monitoring",
             headers=headers,
             json=payload,
             timeout=10
@@ -222,6 +227,74 @@ def send_monitoring_data_to_server(rvm_id, monitoring_data):
     except Exception as e:
         print(f"❌ Error sending monitoring data to server: {e}")
         return None
+
+def collect_and_send_monitoring_data():
+    """Collect monitoring data and send to server automatically"""
+    global monitoring_active
+    
+    while monitoring_active:
+        try:
+            # Get current system metrics
+            import psutil
+            import GPUtil
+            
+            cpu_usage = psutil.cpu_percent(interval=1)
+            memory = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
+            
+            # Get GPU usage if available
+            gpu_usage = 0
+            try:
+                gpus = GPUtil.getGPUs()
+                if gpus:
+                    gpu_usage = gpus[0].load * 100
+            except:
+                gpu_usage = 0
+            
+            # Prepare monitoring data
+            monitoring_data = {
+                'cpu_usage': round(cpu_usage, 1),
+                'memory_usage': round(memory.percent, 1),
+                'disk_usage': round(disk.percent, 1),
+                'gpu_usage': round(gpu_usage, 1),
+                'timestamp': datetime.now().isoformat(),
+                'detections_count': 0,
+                'error_count': 0,
+                'api_requests_count': 0,
+            }
+            
+            # Send to server for each configured RVM
+            rvm_ids = os.getenv('RVM_IDS', '25').split(',')
+            for rvm_id in rvm_ids:
+                rvm_id = rvm_id.strip()
+                if rvm_id:
+                    send_monitoring_data_to_server(rvm_id, monitoring_data)
+            
+            print(f"📊 Monitoring data collected and sent at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            
+        except Exception as e:
+            print(f"❌ Error in monitoring collection: {e}")
+        
+        # Wait for next interval
+        time.sleep(monitoring_interval)
+
+def start_automatic_monitoring():
+    """Start automatic monitoring data collection"""
+    global monitoring_thread, monitoring_active
+    
+    if not monitoring_active:
+        monitoring_active = True
+        monitoring_thread = threading.Thread(target=collect_and_send_monitoring_data)
+        monitoring_thread.daemon = True
+        monitoring_thread.start()
+        print(f"🚀 Automatic monitoring started (interval: {monitoring_interval}s)")
+
+def stop_automatic_monitoring():
+    """Stop automatic monitoring data collection"""
+    global monitoring_active
+    
+    monitoring_active = False
+    print("🛑 Automatic monitoring stopped")
 
 def get_gpu_info():
     """Get detailed GPU information"""
@@ -673,6 +746,49 @@ def monitoring_alerts():
             'status': 'error',
             'message': f'Failed to get alerts: {str(e)}'
         }), 500
+
+@app.route('/api/monitoring/start', methods=['POST'])
+def start_monitoring():
+    """Start automatic monitoring data collection"""
+    try:
+        start_automatic_monitoring()
+        return jsonify({
+            'status': 'success',
+            'message': 'Automatic monitoring started',
+            'interval': monitoring_interval,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to start monitoring: {str(e)}'
+        }), 500
+
+@app.route('/api/monitoring/stop', methods=['POST'])
+def stop_monitoring():
+    """Stop automatic monitoring data collection"""
+    try:
+        stop_automatic_monitoring()
+        return jsonify({
+            'status': 'success',
+            'message': 'Automatic monitoring stopped',
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Failed to stop monitoring: {str(e)}'
+        }), 500
+
+@app.route('/api/monitoring/status/auto', methods=['GET'])
+def monitoring_auto_status():
+    """Get automatic monitoring status"""
+    return jsonify({
+        'status': 'success',
+        'monitoring_active': monitoring_active,
+        'interval': monitoring_interval,
+        'timestamp': datetime.now().isoformat()
+    })
 
 def get_jetson_info():
     """Get Jetson device information"""
@@ -1519,6 +1635,9 @@ if __name__ == '__main__':
     # Start advanced monitoring
     start_monitoring()
     
+    # Start automatic monitoring data collection
+    start_automatic_monitoring()
+    
     print("🚀 Starting MyCV-Platform Hybrid Detection API (Jetson)")
     print("📡 API will be available at: http://100.117.234.2:5000")
     print("📋 Available endpoints:")
@@ -1536,6 +1655,9 @@ if __name__ == '__main__':
     print("   GET  /api/monitoring/status - Advanced monitoring status")
     print("   GET  /api/monitoring/summary - Performance summary")
     print("   GET  /api/monitoring/alerts - Recent alerts")
+    print("   POST /api/monitoring/start - Start automatic monitoring")
+    print("   POST /api/monitoring/stop - Stop automatic monitoring")
+    print("   GET  /api/monitoring/status/auto - Get monitoring status")
     print("=" * 60)
     print("🔐 RVM Integration:")
     print("   - Use X-RVM-API-Key header for authentication")
@@ -1546,6 +1668,7 @@ if __name__ == '__main__':
     print("   - Real-time performance monitoring")
     print("   - Alert system for system health")
     print("   - Performance analytics and reporting")
+    print("   - Automatic data collection every 30 seconds")
     print("=" * 60)
     
     try:
@@ -1553,4 +1676,5 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print("\n🛑 Shutting down...")
         stop_monitoring()
+        stop_automatic_monitoring()
         print("✅ Monitoring stopped")

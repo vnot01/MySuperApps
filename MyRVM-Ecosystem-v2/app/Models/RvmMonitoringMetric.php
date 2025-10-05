@@ -147,3 +147,4 @@ class RvmMonitoringMetric extends Model
         ]);
     }
 }
+
