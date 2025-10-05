@@ -39,7 +39,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp'}
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
 
 # RVM Platform Integration
-RVM_API_BASE_URL = os.getenv('RVM_API_BASE_URL', 'http://localhost:8000/api')
+RVM_API_BASE_URL = os.getenv('RVM_API_BASE_URL', 'http://localhost:8000')
 RVM_API_KEY = os.getenv('RVM_API_KEY', '')  # Master API key for RVM platform
 RVM_CACHE_TTL = 300  # 5 minutes cache for RVM data
 
@@ -642,7 +642,7 @@ def monitoring_status():
             
             # Send to server if RVM_ID is available
             rvm_id = request.headers.get('X-RVM-ID')
-            if rvm_id and RVM_API_BASE_URL != 'http://localhost:8000/api':
+            if rvm_id and RVM_API_BASE_URL != 'http://localhost:8000':
                 send_monitoring_data_to_server(rvm_id, monitoring_data)
             
             return jsonify({
@@ -704,7 +704,7 @@ def monitoring_status():
             
             # Send to server if RVM_ID is available
             rvm_id = request.headers.get('X-RVM-ID')
-            if rvm_id and RVM_API_BASE_URL != 'http://localhost:8000/api':
+            if rvm_id and RVM_API_BASE_URL != 'http://localhost:8000':
                 send_monitoring_data_to_server(rvm_id, monitoring_data)
             
             return jsonify({
