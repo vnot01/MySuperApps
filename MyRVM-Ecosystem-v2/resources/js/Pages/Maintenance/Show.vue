@@ -951,12 +951,18 @@ const lastRefreshAgo = computed(() => {
 
 // Chart data computed properties
 const getChartData = () => {
+  console.log('🔍 getChartData called with selectedPeriod:', selectedPeriod.value)
+  console.log('🔍 monitoringAnalytics:', props.monitoringAnalytics)
+  
   if (!props.monitoringAnalytics || !props.monitoringAnalytics.chart_data) {
+    console.warn('⚠️ No monitoringAnalytics or chart_data available')
     return []
   }
   
   const data = props.monitoringAnalytics.chart_data[selectedPeriod.value] || []
-  return data.map(item => ({
+  console.log('🔍 Chart data for', selectedPeriod.value, ':', data)
+  
+  const formattedData = data.map(item => ({
     time: new Date(item.time).toLocaleTimeString(),
     cpu_percent: item.cpu_percent || 0,
     memory_percent: item.memory_percent || 0,
@@ -965,6 +971,9 @@ const getChartData = () => {
     processing_time_ms: item.processing_time_ms || 0,
     detections_count: item.detections_count || 0,
   }))
+  
+  console.log('🔍 Formatted chart data:', formattedData)
+  return formattedData
 }
 
 // Pie chart data for detection types

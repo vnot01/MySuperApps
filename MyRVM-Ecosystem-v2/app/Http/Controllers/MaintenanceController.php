@@ -350,6 +350,8 @@ class MaintenanceController extends Controller
                 'chart_data' => [
                     'hourly' => $this->formatChartData($hourlyData),
                     'daily' => $this->formatChartData($dailyData),
+                    'monthly' => $this->formatChartData($dailyData), // Use daily data for monthly view
+                    'yearly' => $this->formatChartData($dailyData), // Use daily data for yearly view
                 ],
                 'average_metrics' => $avgMetrics ? [
                     'cpu_percent' => round($avgMetrics->avg_cpu ?? 0, 1),
