@@ -23,7 +23,7 @@ import subprocess
 import threading
 from pathlib import Path
 import torch
-import cv2
+# import cv2  # Temporarily disabled - will be enabled when OpenCV is installed
 from utils.python.advanced_monitoring import start_monitoring, stop_monitoring, get_current_metrics, get_performance_summary, get_alerts
 
 # Add parent directory to path to import detection modules
@@ -837,6 +837,16 @@ def initialize_camera():
     global camera, camera_available, camera_initialized
     
     try:
+        # Check if OpenCV is available
+        try:
+            import cv2
+        except ImportError:
+            return jsonify({
+                'status': 'error',
+                'message': 'OpenCV not installed - camera functionality unavailable',
+                'camera_available': False
+            })
+        
         # Try to initialize camera
         camera = cv2.VideoCapture(0)
         
@@ -924,6 +934,15 @@ def capture_image():
         })
     
     try:
+        # Check if OpenCV is available
+        try:
+            import cv2
+        except ImportError:
+            return jsonify({
+                'status': 'error',
+                'message': 'OpenCV not installed - camera capture unavailable'
+            })
+        
         ret, frame = camera.read()
         if ret:
             # Save captured image
