@@ -38,6 +38,15 @@ Route::middleware('auth')->group(function () {
     
     // Playground Routes
     Route::get('/playground/{rvm}', [PlaygroundController::class, 'show'])->name('playground.show');
+    
+    // Camera API Routes
+    Route::get('/playground/{rvm}/cameras/dashboard', [PlaygroundController::class, 'getCameraDashboard'])->name('playground.cameras.dashboard');
+    Route::get('/playground/{rvm}/cameras/remote', [PlaygroundController::class, 'getRemoteCameraInfo'])->name('playground.cameras.remote');
+    Route::get('/playground/{rvm}/cameras/status/simple', [PlaygroundController::class, 'getSimpleCameraStatus'])->name('playground.cameras.status.simple');
+    Route::get('/playground/{rvm}/cameras/discovery', [PlaygroundController::class, 'getCameraDiscovery'])->name('playground.cameras.discovery');
+    Route::post('/playground/{rvm}/cameras/{cameraId}/start', [PlaygroundController::class, 'startCamera'])->name('playground.cameras.start');
+    Route::post('/playground/{rvm}/cameras/{cameraId}/capture', [PlaygroundController::class, 'captureImage'])->name('playground.cameras.capture');
+    Route::post('/playground/{rvm}/cameras/{cameraId}/capture/base64', [PlaygroundController::class, 'captureImageBase64'])->name('playground.cameras.capture.base64');
 });
 
 // Testing route (no auth required)

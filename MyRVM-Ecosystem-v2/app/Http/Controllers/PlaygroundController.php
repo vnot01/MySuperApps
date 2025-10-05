@@ -50,6 +50,28 @@ class PlaygroundController extends Controller
         }
 
         try {
+            // Get comprehensive camera discovery
+            $response = Http::timeout(5)->get("http://{$rvm->ip_address}:5000/api/cameras/discovery");
+            
+            if ($response->successful()) {
+                $data = $response->json();
+                return [
+                    'cameras_available' => $data['cameras'] ?? [],
+                    'nvargus_status' => $data['nvargus_status'] ?? 'unknown',
+                    'total_cameras' => count($data['cameras'] ?? []),
+                    'camera_ready' => count($data['cameras'] ?? []) > 0,
+                    'system_info' => [
+                        'cpu_info' => $data['system_info']['cpu_info'] ?? [],
+                        'memory_info' => $data['system_info']['memory_info'] ?? [],
+                        'disk_info' => $data['system_info']['disk_info'] ?? [],
+                        'gpu_info' => $data['system_info']['gpu_info'] ?? [],
+                    ],
+                    'jetson_status' => 'online',
+                    'last_updated' => now()->toISOString(),
+                ];
+            }
+            
+            // Fallback to hardware endpoint
             $response = Http::timeout(5)->get("http://{$rvm->ip_address}:5000/api/hardware");
             
             if ($response->successful()) {
@@ -73,7 +95,7 @@ class PlaygroundController extends Controller
                 ];
             }
         } catch (\Exception $e) {
-            \Log::error("Failed to get Jetson hardware info for RVM {$rvm->id}: " . $e->getMessage());
+            \Log::error("Failed to get Jetson camera info for RVM {$rvm->id}: " . $e->getMessage());
         }
 
         return [
@@ -195,5 +217,173 @@ class PlaygroundController extends Controller
                 'status' => 'upload_required'
             ]
         ];
+    }
+
+    /**
+     * Get camera dashboard info
+     */
+    public function getCameraDashboard($rvmId)
+    {
+        $rvm = ReverseVendingMachine::findOrFail($rvmId);
+        
+        if (!$rvm->ip_address) {
+            return response()->json(['error' => 'RVM IP address not configured'], 400);
+        }
+
+        try {
+            $response = Http::timeout(5)->get("http://{$rvm->ip_address}:5000/api/cameras/dashboard");
+            
+            if ($response->successful()) {
+                return response()->json($response->json());
+            }
+        } catch (\Exception $e) {
+            \Log::error("Failed to get camera dashboard for RVM {$rvmId}: " . $e->getMessage());
+        }
+
+        return response()->json(['error' => 'Failed to get camera dashboard'], 500);
+    }
+
+    /**
+     * Get remote camera info
+     */
+    public function getRemoteCameraInfo($rvmId)
+    {
+        $rvm = ReverseVendingMachine::findOrFail($rvmId);
+        
+        if (!$rvm->ip_address) {
+            return response()->json(['error' => 'RVM IP address not configured'], 400);
+        }
+
+        try {
+            $response = Http::timeout(5)->get("http://{$rvm->ip_address}:5000/api/cameras/remote");
+            
+            if ($response->successful()) {
+                return response()->json($response->json());
+            }
+        } catch (\Exception $e) {
+            \Log::error("Failed to get remote camera info for RVM {$rvmId}: " . $e->getMessage());
+        }
+
+        return response()->json(['error' => 'Failed to get remote camera info'], 500);
+    }
+
+    /**
+     * Get simple camera status
+     */
+    public function getSimpleCameraStatus($rvmId)
+    {
+        $rvm = ReverseVendingMachine::findOrFail($rvmId);
+        
+        if (!$rvm->ip_address) {
+            return response()->json(['error' => 'RVM IP address not configured'], 400);
+        }
+
+        try {
+            $response = Http::timeout(5)->get("http://{$rvm->ip_address}:5000/api/cameras/status/simple");
+            
+            if ($response->successful()) {
+                return response()->json($response->json());
+            }
+        } catch (\Exception $e) {
+            \Log::error("Failed to get simple camera status for RVM {$rvmId}: " . $e->getMessage());
+        }
+
+        return response()->json(['error' => 'Failed to get simple camera status'], 500);
+    }
+
+    /**
+     * Get camera discovery
+     */
+    public function getCameraDiscovery($rvmId)
+    {
+        $rvm = ReverseVendingMachine::findOrFail($rvmId);
+        
+        if (!$rvm->ip_address) {
+            return response()->json(['error' => 'RVM IP address not configured'], 400);
+        }
+
+        try {
+            $response = Http::timeout(5)->get("http://{$rvm->ip_address}:5000/api/cameras/discovery");
+            
+            if ($response->successful()) {
+                return response()->json($response->json());
+            }
+        } catch (\Exception $e) {
+            \Log::error("Failed to get camera discovery for RVM {$rvmId}: " . $e->getMessage());
+        }
+
+        return response()->json(['error' => 'Failed to get camera discovery'], 500);
+    }
+
+    /**
+     * Start camera
+     */
+    public function startCamera(Request $request, $rvmId, $cameraId)
+    {
+        $rvm = ReverseVendingMachine::findOrFail($rvmId);
+        
+        if (!$rvm->ip_address) {
+            return response()->json(['error' => 'RVM IP address not configured'], 400);
+        }
+
+        try {
+            $response = Http::timeout(10)->post("http://{$rvm->ip_address}:5000/api/cameras/{$cameraId}/start");
+            
+            if ($response->successful()) {
+                return response()->json($response->json());
+            }
+        } catch (\Exception $e) {
+            \Log::error("Failed to start camera {$cameraId} for RVM {$rvmId}: " . $e->getMessage());
+        }
+
+        return response()->json(['error' => 'Failed to start camera'], 500);
+    }
+
+    /**
+     * Capture image from camera
+     */
+    public function captureImage(Request $request, $rvmId, $cameraId)
+    {
+        $rvm = ReverseVendingMachine::findOrFail($rvmId);
+        
+        if (!$rvm->ip_address) {
+            return response()->json(['error' => 'RVM IP address not configured'], 400);
+        }
+
+        try {
+            $response = Http::timeout(15)->post("http://{$rvm->ip_address}:5000/api/cameras/{$cameraId}/capture");
+            
+            if ($response->successful()) {
+                return response()->json($response->json());
+            }
+        } catch (\Exception $e) {
+            \Log::error("Failed to capture image from camera {$cameraId} for RVM {$rvmId}: " . $e->getMessage());
+        }
+
+        return response()->json(['error' => 'Failed to capture image'], 500);
+    }
+
+    /**
+     * Capture image as base64
+     */
+    public function captureImageBase64(Request $request, $rvmId, $cameraId)
+    {
+        $rvm = ReverseVendingMachine::findOrFail($rvmId);
+        
+        if (!$rvm->ip_address) {
+            return response()->json(['error' => 'RVM IP address not configured'], 400);
+        }
+
+        try {
+            $response = Http::timeout(15)->post("http://{$rvm->ip_address}:5000/api/cameras/{$cameraId}/capture/base64");
+            
+            if ($response->successful()) {
+                return response()->json($response->json());
+            }
+        } catch (\Exception $e) {
+            \Log::error("Failed to capture base64 image from camera {$cameraId} for RVM {$rvmId}: " . $e->getMessage());
+        }
+
+        return response()->json(['error' => 'Failed to capture base64 image'], 500);
     }
 }
