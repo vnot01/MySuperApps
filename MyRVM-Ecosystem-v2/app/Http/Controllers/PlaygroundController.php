@@ -468,39 +468,55 @@ class PlaygroundController extends Controller
             $fullPath = storage_path("app/public/{$storagePath}");
             
             if (!file_exists($fullPath)) {
-                mkdir($fullPath, 0755, true);
+                if (!mkdir($fullPath, 0755, true)) {
+                    \Log::error("Failed to create directory: {$fullPath}");
+                    return response()->json(['error' => 'Failed to create storage directory'], 500);
+                }
+                // Set proper permissions
+                chmod($fullPath, 0755);
             }
 
-            // Request Jetson to capture image with our storage path
+            // Request Jetson to capture image as base64
             $filename = "camera_{$cameraId}_capture.jpg";
-            $jetsonPath = "{$fullPath}/{$filename}";
+            $finalPath = "{$fullPath}/{$filename}";
             
-            $response = Http::timeout(15)->post("http://{$rvm->ip_address}:5000/api/cameras/{$cameraId}/capture", [
-                'save_path' => $jetsonPath
-            ]);
+            $response = Http::timeout(15)->post("http://{$rvm->ip_address}:5000/api/cameras/{$cameraId}/capture/base64");
             
             if ($response->successful()) {
                 $data = $response->json();
                 
-                if ($data['success'] && file_exists($jetsonPath)) {
-                    // Create symlink if it doesn't exist
-                    $this->ensureStorageSymlink();
+                if ($data['success'] && isset($data['image_base64'])) {
+                    // Decode base64 and save to Laravel storage
+                    $imageData = base64_decode($data['image_base64']);
+                    file_put_contents($finalPath, $imageData);
                     
-                    // Return public URL
-                    $publicUrl = asset("storage/{$storagePath}/{$filename}");
-                    
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Image captured and saved successfully',
-                        'camera_id' => $cameraId,
-                        'file_path' => $jetsonPath,
-                        'public_url' => $publicUrl,
-                        'storage_path' => "{$storagePath}/{$filename}",
-                        'timestamp' => $timestamp
-                    ]);
+                    if (file_exists($finalPath)) {
+                        // Create symlink if it doesn't exist
+                        $this->ensureStorageSymlink();
+                        
+                        // Return public URL
+                        $publicUrl = asset("storage/{$storagePath}/{$filename}");
+                        
+                        return response()->json([
+                            'success' => true,
+                            'message' => 'Image captured and saved successfully',
+                            'camera_id' => $cameraId,
+                            'file_path' => $finalPath,
+                            'public_url' => $publicUrl,
+                            'storage_path' => "{$storagePath}/{$filename}",
+                            'timestamp' => $timestamp
+                        ]);
+                    } else {
+                        \Log::error("Failed to save image to final path: {$finalPath}");
+                        return response()->json(['error' => 'Failed to save image to storage'], 500);
+                    }
                 } else {
-                    return response()->json(['error' => 'Failed to save image to storage'], 500);
+                    \Log::error("Jetson capture failed: " . json_encode($data));
+                    return response()->json(['error' => 'Failed to capture image: ' . ($data['error'] ?? 'Unknown error')], 500);
                 }
+            } else {
+                \Log::error("Jetson API request failed: " . $response->body());
+                return response()->json(['error' => 'Failed to communicate with Jetson camera'], 500);
             }
         } catch (\Exception $e) {
             \Log::error("Failed to capture and save image from camera {$cameraId} for RVM {$rvmId}: " . $e->getMessage());
