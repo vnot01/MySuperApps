@@ -1000,6 +1000,53 @@ def capture_image_base64(camera_id):
             'error': str(e)
         }), 500
 
+@app.route('/api/cameras/<camera_id>/stream', methods=['GET'])
+def get_camera_stream(camera_id):
+    """Get live camera stream frame"""
+    try:
+        camera_service = get_camera_service()
+        if not camera_service.is_initialized:
+            camera_service.initialize()
+        
+        # Check if camera is active
+        if camera_id not in camera_service.streaming_cameras:
+            return jsonify({
+                'success': False,
+                'error': 'Camera not streaming'
+            }), 400
+        
+        # Capture current frame
+        success, result = camera_service.capture_image(camera_id, save_path=None)
+        
+        if success:
+            # Return as base64 image with proper headers
+            import base64
+            from flask import Response
+            
+            # Decode base64 to binary
+            image_data = base64.b64decode(result)
+            
+            # Return as JPEG image
+            return Response(
+                image_data,
+                mimetype='image/jpeg',
+                headers={
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            )
+        else:
+            return jsonify({
+                'success': False,
+                'error': result
+            }), 400
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @app.route('/api/cameras/status', methods=['GET'])
 def get_all_cameras_status():
     """Get status of all cameras"""
