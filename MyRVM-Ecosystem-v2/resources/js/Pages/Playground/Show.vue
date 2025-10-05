@@ -416,7 +416,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { router } from '@inertiajs/vue3'
 
 const props = defineProps({
