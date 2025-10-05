@@ -46,7 +46,15 @@ class PlaygroundController extends Controller
     private function getJetsonCameraInfo($rvm)
     {
         if (!$rvm->ip_address) {
-            return null;
+            return [
+                'cameras_available' => [],
+                'nvargus_status' => 'unknown',
+                'total_cameras' => 0,
+                'camera_ready' => false,
+                'system_info' => [],
+                'jetson_status' => 'offline',
+                'last_updated' => now()->toISOString(),
+            ];
         }
 
         try {
@@ -55,16 +63,65 @@ class PlaygroundController extends Controller
             
             if ($response->successful()) {
                 $data = $response->json();
+                $discovery = $data['discovery'] ?? [];
+                $remoteInfo = $discovery['remote_info'] ?? [];
+                $simpleStatus = $discovery['simple_status'] ?? [];
+                
+                // Extract camera information
+                $cameras = [];
+                if (isset($remoteInfo['cameras'])) {
+                    foreach ($remoteInfo['cameras'] as $camera) {
+                        $cameras[] = [
+                            'id' => $camera['id'],
+                            'name' => $camera['device_name'],
+                            'path' => $camera['device_path'],
+                            'status' => $camera['status'],
+                            'is_streaming' => $camera['is_streaming'],
+                            'remote_ready' => $camera['remote_ready']
+                        ];
+                    }
+                }
+                
                 return [
-                    'cameras_available' => $data['cameras'] ?? [],
-                    'nvargus_status' => $data['nvargus_status'] ?? 'unknown',
-                    'total_cameras' => count($data['cameras'] ?? []),
-                    'camera_ready' => count($data['cameras'] ?? []) > 0,
+                    'cameras_available' => $cameras,
+                    'nvargus_status' => 'active', // Assume active if cameras found
+                    'total_cameras' => $remoteInfo['total_cameras'] ?? 0,
+                    'camera_ready' => ($remoteInfo['total_cameras'] ?? 0) > 0,
+                    'active_cameras' => $remoteInfo['active_cameras'] ?? 0,
+                    'service_status' => $remoteInfo['service_status'] ?? 'unknown',
+                    'remote_capable' => $remoteInfo['remote_capable'] ?? false,
                     'system_info' => [
-                        'cpu_info' => $data['system_info']['cpu_info'] ?? [],
-                        'memory_info' => $data['system_info']['memory_info'] ?? [],
-                        'disk_info' => $data['system_info']['disk_info'] ?? [],
-                        'gpu_info' => $data['system_info']['gpu_info'] ?? [],
+                        'cpu_info' => [],
+                        'memory_info' => [],
+                        'disk_info' => [],
+                        'gpu_info' => [],
+                    ],
+                    'jetson_status' => 'online',
+                    'last_updated' => now()->toISOString(),
+                ];
+            }
+            
+            // Fallback to dashboard endpoint
+            $response = Http::timeout(5)->get("http://{$rvm->ip_address}:5000/api/cameras/dashboard");
+            
+            if ($response->successful()) {
+                $data = $response->json();
+                $cameraInfo = $data['camera_info'] ?? [];
+                $cameras = $cameraInfo['cameras'] ?? [];
+                
+                return [
+                    'cameras_available' => $cameras,
+                    'nvargus_status' => 'active',
+                    'total_cameras' => $cameraInfo['total_cameras'] ?? 0,
+                    'camera_ready' => ($cameraInfo['total_cameras'] ?? 0) > 0,
+                    'active_cameras' => $cameraInfo['active_cameras'] ?? 0,
+                    'service_status' => $cameraInfo['service_status'] ?? 'unknown',
+                    'remote_capable' => $cameraInfo['remote_capable'] ?? false,
+                    'system_info' => [
+                        'cpu_info' => [],
+                        'memory_info' => [],
+                        'disk_info' => [],
+                        'gpu_info' => [],
                     ],
                     'jetson_status' => 'online',
                     'last_updated' => now()->toISOString(),
@@ -84,6 +141,9 @@ class PlaygroundController extends Controller
                     'nvargus_status' => $cameraInfo['nvargus_status'] ?? 'unknown',
                     'total_cameras' => count($cameraInfo['usb_cameras'] ?? []),
                     'camera_ready' => count($cameraInfo['usb_cameras'] ?? []) > 0,
+                    'active_cameras' => count($cameraInfo['usb_cameras'] ?? []),
+                    'service_status' => 'unknown',
+                    'remote_capable' => false,
                     'system_info' => [
                         'cpu_info' => $hardwareInfo['cpu_info'] ?? [],
                         'memory_info' => $hardwareInfo['memory_info'] ?? [],
@@ -103,6 +163,9 @@ class PlaygroundController extends Controller
             'nvargus_status' => 'unknown',
             'total_cameras' => 0,
             'camera_ready' => false,
+            'active_cameras' => 0,
+            'service_status' => 'offline',
+            'remote_capable' => false,
             'system_info' => [],
             'jetson_status' => 'offline',
             'last_updated' => now()->toISOString(),

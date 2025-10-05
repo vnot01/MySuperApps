@@ -83,8 +83,30 @@
                   jetsonCameraInfo?.camera_ready ? 'bg-green-500' : 'bg-red-500'
                 ]"></div>
                 <span class="text-sm text-gray-600">
-                  {{ jetsonCameraInfo?.camera_ready ? 'Camera Ready' : 'Camera Not Available' }}
+                  {{ jetsonCameraInfo?.camera_ready ? `Camera Ready (${jetsonCameraInfo?.total_cameras || 0} cameras)` : 'Camera Not Available' }}
                 </span>
+              </div>
+            </div>
+            
+            <!-- Camera Information -->
+            <div v-if="jetsonCameraInfo?.cameras_available?.length > 0" class="mb-4 p-4 bg-gray-50 rounded-lg">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">Available Cameras:</h4>
+              <div class="grid grid-cols-1 gap-2">
+                <div v-for="camera in jetsonCameraInfo.cameras_available" :key="camera.id" 
+                     class="flex items-center justify-between p-2 bg-white rounded border">
+                  <div class="flex items-center space-x-2">
+                    <div :class="[
+                      'w-2 h-2 rounded-full',
+                      camera.status === 'active' ? 'bg-green-500' : 'bg-yellow-500'
+                    ]"></div>
+                    <span class="text-sm font-medium">{{ camera.name }}</span>
+                    <span class="text-xs text-gray-500">({{ camera.path }})</span>
+                  </div>
+                  <div class="flex items-center space-x-1">
+                    <span v-if="camera.is_streaming" class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Streaming</span>
+                    <span v-else class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Idle</span>
+                  </div>
+                </div>
               </div>
             </div>
             
