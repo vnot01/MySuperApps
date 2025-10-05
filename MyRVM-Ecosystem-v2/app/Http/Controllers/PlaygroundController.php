@@ -25,6 +25,9 @@ class PlaygroundController extends Controller
         // Get Jetson camera info
         $jetsonCameraInfo = $this->getJetsonCameraInfo($rvm);
         
+        // Get Jetson camera status
+        $jetsonCameraStatus = $this->getJetsonCameraStatus($rvm);
+        
         // Get GPU server info
         $gpuServerInfo = $this->getGpuServerInfo();
         
@@ -34,6 +37,7 @@ class PlaygroundController extends Controller
         return Inertia::render('Playground/Show', [
             'rvm' => $rvmInfo,
             'jetsonCameraInfo' => $jetsonCameraInfo,
+            'jetsonCameraStatus' => $jetsonCameraStatus,
             'gpuServerInfo' => $gpuServerInfo,
             'availableModels' => $availableModels,
         ]);
@@ -80,6 +84,36 @@ class PlaygroundController extends Controller
             'system_info' => [],
             'jetson_status' => 'offline',
             'last_updated' => now()->toISOString(),
+        ];
+    }
+
+    private function getJetsonCameraStatus($rvm)
+    {
+        if (!$rvm->ip_address) {
+            return null;
+        }
+
+        try {
+            $response = Http::timeout(5)->get("http://{$rvm->ip_address}:5000/api/camera/status");
+            
+            if ($response->successful()) {
+                $data = $response->json();
+                return [
+                    'camera_available' => $data['camera_available'] ?? false,
+                    'camera_initialized' => $data['camera_initialized'] ?? false,
+                    'camera_streaming' => $data['camera_streaming'] ?? false,
+                    'timestamp' => $data['timestamp'] ?? now()->toISOString(),
+                ];
+            }
+        } catch (\Exception $e) {
+            \Log::error("Failed to get Jetson camera status for RVM {$rvm->id}: " . $e->getMessage());
+        }
+
+        return [
+            'camera_available' => false,
+            'camera_initialized' => false,
+            'camera_streaming' => false,
+            'timestamp' => now()->toISOString(),
         ];
     }
 

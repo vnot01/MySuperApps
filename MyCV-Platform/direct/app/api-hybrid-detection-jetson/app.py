@@ -23,6 +23,7 @@ import subprocess
 import threading
 from pathlib import Path
 import torch
+import cv2
 from utils.python.advanced_monitoring import start_monitoring, stop_monitoring, get_current_metrics, get_performance_summary, get_alerts
 
 # Add parent directory to path to import detection modules
@@ -62,6 +63,12 @@ rvm_cache_timestamps = {}
 monitoring_interval = 30  # seconds
 monitoring_thread = None
 monitoring_active = False
+
+# Camera management
+camera = None
+camera_available = False
+camera_initialized = False
+camera_streaming = False
 
 def allowed_file(filename):
     """Check if file extension is allowed"""
@@ -812,6 +819,138 @@ def monitoring_auto_status():
         'interval': monitoring_interval,
         'timestamp': datetime.now().isoformat()
     })
+
+# Camera Management Endpoints
+@app.route('/api/camera/status', methods=['GET'])
+def camera_status():
+    """Get camera status"""
+    return jsonify({
+        'camera_available': camera_available,
+        'camera_initialized': camera_initialized,
+        'camera_streaming': camera_streaming,
+        'timestamp': datetime.now().isoformat()
+    })
+
+@app.route('/api/camera/initialize', methods=['POST'])
+def initialize_camera():
+    """Initialize camera"""
+    global camera, camera_available, camera_initialized
+    
+    try:
+        # Try to initialize camera
+        camera = cv2.VideoCapture(0)
+        
+        if camera.isOpened():
+            camera_available = True
+            camera_initialized = True
+            print("✅ Camera initialized successfully")
+            return jsonify({
+                'status': 'success',
+                'message': 'Camera initialized successfully',
+                'camera_available': True
+            })
+        else:
+            camera_available = False
+            camera_initialized = False
+            print("❌ Failed to initialize camera")
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to initialize camera',
+                'camera_available': False
+            })
+    except Exception as e:
+        camera_available = False
+        camera_initialized = False
+        print(f"❌ Camera initialization error: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Camera initialization error: {str(e)}',
+            'camera_available': False
+        })
+
+@app.route('/api/camera/start_stream', methods=['POST'])
+def start_camera_stream():
+    """Start camera streaming"""
+    global camera_streaming
+    
+    if not camera_initialized:
+        return jsonify({
+            'status': 'error',
+            'message': 'Camera not initialized'
+        })
+    
+    try:
+        camera_streaming = True
+        print("📹 Camera streaming started")
+        return jsonify({
+            'status': 'success',
+            'message': 'Camera streaming started',
+            'streaming': True
+        })
+    except Exception as e:
+        print(f"❌ Error starting camera stream: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Error starting camera stream: {str(e)}'
+        })
+
+@app.route('/api/camera/stop_stream', methods=['POST'])
+def stop_camera_stream():
+    """Stop camera streaming"""
+    global camera_streaming
+    
+    try:
+        camera_streaming = False
+        print("🛑 Camera streaming stopped")
+        return jsonify({
+            'status': 'success',
+            'message': 'Camera streaming stopped',
+            'streaming': False
+        })
+    except Exception as e:
+        print(f"❌ Error stopping camera stream: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Error stopping camera stream: {str(e)}'
+        })
+
+@app.route('/api/camera/capture', methods=['POST'])
+def capture_image():
+    """Capture image from camera"""
+    if not camera_initialized or not camera_streaming:
+        return jsonify({
+            'status': 'error',
+            'message': 'Camera not ready for capture'
+        })
+    
+    try:
+        ret, frame = camera.read()
+        if ret:
+            # Save captured image
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f'capture_{timestamp}.jpg'
+            filepath = os.path.join(OUTPUT_FOLDER, filename)
+            
+            cv2.imwrite(filepath, frame)
+            
+            return jsonify({
+                'status': 'success',
+                'message': 'Image captured successfully',
+                'filename': filename,
+                'filepath': filepath,
+                'timestamp': timestamp
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to capture image'
+            })
+    except Exception as e:
+        print(f"❌ Error capturing image: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': f'Error capturing image: {str(e)}'
+        })
 
 def get_jetson_info():
     """Get Jetson device information"""

@@ -196,6 +196,10 @@
                   <div>Cameras: {{ jetsonCameraInfo?.total_cameras || 0 }}</div>
                   <div>NVArgus: {{ jetsonCameraInfo?.nvargus_status || 'unknown' }}</div>
                 </div>
+                <div v-if="jetsonCameraStatus" class="mt-2 text-xs text-gray-500">
+                  <div>Initialized: {{ jetsonCameraStatus.camera_initialized ? 'Yes' : 'No' }}</div>
+                  <div>Streaming: {{ jetsonCameraStatus.camera_streaming ? 'Yes' : 'No' }}</div>
+                </div>
               </div>
 
               <!-- GPU Server Status (Optional) -->
@@ -353,6 +357,7 @@ import { router } from '@inertiajs/vue3'
 const props = defineProps({
   rvm: Object,
   jetsonCameraInfo: Object,
+  jetsonCameraStatus: Object,
   gpuServerInfo: Object,
   availableModels: Array,
 })
@@ -378,22 +383,76 @@ const refreshData = async () => {
   }
 }
 
-const startCamera = () => {
-  cameraActive.value = true
-  // TODO: Implement actual camera connection
-  console.log('Starting camera...')
+const startCamera = async () => {
+  try {
+    // Initialize camera first
+    const initResponse = await fetch(`http://${props.rvm.ip_address}:5000/api/camera/initialize`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    
+    if (initResponse.ok) {
+      const initData = await initResponse.json()
+      if (initData.status === 'success') {
+        // Start camera stream
+        const streamResponse = await fetch(`http://${props.rvm.ip_address}:5000/api/camera/start_stream`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        })
+        
+        if (streamResponse.ok) {
+          cameraActive.value = true
+          console.log('✅ Camera started successfully')
+        } else {
+          console.error('❌ Failed to start camera stream')
+        }
+      } else {
+        console.error('❌ Failed to initialize camera:', initData.message)
+      }
+    } else {
+      console.error('❌ Camera initialization failed')
+    }
+  } catch (error) {
+    console.error('❌ Error starting camera:', error)
+  }
 }
 
-const stopCamera = () => {
-  cameraActive.value = false
-  // TODO: Implement camera disconnection
-  console.log('Stopping camera...')
+const stopCamera = async () => {
+  try {
+    const response = await fetch(`http://${props.rvm.ip_address}:5000/api/camera/stop_stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    
+    if (response.ok) {
+      cameraActive.value = false
+      console.log('✅ Camera stopped successfully')
+    } else {
+      console.error('❌ Failed to stop camera stream')
+    }
+  } catch (error) {
+    console.error('❌ Error stopping camera:', error)
+  }
 }
 
-const captureImage = () => {
+const captureImage = async () => {
   if (cameraActive.value) {
-    // TODO: Implement image capture
-    console.log('Capturing image...')
+    try {
+      const response = await fetch(`http://${props.rvm.ip_address}:5000/api/camera/capture`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('✅ Image captured:', data.filename)
+        // TODO: Display captured image or add to results
+      } else {
+        console.error('❌ Failed to capture image')
+      }
+    } catch (error) {
+      console.error('❌ Error capturing image:', error)
+    }
   }
 }
 
