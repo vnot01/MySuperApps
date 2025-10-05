@@ -972,6 +972,9 @@ const getChartData = () => {
     detections_count: item.detections_count || 0,
   }))
   
+  console.log('🔍 Raw data items:', data.length)
+  console.log('🔍 Formatted data items:', formattedData.length)
+  
   console.log('🔍 Formatted chart data:', formattedData)
   return formattedData
 }
