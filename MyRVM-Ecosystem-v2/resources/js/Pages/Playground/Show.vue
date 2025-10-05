@@ -558,11 +558,12 @@ const captureImage = async () => {
     console.log('📸 Attempting to capture image from camera:', selectedCameraId.value)
     
     // Use Laravel endpoint that saves to storage
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
     const response = await fetch(`/playground/${props.rvm.id}/cameras/${selectedCameraId.value}/capture-save`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        'X-CSRF-TOKEN': csrfToken
       }
     })
     
