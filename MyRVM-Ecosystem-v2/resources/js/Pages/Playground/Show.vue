@@ -140,6 +140,24 @@
                   <p>Starting camera...</p>
                 </div>
               </div>
+              <div v-else-if="isStreaming && streamUrl" class="w-full h-full relative">
+                <!-- Live Video Stream -->
+                <img 
+                  :src="streamUrl" 
+                  alt="Live Camera Feed"
+                  class="w-full h-full object-cover"
+                  @error="handleStreamError"
+                />
+                <!-- Live Indicator -->
+                <div class="absolute top-2 right-2 flex items-center space-x-1 bg-red-600 text-white px-2 py-1 rounded-full text-xs">
+                  <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  <span>LIVE</span>
+                </div>
+                <!-- Camera Info Overlay -->
+                <div class="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                  {{ selectedCamera?.name || 'Camera' }}
+                </div>
+              </div>
               <div v-else class="w-full h-full bg-gray-800 flex items-center justify-center">
                 <div class="text-center text-white">
                   <i class="fas fa-video text-4xl mb-4 text-green-500"></i>
@@ -147,7 +165,7 @@
                   <p class="text-sm opacity-75">{{ selectedCamera?.name || 'Camera' }} is ready</p>
                   <div class="mt-4 flex items-center justify-center space-x-2">
                     <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span class="text-xs">Live</span>
+                    <span class="text-xs">Ready for streaming</span>
                   </div>
                 </div>
               </div>
@@ -450,6 +468,11 @@ const detectionResults = ref([])
 // Camera selection
 const selectedCameraId = ref('')
 
+// Live streaming
+const isStreaming = ref(false)
+const streamUrl = ref('')
+const streamInterval = ref(null)
+
 // Computed properties
 const selectedCamera = computed(() => {
   if (!selectedCameraId.value || !props.jetsonCameraInfo?.cameras_available) {
@@ -508,6 +531,10 @@ const startCamera = async () => {
         cameraActive.value = true
         cameraLoading.value = false
         console.log('✅ Camera started successfully')
+        
+        // Start live streaming
+        startLiveStream()
+        
         refreshData() // Refresh to get latest status
       } else {
         console.error('❌ Failed to start camera:', startData.error)
@@ -532,6 +559,9 @@ const stopCamera = async () => {
   }
   
   try {
+    // Stop live streaming first
+    stopLiveStream()
+    
     const response = await fetch(`http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/stop`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
@@ -597,6 +627,46 @@ const selectModel = (model) => {
   console.log('Selected model:', model.name)
 }
 
+// Live streaming methods
+const startLiveStream = () => {
+  if (!selectedCameraId.value) return
+  
+  console.log('🎬 Starting live stream for camera:', selectedCameraId.value)
+  isStreaming.value = true
+  
+  // Create stream URL with timestamp to prevent caching
+  const timestamp = Date.now()
+  streamUrl.value = `http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/stream?t=${timestamp}`
+  
+  // Update stream URL every 5 seconds to refresh the image
+  streamInterval.value = setInterval(() => {
+    const newTimestamp = Date.now()
+    streamUrl.value = `http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/stream?t=${newTimestamp}`
+  }, 5000)
+}
+
+const stopLiveStream = () => {
+  console.log('🛑 Stopping live stream')
+  isStreaming.value = false
+  streamUrl.value = ''
+  
+  if (streamInterval.value) {
+    clearInterval(streamInterval.value)
+    streamInterval.value = null
+  }
+}
+
+const handleStreamError = () => {
+  console.error('❌ Stream error - retrying...')
+  // Retry stream after 2 seconds
+  setTimeout(() => {
+    if (isStreaming.value && selectedCameraId.value) {
+      const timestamp = Date.now()
+      streamUrl.value = `http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/stream?t=${timestamp}`
+    }
+  }, 2000)
+}
+
 const startDetection = () => {
   if (selectedModel.value && jetsonCameraInfo.value?.camera_ready) {
     detectionActive.value = true
@@ -635,6 +705,8 @@ onUnmounted(() => {
   if (detectionActive.value) {
     stopDetection()
   }
+  // Cleanup streaming
+  stopLiveStream()
 })
 </script>
 
