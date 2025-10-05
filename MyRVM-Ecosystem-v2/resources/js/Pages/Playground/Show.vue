@@ -103,15 +103,33 @@
               </div>
             </div>
 
+            <!-- Camera Error Display -->
+            <div v-if="cameraError" class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                <span class="text-red-700 font-medium">Camera Error:</span>
+              </div>
+              <p class="text-red-600 text-sm mt-1">{{ cameraError }}</p>
+              <div v-if="cameraError.includes('OpenCV not installed')" class="mt-2 text-xs text-red-500">
+                <p>To fix this issue:</p>
+                <ul class="list-disc list-inside ml-2">
+                  <li>Install OpenCV on the Jetson device</li>
+                  <li>Run: <code class="bg-red-100 px-1 rounded">pip install opencv-python</code></li>
+                  <li>Restart the Jetson API service</li>
+                </ul>
+              </div>
+            </div>
+
             <!-- Camera Controls -->
             <div class="mt-4 flex flex-wrap gap-2">
               <button 
                 @click="startCamera"
-                :disabled="!jetsonCameraInfo?.camera_ready || cameraActive"
+                :disabled="!jetsonCameraInfo?.camera_ready || cameraActive || cameraLoading"
                 class="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg transition-colors flex items-center"
               >
-                <i class="fas fa-play mr-2"></i>
-                Start Camera
+                <i v-if="cameraLoading" class="fas fa-spinner fa-spin mr-2"></i>
+                <i v-else class="fas fa-play mr-2"></i>
+                {{ cameraLoading ? 'Initializing...' : 'Start Camera' }}
               </button>
               <button 
                 @click="stopCamera"
@@ -367,6 +385,8 @@ const isRefreshing = ref(false)
 const cameraActive = ref(false)
 const detectionActive = ref(false)
 const selectedModel = ref(null)
+const cameraError = ref('')
+const cameraLoading = ref(false)
 const detectionResults = ref([])
 
 // Actions
@@ -385,6 +405,10 @@ const refreshData = async () => {
 
 const startCamera = async () => {
   try {
+    cameraLoading.value = true
+    cameraError.value = ''
+    console.log('🎥 Attempting to initialize camera...')
+    
     // Initialize camera first
     const initResponse = await fetch(`http://${props.rvm.ip_address}:5000/api/camera/initialize`, {
       method: 'POST',
@@ -393,7 +417,11 @@ const startCamera = async () => {
     
     if (initResponse.ok) {
       const initData = await initResponse.json()
+      console.log('📋 Camera initialization response:', initData)
+      
       if (initData.status === 'success') {
+        console.log('✅ Camera initialized successfully')
+        
         // Start camera stream
         const streamResponse = await fetch(`http://${props.rvm.ip_address}:5000/api/camera/start_stream`, {
           method: 'POST',
@@ -403,17 +431,31 @@ const startCamera = async () => {
         if (streamResponse.ok) {
           cameraActive.value = true
           console.log('✅ Camera started successfully')
+          refreshStatus() // Refresh to get latest status
         } else {
           console.error('❌ Failed to start camera stream')
+          cameraError.value = 'Failed to start camera stream'
         }
       } else {
         console.error('❌ Failed to initialize camera:', initData.message)
+        
+        // Show user-friendly error message
+        if (initData.message && initData.message.includes('OpenCV not installed')) {
+          cameraError.value = 'OpenCV not installed on Jetson. Camera functionality unavailable.'
+          console.warn('⚠️ OpenCV is not installed on Jetson. Camera functionality unavailable.')
+        } else {
+          cameraError.value = initData.message || 'Failed to initialize camera'
+        }
       }
     } else {
-      console.error('❌ Camera initialization failed')
+      console.error('❌ Camera initialization failed - HTTP error')
+      cameraError.value = 'Camera initialization failed - HTTP error'
     }
   } catch (error) {
     console.error('❌ Error starting camera:', error)
+    cameraError.value = 'Network error: ' + error.message
+  } finally {
+    cameraLoading.value = false
   }
 }
 
