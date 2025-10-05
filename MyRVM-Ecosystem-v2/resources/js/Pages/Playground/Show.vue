@@ -177,48 +177,85 @@
             </h3>
             
             <div class="space-y-4">
-              <!-- Jetson Status -->
-              <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div class="flex items-center space-x-3">
-                  <i class="fas fa-microchip text-blue-500"></i>
-                  <span class="font-medium">Jetson Edge</span>
+              <!-- Jetson Edge Status -->
+              <div class="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center space-x-3">
+                    <i class="fas fa-microchip text-blue-500"></i>
+                    <span class="font-medium text-gray-900">Jetson Edge</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <div :class="[
+                      'w-3 h-3 rounded-full',
+                      jetsonCameraInfo?.jetson_status === 'online' ? 'bg-green-500' : 'bg-red-500'
+                    ]"></div>
+                    <span class="text-sm font-medium">{{ jetsonCameraInfo?.jetson_status || 'offline' }}</span>
+                  </div>
                 </div>
-                <div class="flex items-center space-x-2">
-                  <div :class="[
-                    'w-2 h-2 rounded-full',
-                    jetsonCameraInfo?.camera_ready ? 'bg-green-500' : 'bg-red-500'
-                  ]"></div>
-                  <span class="text-sm">{{ jetsonCameraInfo?.total_cameras || 0 }} cameras</span>
+                <div class="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                  <div>Cameras: {{ jetsonCameraInfo?.total_cameras || 0 }}</div>
+                  <div>NVArgus: {{ jetsonCameraInfo?.nvargus_status || 'unknown' }}</div>
                 </div>
               </div>
 
-              <!-- GPU Server Status -->
-              <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div class="flex items-center space-x-3">
-                  <i class="fas fa-server text-green-500"></i>
-                  <span class="font-medium">GPU Server</span>
+              <!-- GPU Server Status (Optional) -->
+              <div class="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center space-x-3">
+                    <i class="fas fa-server text-green-500"></i>
+                    <span class="font-medium text-gray-900">GPU Server</span>
+                    <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Optional</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <div :class="[
+                      'w-3 h-3 rounded-full',
+                      gpuServerInfo?.server_status === 'online' ? 'bg-green-500' : 'bg-red-500'
+                    ]"></div>
+                    <span class="text-sm font-medium">{{ gpuServerInfo?.server_status || 'offline' }}</span>
+                  </div>
                 </div>
-                <div class="flex items-center space-x-2">
-                  <div :class="[
-                    'w-2 h-2 rounded-full',
-                    gpuServerInfo?.gpu_available ? 'bg-green-500' : 'bg-red-500'
-                  ]"></div>
-                  <span class="text-sm">{{ gpuServerInfo?.gpu_name || 'Unknown' }}</span>
+                <div class="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                  <div>GPU: {{ gpuServerInfo?.gpu_name || 'Unknown' }}</div>
+                  <div>Memory: {{ gpuServerInfo?.gpu_memory || 0 }}GB</div>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">
+                  Available for all Jetson devices
                 </div>
               </div>
 
               <!-- Detection Status -->
-              <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div class="flex items-center space-x-3">
-                  <i class="fas fa-eye text-yellow-500"></i>
-                  <span class="font-medium">Detection</span>
+              <div class="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center space-x-3">
+                    <i class="fas fa-eye text-yellow-500"></i>
+                    <span class="font-medium text-gray-900">Detection</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <div :class="[
+                      'w-3 h-3 rounded-full',
+                      detectionActive ? 'bg-green-500' : 'bg-gray-400'
+                    ]"></div>
+                    <span class="text-sm font-medium">{{ detectionActive ? 'Active' : 'Stopped' }}</span>
+                  </div>
                 </div>
-                <div class="flex items-center space-x-2">
-                  <div :class="[
-                    'w-2 h-2 rounded-full',
-                    detectionActive ? 'bg-green-500' : 'bg-gray-400'
-                  ]"></div>
-                  <span class="text-sm">{{ detectionActive ? 'Active' : 'Stopped' }}</span>
+                <div class="text-sm text-gray-600">
+                  Model: {{ selectedModel?.name || 'None selected' }}
+                </div>
+              </div>
+
+              <!-- Hardware Info (if available) -->
+              <div v-if="jetsonCameraInfo?.system_info" class="p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-lg border border-gray-200">
+                <div class="flex items-center space-x-3 mb-2">
+                  <i class="fas fa-cogs text-gray-500"></i>
+                  <span class="font-medium text-gray-900">Hardware Info</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                  <div v-if="jetsonCameraInfo.system_info.cpu_info">
+                    CPU: {{ jetsonCameraInfo.system_info.cpu_info.model || 'Unknown' }}
+                  </div>
+                  <div v-if="jetsonCameraInfo.system_info.memory_info">
+                    RAM: {{ jetsonCameraInfo.system_info.memory_info.total_gb || 0 }}GB
+                  </div>
                 </div>
               </div>
             </div>

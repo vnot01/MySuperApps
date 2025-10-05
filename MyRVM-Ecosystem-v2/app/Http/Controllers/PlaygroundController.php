@@ -50,15 +50,26 @@ class PlaygroundController extends Controller
             
             if ($response->successful()) {
                 $data = $response->json();
+                $hardwareInfo = $data['hardware_info'] ?? [];
+                $cameraInfo = $hardwareInfo['camera_info'] ?? [];
+                
                 return [
-                    'cameras_available' => $data['hardware_info']['camera_info']['usb_cameras'] ?? [],
-                    'nvargus_status' => $data['hardware_info']['camera_info']['nvargus_status'] ?? 'unknown',
-                    'total_cameras' => count($data['hardware_info']['camera_info']['usb_cameras'] ?? []),
-                    'camera_ready' => count($data['hardware_info']['camera_info']['usb_cameras'] ?? []) > 0,
+                    'cameras_available' => $cameraInfo['usb_cameras'] ?? [],
+                    'nvargus_status' => $cameraInfo['nvargus_status'] ?? 'unknown',
+                    'total_cameras' => count($cameraInfo['usb_cameras'] ?? []),
+                    'camera_ready' => count($cameraInfo['usb_cameras'] ?? []) > 0,
+                    'system_info' => [
+                        'cpu_info' => $hardwareInfo['cpu_info'] ?? [],
+                        'memory_info' => $hardwareInfo['memory_info'] ?? [],
+                        'disk_info' => $hardwareInfo['disk_info'] ?? [],
+                        'gpu_info' => $hardwareInfo['gpu_info'] ?? [],
+                    ],
+                    'jetson_status' => 'online',
+                    'last_updated' => now()->toISOString(),
                 ];
             }
         } catch (\Exception $e) {
-            \Log::error("Failed to get Jetson camera info for RVM {$rvm->id}: " . $e->getMessage());
+            \Log::error("Failed to get Jetson hardware info for RVM {$rvm->id}: " . $e->getMessage());
         }
 
         return [
@@ -66,6 +77,9 @@ class PlaygroundController extends Controller
             'nvargus_status' => 'unknown',
             'total_cameras' => 0,
             'camera_ready' => false,
+            'system_info' => [],
+            'jetson_status' => 'offline',
+            'last_updated' => now()->toISOString(),
         ];
     }
 
@@ -82,6 +96,9 @@ class PlaygroundController extends Controller
                     'gpu_memory' => $data['gpu_info']['gpus'][0]['memory_gb'] ?? 0,
                     'cuda_version' => $data['gpu_info']['pytorch_cuda_version'] ?? 'Unknown',
                     'server_status' => 'online',
+                    'server_url' => 'http://100.98.142.94:5000',
+                    'available_for_all_jetsons' => true,
+                    'last_updated' => now()->toISOString(),
                 ];
             }
         } catch (\Exception $e) {
@@ -94,6 +111,9 @@ class PlaygroundController extends Controller
             'gpu_memory' => 0,
             'cuda_version' => 'Unknown',
             'server_status' => 'offline',
+            'server_url' => 'http://100.98.142.94:5000',
+            'available_for_all_jetsons' => true,
+            'last_updated' => now()->toISOString(),
         ];
     }
 
