@@ -579,12 +579,9 @@ const goBack = () => {
 
 const enterMaintenance = () => {
   if (confirm('Are you sure you want to put this RVM into maintenance mode?')) {
-    router.patch(`/api/rvms/${props.rvm.id}/status`, { status: 'maintenance' }, {
-      onSuccess: () => {
-        // Reload the page to show updated status
-        router.reload()
-      }
-    })
+    // Navigate directly to maintenance page
+    // The maintenance page will automatically set status to 'maintenance'
+    router.get(`/maintenance/${props.rvm.id}`)
   }
 }
 
