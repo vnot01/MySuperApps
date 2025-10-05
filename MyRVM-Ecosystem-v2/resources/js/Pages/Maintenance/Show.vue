@@ -951,16 +951,16 @@ const lastRefreshAgo = computed(() => {
 
 // Chart data computed properties
 const getChartData = () => {
-  console.log('🔍 getChartData called with selectedPeriod:', selectedPeriod.value)
-  console.log('🔍 monitoringAnalytics:', props.monitoringAnalytics)
+  // console.log('🔍 getChartData called with selectedPeriod:', selectedPeriod.value)
+  // console.log('🔍 monitoringAnalytics:', props.monitoringAnalytics)
   
   if (!props.monitoringAnalytics || !props.monitoringAnalytics.chart_data) {
-    console.warn('⚠️ No monitoringAnalytics or chart_data available')
+    // console.warn('⚠️ No monitoringAnalytics or chart_data available')
     return []
   }
   
   const data = props.monitoringAnalytics.chart_data[selectedPeriod.value] || []
-  console.log('🔍 Chart data for', selectedPeriod.value, ':', data)
+  // console.log('🔍 Chart data for', selectedPeriod.value, ':', data)
   
   const formattedData = data.map(item => ({
     time: new Date(item.time).toLocaleTimeString(),
@@ -972,10 +972,10 @@ const getChartData = () => {
     detections_count: item.detections_count || 0,
   }))
   
-  console.log('🔍 Raw data items:', data.length)
-  console.log('🔍 Formatted data items:', formattedData.length)
+  // console.log('🔍 Raw data items:', data.length)
+  // console.log('🔍 Formatted data items:', formattedData.length)
   
-  console.log('🔍 Formatted chart data:', formattedData)
+  // console.log('🔍 Formatted chart data:', formattedData)
   return formattedData
 }
 
@@ -1293,7 +1293,7 @@ const updateIpAddress = async () => {
       ip_address: editIpForm.value.ip_address.trim()
     }, {
       onSuccess: () => {
-        console.log('✅ IP address updated successfully')
+        // console.log('✅ IP address updated successfully')
         closeEditIpModal()
         // Refresh the page to show updated data
         router.reload({
@@ -1336,7 +1336,7 @@ const createDetectionChart = () => {
       return
     }
     
-    console.log('📊 Creating detection chart with', data.length, 'data points')
+    // console.log('📊 Creating detection chart with', data.length, 'data points')
   
   const ctx = detectionChart.value.getContext('2d')
   
@@ -1406,7 +1406,7 @@ const createPerformanceChart = () => {
       return
     }
     
-    console.log('📊 Creating performance chart with', data.length, 'data points')
+    // console.log('📊 Creating performance chart with', data.length, 'data points')
   
   const ctx = performanceChart.value.getContext('2d')
   
@@ -1504,7 +1504,7 @@ const createDetectionTypesChart = () => {
       return
     }
     
-    console.log('📊 Creating detection types pie chart with', data.length, 'types')
+    // console.log('📊 Creating detection types pie chart with', data.length, 'types')
     
     const ctx = detectionTypesChart.value.getContext('2d')
     
@@ -1567,7 +1567,7 @@ const createDetectionStatusChart = () => {
       return
     }
     
-    console.log('📊 Creating detection status pie chart with', data.length, 'statuses')
+    // console.log('📊 Creating detection status pie chart with', data.length, 'statuses')
     
     const ctx = detectionStatusChart.value.getContext('2d')
     
@@ -1647,22 +1647,22 @@ const updateCharts = () => {
 
 // Watch for selectedPeriod changes
 watch(selectedPeriod, (newPeriod, oldPeriod) => {
-  console.log(`📊 Period changed from ${oldPeriod} to ${newPeriod}`)
+  // console.log(`📊 Period changed from ${oldPeriod} to ${newPeriod}`)
   updateCharts()
 })
 
 onMounted(() => {
   // Debug: Log monitoring analytics data
-  console.log('🔍 Monitoring Analytics Data:', props.monitoringAnalytics)
-  console.log('🔍 Chart Data Available:', props.monitoringAnalytics?.chart_data?.hourly?.length > 0)
-  console.log('🔍 Hourly Data Count:', props.monitoringAnalytics?.chart_data?.hourly?.length || 0)
+  // console.log('🔍 Monitoring Analytics Data:', props.monitoringAnalytics)
+  // console.log('🔍 Chart Data Available:', props.monitoringAnalytics?.chart_data?.hourly?.length > 0)
+  // console.log('🔍 Hourly Data Count:', props.monitoringAnalytics?.chart_data?.hourly?.length || 0)
   
   // Initialize charts
   updateCharts()
   
   // Auto-refresh data every 30 seconds
   refreshInterval = setInterval(() => {
-    console.log('🔄 Auto-refreshing maintenance data...')
+    // console.log('🔄 Auto-refreshing maintenance data...')
     isRefreshing.value = true
     lastRefreshTime.value = new Date()
     router.reload({ 
@@ -1670,7 +1670,7 @@ onMounted(() => {
       preserveState: true, 
       preserveScroll: true,
       onFinish: () => {
-        console.log('✅ Maintenance data refreshed')
+        // console.log('✅ Maintenance data refreshed')
         isRefreshing.value = false
         updateCharts()
       }
