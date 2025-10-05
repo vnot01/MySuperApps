@@ -851,8 +851,10 @@ const toggleMaintenance = (rvmId, currentStatus) => {
   activeRvmMenu.value = null
   
   if (currentStatus === 'maintenance') {
-    // End maintenance - use new maintenance endpoint
-    router.post(`/maintenance/${rvmId}/end`, {}, {
+    // End maintenance - use new maintenance endpoint with CSRF token
+    router.post(`/maintenance/${rvmId}/end`, {
+      _token: props.csrf_token
+    }, {
       onSuccess: () => {
         // Show success message
         console.log(`RVM ${rvmId} maintenance ended successfully`)
