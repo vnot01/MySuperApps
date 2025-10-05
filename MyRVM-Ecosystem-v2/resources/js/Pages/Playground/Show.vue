@@ -496,7 +496,7 @@ const startCamera = async () => {
       if (startData.success) {
         cameraActive.value = true
         console.log('✅ Camera started successfully')
-        refreshStatus() // Refresh to get latest status
+        refreshData() // Refresh to get latest status
       } else {
         console.error('❌ Failed to start camera:', startData.error)
         cameraError.value = startData.error || 'Failed to start camera'
@@ -527,7 +527,7 @@ const stopCamera = async () => {
     if (response.ok) {
       cameraActive.value = false
       console.log('✅ Camera stopped successfully')
-      refreshStatus() // Refresh to get latest status
+      refreshData() // Refresh to get latest status
     } else {
       console.error('❌ Failed to stop camera')
     }
