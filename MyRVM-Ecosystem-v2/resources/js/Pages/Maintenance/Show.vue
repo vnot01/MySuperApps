@@ -356,6 +356,26 @@
                     <p class="text-xs font-medium text-gray-900 truncate">{{ detection.session_id }}</p>
                     <p class="text-xs text-gray-500">{{ new Date(detection.detected_at).toLocaleDateString() }}</p>
                   </div>
+                  
+                  <!-- Action Menu Bar -->
+                  <div class="flex items-center space-x-1 pt-1">
+                    <button 
+                      @click="viewDetectionImages(detection)" 
+                      class="flex items-center space-x-1 px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors"
+                      :disabled="!detection.image_path"
+                      :class="{ 'opacity-50 cursor-not-allowed': !detection.image_path }"
+                    >
+                      <i class="fas fa-image text-xs"></i>
+                      <span>Images</span>
+                    </button>
+                    <button 
+                      @click="viewDetectionDetails(detection)" 
+                      class="flex items-center space-x-1 px-2 py-1 text-xs bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors"
+                    >
+                      <i class="fas fa-info-circle text-xs"></i>
+                      <span>Details</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1042,6 +1062,27 @@ const endMaintenance = () => {
         alert('Failed to end maintenance. Please check console for details.')
       }
     })
+  }
+}
+
+const viewDetectionDetails = (detection) => {
+  selectedDetection.value = detection
+  showDetectionDetailsModal.value = true
+}
+
+const viewDetectionImages = (detection) => {
+  if (!detection.image_path) {
+    alert('No images available for this detection')
+    return
+  }
+  
+  // Open images in new tab or modal
+  if (detection.image_path.startsWith('http')) {
+    window.open(detection.image_path, '_blank')
+  } else {
+    // If it's a local path, construct the full URL
+    const imageUrl = `${window.location.origin}/storage/${detection.image_path}`
+    window.open(imageUrl, '_blank')
   }
 }
 
