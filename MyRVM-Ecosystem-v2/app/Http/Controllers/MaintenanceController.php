@@ -15,6 +15,12 @@ class MaintenanceController extends Controller
     {
         $rvm = ReverseVendingMachine::findOrFail($rvmId);
         
+        // Update RVM status to maintenance when maintenance page is opened
+        $rvm->update([
+            'status' => 'maintenance',
+            'last_maintenance' => now()
+        ]);
+        
         // Get RVM information
         $rvmInfo = [
             'id' => $rvm->id,
@@ -449,5 +455,21 @@ class MaintenanceController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * End maintenance and set RVM status back to active
+     */
+    public function endMaintenance($rvmId)
+    {
+        $rvm = ReverseVendingMachine::findOrFail($rvmId);
+        
+        $rvm->update([
+            'status' => 'active',
+            'last_maintenance' => now()
+        ]);
+
+        return redirect()->route('rvms.show', $rvmId)
+            ->with('success', 'Maintenance ended successfully. RVM is now active.');
     }
 }

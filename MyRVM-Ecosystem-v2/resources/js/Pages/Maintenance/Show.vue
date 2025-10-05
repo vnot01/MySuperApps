@@ -1093,9 +1093,7 @@ const refreshData = () => {
 
 const endMaintenance = () => {
   if (confirm('Are you sure you want to end maintenance mode for this RVM?')) {
-    router.patch(`/api/rvms/${props.rvm.id}/status`, {
-      status: 'active'
-    }, {
+    router.post(`/maintenance/${props.rvm.id}/end`, {}, {
       onSuccess: () => {
         router.get('/dashboard')
       },
