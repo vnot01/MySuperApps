@@ -90,7 +90,7 @@
             
             <!-- Camera Selection -->
             <div v-if="jetsonCameraInfo?.cameras_available?.length > 0" class="mb-4 p-4 bg-gray-50 rounded-lg">
-              <h4 class="text-sm font-medium text-gray-700 mb-3">Select Camera:</h4>
+              <h4 class="text-sm font-medium text-gray-700 mb-3">Camera & Streaming Settings:</h4>
               <div class="space-y-3 max-w-full overflow-hidden">
                 <!-- Camera Dropdown -->
                 <div class="space-y-2">
@@ -105,6 +105,54 @@
                       {{ camera.name.length > 30 ? camera.name.substring(0, 30) + '...' : camera.name }} ({{ camera.path }})
                     </option>
                   </select>
+                </div>
+                
+                <!-- Streaming Mode Selection -->
+                <div class="space-y-2">
+                  <label class="text-sm font-medium text-gray-600">Streaming Mode:</label>
+                  <div class="grid grid-cols-3 gap-2">
+                    <button 
+                      @click="streamMode = 'mjpeg'"
+                      :class="[
+                        'px-3 py-2 text-xs rounded-lg border transition-all',
+                        streamMode === 'mjpeg' 
+                          ? 'bg-blue-500 text-white border-blue-500' 
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
+                      ]"
+                    >
+                      MJPEG
+                      <div class="text-xs opacity-75">10-30 FPS</div>
+                    </button>
+                    <button 
+                      @click="streamMode = 'base64'"
+                      :class="[
+                        'px-3 py-2 text-xs rounded-lg border transition-all',
+                        streamMode === 'base64' 
+                          ? 'bg-green-500 text-white border-green-500' 
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-green-300'
+                      ]"
+                    >
+                      Base64
+                      <div class="text-xs opacity-75">5 FPS</div>
+                    </button>
+                    <button 
+                      @click="streamMode = 'auto'"
+                      :class="[
+                        'px-3 py-2 text-xs rounded-lg border transition-all',
+                        streamMode === 'auto' 
+                          ? 'bg-purple-500 text-white border-purple-500' 
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-purple-300'
+                      ]"
+                    >
+                      Auto
+                      <div class="text-xs opacity-75">Smart</div>
+                    </button>
+                  </div>
+                  <div class="text-xs text-gray-500">
+                    <span v-if="streamMode === 'mjpeg'">🎥 Direct MJPEG stream - Best performance</span>
+                    <span v-else-if="streamMode === 'base64'">🔄 Base64 polling - Reliable fallback</span>
+                    <span v-else>🤖 Auto-detect best method</span>
+                  </div>
                 </div>
                 
                 <!-- Selected Camera Info -->
@@ -141,17 +189,34 @@
                 </div>
               </div>
               <div v-else-if="isStreaming && streamUrl" class="w-full h-full relative">
-                <!-- Live Video Stream -->
+                <!-- Live Video Stream - MJPEG or Base64 -->
                 <img 
                   :src="streamUrl" 
                   alt="Live Camera Feed"
                   class="w-full h-full object-cover"
                   @error="handleStreamError"
+                  @load="handleStreamLoad"
+                  @loadstart="handleStreamLoadStart"
+                  style="background: #000; min-height: 100%; min-width: 100%;"
+                  :key="streamUrl"
                 />
+                <!-- Debug overlay -->
+                <div class="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                  <div>Mode: {{ streamMode }}</div>
+                  <div>FPS: {{ streamFPS }}</div>
+                  <div>URL: {{ streamUrl.substring(0, 30) }}...</div>
+                </div>
                 <!-- Live Indicator -->
                 <div class="absolute top-2 right-2 flex items-center space-x-1 bg-red-600 text-white px-2 py-1 rounded-full text-xs">
                   <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                   <span>LIVE</span>
+                </div>
+                <!-- Streaming Mode Indicator -->
+                <div class="absolute top-2 left-2 flex items-center space-x-1 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                  <span v-if="streamMode === 'mjpeg'">🎥 MJPEG</span>
+                  <span v-else-if="streamMode === 'base64'">🔄 Base64</span>
+                  <span v-else>🤖 Auto</span>
+                  <span v-if="streamFPS > 0" class="ml-1 opacity-75">{{ streamFPS }} FPS</span>
                 </div>
                 <!-- Camera Info Overlay -->
                 <div class="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
@@ -166,6 +231,13 @@
                   <div class="mt-4 flex items-center justify-center space-x-2">
                     <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     <span class="text-xs">Ready for streaming</span>
+                  </div>
+                  <div v-if="streamUrl && !isStreaming" class="mt-2 text-xs text-yellow-400">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                    Stream URL set but not active
+                  </div>
+                  <div class="mt-2 text-xs text-gray-400">
+                    Debug: isStreaming={{ isStreaming }}, hasUrl={{ !!streamUrl }}
                   </div>
                 </div>
               </div>
@@ -472,6 +544,11 @@ const selectedCameraId = ref('')
 const isStreaming = ref(false)
 const streamUrl = ref('')
 const streamInterval = ref(null)
+const isUpdating = ref(false)
+const streamFPS = ref(0)
+const lastUpdateTime = ref(Date.now())
+const streamMode = ref('auto') // 'mjpeg', 'base64', 'websocket'
+const websocket = ref(null)
 
 // Computed properties
 const selectedCamera = computed(() => {
@@ -532,8 +609,10 @@ const startCamera = async () => {
         cameraLoading.value = false
         console.log('✅ Camera started successfully')
         
-        // Start live streaming
-        startLiveStream()
+        // Start live streaming immediately
+        setTimeout(() => {
+          startLiveStream()
+        }, 500) // Small delay to ensure camera is ready
         
         refreshData() // Refresh to get latest status
       } else {
@@ -628,15 +707,44 @@ const selectModel = (model) => {
   console.log('Selected model:', model.name)
 }
 
-// Live streaming methods
+// Live streaming methods - USER CONTROLLED MODES
 const startLiveStream = () => {
   if (!selectedCameraId.value) return
-  
-  console.log('🎬 Starting live stream for camera:', selectedCameraId.value)
+
+  console.log(`🎬 Starting ${streamMode.value} live stream for camera:`, selectedCameraId.value)
   isStreaming.value = true
+  lastUpdateTime.value = Date.now()
   
-  // Use capture base64 endpoint for live streaming
+  // Stop any existing stream first
+  stopLiveStream()
+  
+  // Start based on selected mode
+  if (streamMode.value === 'mjpeg') {
+    startMjpegStream()
+  } else if (streamMode.value === 'base64') {
+    startBase64Stream()
+  } else { // auto mode
+    startAutoStream()
+  }
+}
+
+// MJPEG streaming (best performance)
+const startMjpegStream = () => {
+  console.log('🎥 Starting MJPEG streaming...')
+  streamUrl.value = `http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/stream/mjpeg`
+  startFPSMonitoring()
+}
+
+// Base64 streaming (reliable fallback)
+const startBase64Stream = () => {
+  console.log('🔄 Starting Base64 streaming...')
+  
   const updateStream = async () => {
+    if (isUpdating.value) return
+    
+    isUpdating.value = true
+    const startTime = Date.now()
+    
     try {
       const response = await fetch(`http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/capture/base64`, {
         method: 'POST',
@@ -646,19 +754,85 @@ const startLiveStream = () => {
       if (response.ok) {
         const data = await response.json()
         if (data.success && data.image_base64) {
-          streamUrl.value = `data:image/jpeg;base64,${data.image_base64}`
+          const newStreamUrl = `data:image/jpeg;base64,${data.image_base64}`
+          
+          // Force image update by changing URL slightly
+          const timestamp = Date.now()
+          streamUrl.value = `${newStreamUrl}#t=${timestamp}`
+          
+          // Ensure streaming state is active
+          if (!isStreaming.value) {
+            isStreaming.value = true
+            console.log('🔄 Streaming state activated')
+          }
+          
+          // Calculate FPS
+          const elapsed = Date.now() - lastUpdateTime.value
+          streamFPS.value = Math.round(1000 / elapsed)
+          lastUpdateTime.value = Date.now()
+          
+          console.log(`📊 Base64 Stream FPS: ${streamFPS.value} | Latency: ${Date.now() - startTime}ms | Image size: ${data.image_base64.length} chars | URL: ${streamUrl.value.substring(0, 50)}...`)
+        } else {
+          console.warn('⚠️ Base64 capture failed:', data)
         }
+      } else {
+        console.error('❌ Base64 request failed:', response.status, response.statusText)
       }
     } catch (error) {
       console.error('❌ Stream update error:', error)
+    } finally {
+      isUpdating.value = false
     }
   }
   
-  // Initial stream update
+  // Initial update
   updateStream()
   
-  // Update stream every 2 seconds for smoother experience
-  streamInterval.value = setInterval(updateStream, 2000)
+  // Update every 200ms for smoother experience (5 FPS)
+  streamInterval.value = setInterval(updateStream, 200)
+}
+
+// Auto mode (try MJPEG first, fallback to Base64)
+const startAutoStream = () => {
+  console.log('🤖 Starting auto mode streaming...')
+  
+  // Try MJPEG first
+  const mjpegUrl = `http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/stream/mjpeg`
+  streamUrl.value = mjpegUrl
+  
+  // Test MJPEG connection immediately
+  const testMjpeg = () => {
+    fetch(mjpegUrl, { method: 'HEAD' })
+      .then(response => {
+        if (response.ok) {
+          console.log('✅ MJPEG streaming active')
+          startFPSMonitoring()
+        } else {
+          throw new Error('MJPEG not available')
+        }
+      })
+      .catch(error => {
+        console.log('⚠️ MJPEG failed, falling back to Base64:', error.message)
+        startBase64Stream()
+      })
+  }
+  
+  // Test after 1 second
+  setTimeout(testMjpeg, 1000)
+}
+
+// FPS monitoring for MJPEG
+const startFPSMonitoring = () => {
+  const monitorFPS = () => {
+    const now = Date.now()
+    const elapsed = now - lastUpdateTime.value
+    if (elapsed > 0) {
+      streamFPS.value = Math.round(1000 / elapsed)
+      lastUpdateTime.value = now
+      console.log(`📊 MJPEG Stream FPS: ${streamFPS.value}`)
+    }
+  }
+  streamInterval.value = setInterval(monitorFPS, 2000)
 }
 
 const stopLiveStream = () => {
@@ -673,14 +847,23 @@ const stopLiveStream = () => {
 }
 
 const handleStreamError = () => {
-  console.error('❌ Stream error - retrying...')
+  console.error('❌ MJPEG Stream error - retrying...')
   // Retry stream after 2 seconds
   setTimeout(() => {
     if (isStreaming.value && selectedCameraId.value) {
       const timestamp = Date.now()
-      streamUrl.value = `http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/stream?t=${timestamp}`
+      streamUrl.value = `http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/stream/mjpeg?t=${timestamp}`
     }
   }, 2000)
+}
+
+const handleStreamLoad = () => {
+  console.log('✅ Stream loaded successfully')
+  lastUpdateTime.value = Date.now()
+}
+
+const handleStreamLoadStart = () => {
+  console.log('🔄 Stream loading started...')
 }
 
 const startDetection = () => {

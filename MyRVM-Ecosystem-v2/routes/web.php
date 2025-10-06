@@ -38,6 +38,7 @@ Route::middleware('auth')->group(function () {
     
     // Playground Routes
     Route::get('/playground/{rvm}', [PlaygroundController::class, 'show'])->name('playground.show');
+    Route::get('/playground/{rvm}/cameras/{cameraId}/stream/mjpeg', [PlaygroundController::class, 'streamMjpeg'])->name('playground.cameras.stream.mjpeg');
     
     // Camera API Routes
     Route::get('/playground/{rvm}/cameras/dashboard', [PlaygroundController::class, 'getCameraDashboard'])->name('playground.cameras.dashboard');

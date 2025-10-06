@@ -450,6 +450,51 @@ class PlaygroundController extends Controller
         return response()->json(['error' => 'Failed to capture base64 image'], 500);
     }
 
+
+    /**
+ * Stream MJPEG video from camera
+ */
+public function streamMjpeg(Request $request, $rvmId, $cameraId)
+{
+    $rvm = ReverseVendingMachine::findOrFail($rvmId);
+    
+    if (!$rvm->ip_address) {
+        return response()->json(['error' => 'RVM IP address not configured'], 400);
+    }
+
+    try {
+        // Stream MJPEG directly from Jetson
+        $streamUrl = "http://{$rvm->ip_address}:5000/api/cameras/{$cameraId}/stream/mjpeg";
+        
+        // Set headers for streaming
+        $headers = [
+            'Content-Type' => 'multipart/x-mixed-replace; boundary=frame',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+            'Connection' => 'keep-alive'
+        ];
+        
+        // Stream response
+        return response()->stream(function () use ($streamUrl) {
+            $ch = curl_init($streamUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($curl, $data) {
+                echo $data;
+                flush();
+                return strlen($data);
+            });
+            curl_exec($ch);
+            curl_close($ch);
+        }, 200, $headers);
+        
+    } catch (\Exception $e) {
+        \Log::error("Failed to stream MJPEG from camera {$cameraId} for RVM {$rvmId}: " . $e->getMessage());
+        return response()->json(['error' => 'Failed to stream video'], 500);
+    }
+}
+
     /**
      * Capture and save image to storage
      */
