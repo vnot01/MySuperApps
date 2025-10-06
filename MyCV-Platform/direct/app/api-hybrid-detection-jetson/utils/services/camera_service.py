@@ -210,118 +210,22 @@ class CameraService:
                 logger.info(f"Camera {camera_id} already running")
                 return True
             
-            # Open camera with device path instead of index
-            device_path = self.cameras[camera_id]['device_path']
-            logger.info(f"Attempting to open camera {camera_id} at {device_path}")
-            
-            # Check if device exists and is accessible
-            import os
-            if not os.path.exists(device_path):
-                logger.error(f"Device {device_path} does not exist")
-                return False
-            
-            # Check device permissions
-            if not os.access(device_path, os.R_OK | os.W_OK):
-                logger.error(f"No permission to access device {device_path}")
-                return False
-            
-            # Check if device is already in use
-            try:
-                import subprocess
-                result = subprocess.run(['lsof', device_path], capture_output=True, text=True, timeout=5)
-                if result.returncode == 0 and result.stdout.strip():
-                    logger.warning(f"Device {device_path} is already in use by another process")
-                    logger.warning(f"Processes using device: {result.stdout.strip()}")
-                    # Try to continue anyway, sometimes it works
-                else:
-                    logger.info(f"Device {device_path} is not in use by other processes")
-            except Exception as e:
-                logger.warning(f"Could not check if device {device_path} is in use: {e}")
-            
-            # Try multiple approaches to open camera
-            cap = None
-            
-            # Method 1: Try with device path
-            try:
-                cap = cv2.VideoCapture(device_path)
-                if cap.isOpened():
-                    logger.info(f"Camera {camera_id} opened with device path {device_path}")
-                else:
-                    cap.release()
-                    cap = None
-            except Exception as e:
-                logger.warning(f"Failed to open camera {camera_id} with device path {device_path}: {e}")
-                cap = None
-            
-            # Method 2: Try with index if device path failed
-            if cap is None:
-                try:
-                    cap = cv2.VideoCapture(int(camera_id))
-                    if cap.isOpened():
-                        logger.info(f"Camera {camera_id} opened with index {camera_id}")
-                    else:
-                        cap.release()
-                        cap = None
-                except Exception as e:
-                    logger.warning(f"Failed to open camera {camera_id} with index {camera_id}: {e}")
-                    cap = None
-            
-            # Method 3: Try with different backends
-            if cap is None:
-                try:
-                    # Try with V4L2 backend explicitly
-                    cap = cv2.VideoCapture(device_path, cv2.CAP_V4L2)
-                    if cap.isOpened():
-                        logger.info(f"Camera {camera_id} opened with V4L2 backend")
-                    else:
-                        cap.release()
-                        cap = None
-                except Exception as e:
-                    logger.warning(f"Failed to open camera {camera_id} with V4L2 backend: {e}")
-                    cap = None
-            
-            # Method 4: Try with different resolution settings
-            if cap is None:
-                try:
-                    # Try with lower resolution first
-                    cap = cv2.VideoCapture(device_path)
-                    if cap.isOpened():
-                        # Set lower resolution first
-                        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
-                        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
-                        # Test if it works
-                        ret, frame = cap.read()
-                        if ret:
-                            logger.info(f"Camera {camera_id} opened with lower resolution 320x240")
-                        else:
-                            cap.release()
-                            cap = None
-                    else:
-                        cap.release()
-                        cap = None
-                except Exception as e:
-                    logger.warning(f"Failed to open camera {camera_id} with lower resolution: {e}")
-                    cap = None
-            
-            if cap is None or not cap.isOpened():
-                logger.error(f"Failed to open camera {camera_id} with all methods")
+            # Open camera with index (simpler approach that worked before)
+            cap = cv2.VideoCapture(int(camera_id))
+            if not cap.isOpened():
+                logger.error(f"Failed to open camera {camera_id}")
                 return False
             
             # Set camera properties for optimal performance
-            try:
-                cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-                cap.set(cv2.CAP_PROP_FPS, 30)
-                logger.info(f"Set camera {camera_id} properties: 640x480@30fps")
-            except Exception as e:
-                logger.warning(f"Could not set camera properties for {camera_id}: {e}")
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+            cap.set(cv2.CAP_PROP_FPS, 30)
             
             # Try to set MJPG format, fallback to default if not supported
             try:
                 cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-                logger.info(f"Set MJPG format for camera {camera_id}")
-            except Exception as e:
-                logger.warning(f"Could not set MJPG format for camera {camera_id}: {e}")
+            except:
+                logger.warning(f"Could not set MJPG format for camera {camera_id}, using default")
             
             # Test capture
             ret, frame = cap.read()
@@ -329,8 +233,6 @@ class CameraService:
                 cap.release()
                 logger.error(f"Failed to capture from camera {camera_id}")
                 return False
-            
-            logger.info(f"Camera {camera_id} capture test successful")
             
             self.streaming_cameras[camera_id] = {
                 'cap': cap,
