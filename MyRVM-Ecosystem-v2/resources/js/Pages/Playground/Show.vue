@@ -954,23 +954,27 @@ const handleStreamLoadStart = () => {
   console.log('🔄 Stream loading started...')
 }
 
-// Computer Vision Capture Functions
-const captureImageForCV = async () => {
-  if (!isStreaming.value || !selectedCameraId.value) return
-  
-  try {
-    cvProcessing.value = true
-    const startTime = Date.now()
-    
-    // Capture high-quality image for CV
-    const response = await fetch(`http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/capture/cv`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        quality: 95,
-        resolution: '1920x1080'
-      })
-    })
+    // Computer Vision Capture Functions
+    const captureImageForCV = async () => {
+      if (!isStreaming.value || !selectedCameraId.value) return
+
+      try {
+        cvProcessing.value = true
+        const startTime = Date.now()
+
+        // Capture high-quality image for CV using Laravel proxy
+        const response = await fetch(`/api/cameras/${selectedCameraId.value}/capture/cv`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+          },
+          body: JSON.stringify({
+            quality: 95,
+            resolution: '1920x1080',
+            rvm_id: props.rvm.id
+          })
+        })
     
     if (response.ok) {
       const data = await response.json()
@@ -1125,7 +1129,7 @@ const viewFullImage = (imageUrl) => {
 }
 
 const startDetection = () => {
-  if (selectedModel.value && jetsonCameraInfo.value?.camera_ready) {
+  if (selectedModel.value && props.jetsonCameraInfo?.camera_ready) {
     detectionActive.value = true
     console.log('🎯 Starting detection with model:', selectedModel.value.name)
     

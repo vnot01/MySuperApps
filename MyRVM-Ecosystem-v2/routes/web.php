@@ -40,8 +40,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/playground/{rvm}', [PlaygroundController::class, 'show'])->name('playground.show');
     Route::get('/playground/{rvm}/cameras/{cameraId}/stream/mjpeg', [PlaygroundController::class, 'streamMjpeg'])->name('playground.cameras.stream.mjpeg');
     
-    // Computer Vision Routes
-    Route::post('/api/cv/process', [PlaygroundController::class, 'processCVImage'])->name('cv.process');
+// Computer Vision Routes
+Route::post('/api/cameras/{cameraId}/capture/cv', [PlaygroundController::class, 'captureImageForCV'])->name('cv.capture');
+Route::post('/api/cv/process', [PlaygroundController::class, 'processCVImage'])->name('cv.process');
     
     // Camera API Routes
     Route::get('/playground/{rvm}/cameras/dashboard', [PlaygroundController::class, 'getCameraDashboard'])->name('playground.cameras.dashboard');
