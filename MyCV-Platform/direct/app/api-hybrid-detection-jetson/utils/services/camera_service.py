@@ -216,6 +216,12 @@ class CameraService:
                 logger.error(f"Failed to open camera {camera_id}")
                 return False
             
+            # Set camera properties for optimal performance
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+            cap.set(cv2.CAP_PROP_FPS, 30)
+            cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+            
             # Test capture
             ret, frame = cap.read()
             if not ret:
@@ -232,7 +238,7 @@ class CameraService:
             }
             
             self.cameras[camera_id]['status'] = 'active'
-            logger.info(f"Camera {camera_id} started successfully")
+            logger.info(f"Camera {camera_id} started successfully with 640x480@30fps")
             return True
             
         except Exception as e:

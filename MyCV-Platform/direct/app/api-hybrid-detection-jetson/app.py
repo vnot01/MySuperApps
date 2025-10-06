@@ -1065,7 +1065,7 @@ def camera_mjpeg_stream(camera_id):
                     camera_id, 
                     save_path=None, 
                     quality=75,  # Reduced quality for better performance
-                    resolution='1280x720'  # Reduced resolution for better FPS
+                    resolution='640x480'  # Use 640x480 for better compatibility and FPS
                 )
                 
                 if success:
