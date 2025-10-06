@@ -103,3 +103,20 @@ Jadi status RVM itu ada 3:
 
 3. **Status API Valid** Jika: berhasil terhubung API Endpoint dari IP si RVM atau si Jetson atau Mesin RVM contohnya: `http://100.117.234.2:5000/api/health`
    Lakukan setiap beberapa detik juga.
+
+---
+
+
+modifikasi documentasi kita /home/my/MySuperApps/Docs/03_PLAYGROUND
+O iya, misal saat Live Streaming. kita melakukan pengambilan gambar atau image capture juga bisa kah? karena akan images tersebut akan kita proses menggunakan Computer Vision.
+
+Jika bisa segera implementasikan.
+
+Perlu di ketahu bahwa:
+- api endpoint milik jetson ada di /home/my/MySuperApps/MyCV-Platform/direct/app/api-hybrid-detection-jetson/app.py
+- gambar yang akan diproses akan di simpan di sini /home/my/MySuperApps/MyCV-Platform/direct/data-jetson/input/remote
+-  gambar output hasil yang telah terproses di sini /home/my/MySuperApps/MyCV-Platform/direct/data-jetson/output/remote
+- code python yang akan melakukan deteksi adalah ini /home/my/MySuperApps/MyCV-Platform/direct/run_api_hybrid_detection-jetson.py
+- Global modul python pip ada di sini /home/my/MySuperApps/MyCV-Platform/direct/requirements.txt
+- 
+

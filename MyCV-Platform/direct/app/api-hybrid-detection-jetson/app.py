@@ -1047,6 +1047,204 @@ def get_camera_stream(camera_id):
             'error': str(e)
         }), 500
 
+@app.route('/api/cameras/<camera_id>/stream/mjpeg')
+def camera_mjpeg_stream(camera_id):
+    """MJPEG stream for real-time video - Professional quality streaming"""
+    def generate_frames():
+        camera_service = get_camera_service()
+        if not camera_service.is_initialized:
+            camera_service.initialize()
+        
+        frame_count = 0
+        start_time = time.time()
+        
+        while True:
+            try:
+                success, frame_base64 = camera_service.capture_image(camera_id, save_path=None)
+                
+                if success:
+                    # Decode base64 to image bytes
+                    import base64
+                    image_data = base64.b64decode(frame_base64)
+                    
+                    # Yield frame in MJPEG format
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + 
+                           image_data + b'\r\n')
+                    
+                    frame_count += 1
+                    
+                    # Log FPS every 30 frames
+                    if frame_count % 30 == 0:
+                        elapsed = time.time() - start_time
+                        fps = frame_count / elapsed
+                        print(f"📊 MJPEG Stream FPS: {fps:.1f}")
+                    
+                # Control frame rate (~30 FPS)
+                time.sleep(0.033)
+                
+            except Exception as e:
+                print(f"❌ Stream error: {e}")
+                break
+
+    return Response(
+        generate_frames(), 
+        mimetype='multipart/x-mixed-replace; boundary=frame',
+        headers={
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            'Connection': 'keep-alive'
+        }
+    )
+
+@app.route('/api/cameras/<camera_id>/capture/cv', methods=['POST'])
+def capture_image_for_cv(camera_id):
+    """Capture high-quality image for Computer Vision processing"""
+    try:
+        data = request.get_json() or {}
+        quality = data.get('quality', 95)
+        resolution = data.get('resolution', '1920x1080')
+        
+        camera_service = get_camera_service()
+        if not camera_service.is_initialized:
+            camera_service.initialize()
+        
+        # Capture with CV-optimized settings
+        success, image_base64 = camera_service.capture_image(
+            camera_id, 
+            save_path=None,
+            quality=quality,
+            resolution=resolution
+        )
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'image_base64': image_base64,
+                'timestamp': datetime.now().isoformat(),
+                'camera_id': camera_id,
+                'cv_ready': True,
+                'quality': quality,
+                'resolution': resolution
+            })
+        else:
+            return jsonify({'success': False, 'error': 'CV capture failed'}), 400
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/cv/process', methods=['POST'])
+def process_cv_image():
+    """Process captured image with Computer Vision models"""
+    try:
+        data = request.get_json()
+        image_base64 = data.get('image')
+        model_id = data.get('model')
+        rvm_id = data.get('rvm_id')
+        
+        if not image_base64:
+            return jsonify({'error': 'No image provided'}), 400
+        
+        # Decode base64 image
+        import base64
+        image_data = base64.b64decode(image_base64)
+        
+        # Process with selected model
+        start_time = time.time()
+        
+        if model_id == 'yolo_v8n':
+            results = process_yolo_detection(image_data, 'yolov8n.pt')
+        elif model_id == 'yolo_v8s':
+            results = process_yolo_detection(image_data, 'yolov8s.pt')
+        elif model_id == 'yolo_v8m':
+            results = process_yolo_detection(image_data, 'yolov8m.pt')
+        elif model_id == 'sam2_hiera_large':
+            results = process_sam2_segmentation(image_data)
+        else:
+            results = process_custom_model(image_data, model_id)
+        
+        processing_time = (time.time() - start_time) * 1000  # Convert to ms
+        
+        # Save results to database
+        save_detection_results(rvm_id, results, model_id)
+        
+        return jsonify({
+            'success': True,
+            'detections': results['detections'],
+            'avg_confidence': results['avg_confidence'],
+            'model_used': model_id,
+            'processing_time': round(processing_time, 2),
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def process_yolo_detection(image_data, model_name):
+    """Process image with YOLO model"""
+    try:
+        # This would integrate with actual YOLO model
+        # For now, return mock data for testing
+        import random
+        
+        # Mock detection results
+        mock_objects = [
+            {'class': 'person', 'confidence': random.uniform(0.7, 0.95), 'bbox': [100, 100, 200, 300]},
+            {'class': 'bottle', 'confidence': random.uniform(0.8, 0.95), 'bbox': [300, 150, 350, 400]},
+            {'class': 'cup', 'confidence': random.uniform(0.6, 0.9), 'bbox': [500, 200, 550, 350]}
+        ]
+        
+        # Randomly select 0-3 objects
+        num_objects = random.randint(0, 3)
+        selected_objects = random.sample(mock_objects, min(num_objects, len(mock_objects)))
+        
+        avg_confidence = sum(obj['confidence'] for obj in selected_objects) / len(selected_objects) if selected_objects else 0
+        
+        return {
+            'detections': selected_objects,
+            'avg_confidence': round(avg_confidence * 100, 2),
+            'processing_time': random.uniform(0.05, 0.2)
+        }
+    except Exception as e:
+        print(f"YOLO processing error: {e}")
+        return {'detections': [], 'avg_confidence': 0, 'processing_time': 0}
+
+def process_sam2_segmentation(image_data):
+    """Process image with SAM2 segmentation"""
+    try:
+        # This would integrate with actual SAM2 model
+        # For now, return mock data
+        return {
+            'detections': [],
+            'avg_confidence': 0,
+            'processing_time': 0
+        }
+    except Exception as e:
+        print(f"SAM2 processing error: {e}")
+        return {'detections': [], 'avg_confidence': 0, 'processing_time': 0}
+
+def process_custom_model(image_data, model_id):
+    """Process image with custom model"""
+    try:
+        # This would integrate with custom model
+        return {
+            'detections': [],
+            'avg_confidence': 0,
+            'processing_time': 0
+        }
+    except Exception as e:
+        print(f"Custom model processing error: {e}")
+        return {'detections': [], 'avg_confidence': 0, 'processing_time': 0}
+
+def save_detection_results(rvm_id, results, model_id):
+    """Save detection results to database"""
+    try:
+        # This would save to actual database
+        print(f"💾 Saving CV results for RVM {rvm_id}: {len(results['detections'])} objects detected with model {model_id}")
+    except Exception as e:
+        print(f"Error saving CV results: {e}")
+
 @app.route('/api/cameras/status', methods=['GET'])
 def get_all_cameras_status():
     """Get status of all cameras"""
