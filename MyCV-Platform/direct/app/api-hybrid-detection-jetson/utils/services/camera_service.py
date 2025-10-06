@@ -210,10 +210,14 @@ class CameraService:
                 logger.info(f"Camera {camera_id} already running")
                 return True
             
-            # Open camera with index (simpler approach that worked before)
-            cap = cv2.VideoCapture(int(camera_id))
+            # Use device path instead of index (USB position may change)
+            device_path = self.cameras[camera_id]['device_path']
+            logger.info(f"Opening camera {camera_id} at {device_path}")
+            
+            # Open camera with device path
+            cap = cv2.VideoCapture(device_path)
             if not cap.isOpened():
-                logger.error(f"Failed to open camera {camera_id}")
+                logger.error(f"Failed to open camera {camera_id} at {device_path}")
                 return False
             
             # Set camera properties for optimal performance
@@ -243,7 +247,7 @@ class CameraService:
             }
             
             self.cameras[camera_id]['status'] = 'active'
-            logger.info(f"Camera {camera_id} started successfully with 640x480@30fps")
+            logger.info(f"Camera {camera_id} started successfully with 640x480@30fps at {device_path}")
             return True
             
         except Exception as e:
