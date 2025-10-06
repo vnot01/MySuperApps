@@ -259,7 +259,7 @@ class CameraService:
             logger.error(f"Error stopping camera {camera_id}: {e}")
             return False
     
-    def capture_image(self, camera_id: str, save_path: Optional[str] = None) -> Tuple[bool, str]:
+    def capture_image(self, camera_id: str, save_path: Optional[str] = None, quality: int = 95, resolution: str = '1920x1080') -> Tuple[bool, str]:
         """Capture image from camera"""
         try:
             if camera_id not in self.streaming_cameras:
@@ -284,9 +284,10 @@ class CameraService:
                         return False, "Failed to save image"
                     return True, save_path
                 else:
-                    # Return base64 encoded image
+                    # Return base64 encoded image with specified quality
                     import base64
-                    _, buffer = cv2.imencode('.jpg', frame)
+                    encode_params = [cv2.IMWRITE_JPEG_QUALITY, quality]
+                    _, buffer = cv2.imencode('.jpg', frame, encode_params)
                     img_base64 = base64.b64encode(buffer).decode('utf-8')
                     return True, img_base64
                     

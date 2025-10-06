@@ -14,7 +14,7 @@ import requests
 import hashlib
 import hmac
 from datetime import datetime
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, Response
 import tarfile
 import tempfile
 from flask_cors import CORS
@@ -1021,7 +1021,6 @@ def get_camera_stream(camera_id):
         if success:
             # Return as base64 image with proper headers
             import base64
-            from flask import Response
             
             # Decode base64 to binary
             image_data = base64.b64decode(result)
