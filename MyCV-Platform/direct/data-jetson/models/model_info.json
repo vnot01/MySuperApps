@@ -1,78 +1,84 @@
 {
-    "yolo_models": {
-        "yolo11n": {
-            "filename": "yolo11n.pt",
-            "size": "5.1MB",
-            "params": "2.6M",
-            "mAP": 39.5,
-            "description": "YOLO11 Nano - Fastest, lowest accuracy"
-        },
-        "yolo11s": {
-            "filename": "yolo11s.pt",
-            "size": "21.5MB",
-            "params": "9.4M",
-            "mAP": 47.0,
-            "description": "YOLO11 Small - Balanced speed/accuracy"
-        },
-        "yolo11m": {
-            "filename": "yolo11m.pt",
-            "size": "49.7MB",
-            "params": "20.1M",
-            "mAP": 51.5,
-            "description": "YOLO11 Medium - Higher accuracy"
-        },
-        "yolo11l": {
-            "filename": "yolo11l.pt",
-            "size": "83.7MB",
-            "params": "25.3M",
-            "mAP": 53.2,
-            "description": "YOLO11 Large - High accuracy"
-        },
-        "yolo11x": {
-            "filename": "yolo11x.pt",
-            "size": "136.0MB",
-            "params": "68.2M",
-            "mAP": 54.4,
-            "description": "YOLO11 Extra Large - Highest accuracy"
-        }
+  "yolo_models": {
+    "yolo11n": {
+      "filename": "yolo11n.pt",
+      "size": "5.1MB",
+      "params": "2.6M",
+      "mAP": 39.5,
+      "description": "YOLO11 Nano - Fastest, lowest accuracy"
     },
-    "sam_models": {
-        "sam2_b": {
-            "filename": "sam2_b.pt",
-            "size": "358MB",
-            "params": "91.0M",
-            "description": "SAM2 Base - Fastest segmentation"
-        }
+    "yolo11s": {
+      "filename": "yolo11s.pt",
+      "size": "21.5MB",
+      "params": "9.4M",
+      "mAP": 47.0,
+      "description": "YOLO11 Small - Balanced speed/accuracy"
     },
-    "trained_models": {
-        "best_pt": {
-            "filename": "best.pt",
-            "size": "Variable",
-            "params": "Variable",
-            "description": "Custom trained model from MySuperApps releases"
-        }
+    "yolo11m": {
+      "filename": "yolo11m.pt",
+      "size": "49.7MB",
+      "params": "20.1M",
+      "mAP": 51.5,
+      "description": "YOLO11 Medium - Higher accuracy"
     },
-    "installation_date": "2025-09-26T19:32:28Z",
-    "name": "MyCV-Edge-API",
-    "version": "1.5.0",
-    "description": "MyCV-Edge-API: Edge computing for YOLO + SAM2 with RVM integration",
-    "features": [
-        "YOLO11m Object Detection",
-        "Custom best.pt Model",
-        "SAM2 Segmentation",
-        "Hybrid Visualization",
-        "Compare Visualization",
-        "Structured Output",
-        "Real-time Processing"
-    ],
-    "model_structure": {
-        "yolo_active": "data/models/yolo/active/",
-        "sam_active": "data/models/sam/active/",
-        "trained_active": "data/models/trained/active/"
+    "yolo11l": {
+      "filename": "yolo11l.pt",
+      "size": "83.7MB",
+      "params": "25.3M",
+      "mAP": 53.2,
+      "description": "YOLO11 Large - High accuracy"
     },
-    "output_structure": {
-        "base_path": "data/output/remote",
-        "subfolders": ["yolo", "best", "segmentasi", "hybrid"]
-    },
-    "updated_at": "2025-09-28T19:32:28Z"
+    "yolo11x": {
+      "filename": "yolo11x.pt",
+      "size": "136.0MB",
+      "params": "68.2M",
+      "mAP": 54.4,
+      "description": "YOLO11 Extra Large - Highest accuracy"
+    }
+  },
+  "sam_models": {
+    "sam2_b": {
+      "filename": "sam2_b.pt",
+      "size": "358MB",
+      "params": "91.0M",
+      "description": "SAM2 Base - Fastest segmentation"
+    }
+  },
+  "trained_models": {
+    "best_pt": {
+      "filename": "best.pt",
+      "size": "Variable",
+      "params": "Variable",
+      "description": "Custom trained model from MySuperApps releases",
+      "active": true
+    }
+  },
+  "installation_date": "2025-09-26T19:32:28Z",
+  "name": "MyCV-Edge-API",
+  "version": "1.5.0",
+  "description": "MyCV-Edge-API: Edge computing for YOLO + SAM2 with RVM integration",
+  "features": [
+    "YOLO11m Object Detection",
+    "Custom best.pt Model",
+    "SAM2 Segmentation",
+    "Hybrid Visualization",
+    "Compare Visualization",
+    "Structured Output",
+    "Real-time Processing"
+  ],
+  "model_structure": {
+    "yolo_active": "data/models/yolo/active/",
+    "sam_active": "data/models/sam/active/",
+    "trained_active": "data/models/trained/active/"
+  },
+  "output_structure": {
+    "base_path": "data/output/remote",
+    "subfolders": [
+      "yolo",
+      "best",
+      "segmentasi",
+      "hybrid"
+    ]
+  },
+  "updated_at": "2025-09-28T19:32:28Z"
 }

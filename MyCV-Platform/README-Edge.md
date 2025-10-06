@@ -204,6 +204,9 @@ data-jetson/
 - ✅ **Live Streaming Support** dengan multiple streaming modes
 - ✅ **Real-time CV Processing** dengan YOLO models
 - ✅ **Performance Monitoring** dengan FPS dan latency tracking
+- ✅ **Model Management** complete model switching dan testing system
+- ✅ **Playground Testing** dedicated environment untuk model testing
+- ✅ **Backup System** automatic backup sebelum model switching
 
 ### **Computer Vision Features:**
 - ✅ **Real-time Image Capture** selama live streaming
@@ -216,6 +219,16 @@ data-jetson/
 - ✅ **Result Visualization** dengan overlay detection results
 - ✅ **Performance Statistics** tracking dan monitoring
 - ✅ **Download Results** sebagai JSON format
+
+### **Model Management Features:**
+- ✅ **Model Switching** switch active model dengan backup otomatis
+- ✅ **Model Download** download model untuk testing
+- ✅ **Model Upload** upload model baru dari dashboard
+- ✅ **Playground Testing** dedicated system untuk testing model
+- ✅ **Backup Management** automatic backup dan restore system
+- ✅ **Model Info Update** update model_info.json otomatis
+- ✅ **File Validation** hanya file .pt yang diizinkan
+- ✅ **Error Handling** error handling lengkap
 
 ### **Streaming Features:**
 - ✅ **MJPEG Streaming** untuk real-time video
@@ -371,6 +384,19 @@ curl http://100.117.234.2:5000/api/hardware
 
 # Get hardware info with pretty print
 curl http://100.117.234.2:5000/api/hardware | jq
+
+# Model Management
+curl http://100.117.234.2:5000/api/models
+curl http://100.117.234.2:5000/api/models/active
+curl -X POST http://100.117.234.2:5000/api/models/switch \
+  -H "Content-Type: application/json" \
+  -d '{"type": "trained", "model_id": "best_pt", "action": "switch"}'
+
+# Playground Testing
+curl http://100.117.234.2:5000/api/playground/models
+curl -X POST http://100.117.234.2:5000/api/playground/upload \
+  -F "file=@new_model.pt" \
+  -F "type=trained"
 ```
 
 ### **Computer Vision Integration:**
@@ -437,8 +463,8 @@ Untuk bantuan atau laporan bug pada Jetson deployment:
 
 ---
 
-**Status**: ✅ **JETSON READY WITH CV INTEGRATION**  
-**Version**: 1.5.0-edge-cv  
+**Status**: ✅ **JETSON READY WITH MODEL MANAGEMENT**  
+**Version**: 1.6.0-edge-model-management  
 **Last Updated**: 6 Oktober 2025  
 **Target Devices**: NVIDIA Jetson Orin Series  
-**Features**: Computer Vision, Live Streaming, RVM Integration, Multi-Jetson Support
+**Features**: Computer Vision, Live Streaming, RVM Integration, Multi-Jetson Support, Model Management

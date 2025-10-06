@@ -23,6 +23,7 @@ import subprocess
 import threading
 from pathlib import Path
 import torch
+import shutil
 # import cv2  # Temporarily disabled - will be enabled when OpenCV is installed
 from utils.python.advanced_monitoring import start_monitoring, stop_monitoring, get_current_metrics, get_performance_summary, get_alerts
 
@@ -1403,7 +1404,681 @@ def get_camera_status_endpoint(camera_id):
         }), 500
 
 # ============================================================================
-# END CAMERA CONTROL ENDPOINTS
+# MODEL MANAGEMENT ENDPOINTS
+# ============================================================================
+
+@app.route('/api/models', methods=['GET'])
+def get_available_models():
+    """Get list of available models and their status"""
+    try:
+        models_dir = '../../data-jetson/models'
+        model_info_path = os.path.join(models_dir, 'model_info.json')
+        
+        # Load model info
+        if os.path.exists(model_info_path):
+            with open(model_info_path, 'r') as f:
+                model_info = json.load(f)
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Model info file not found'
+            }), 404
+        
+        # Check which models are actually available
+        available_models = {
+            'yolo_models': {},
+            'sam_models': {},
+            'trained_models': {}
+        }
+        
+        # Check YOLO models
+        for model_id, model_data in model_info.get('yolo_models', {}).items():
+            model_path = os.path.join(models_dir, 'yolo', 'active', model_data['filename'])
+            available_models['yolo_models'][model_id] = {
+                **model_data,
+                'available': os.path.exists(model_path),
+                'path': model_path,
+                'active': model_id == 'yolo11m'  # yolo11m is active
+            }
+        
+        # Check SAM models
+        for model_id, model_data in model_info.get('sam_models', {}).items():
+            model_path = os.path.join(models_dir, 'sam', 'active', model_data['filename'])
+            available_models['sam_models'][model_id] = {
+                **model_data,
+                'available': os.path.exists(model_path),
+                'path': model_path,
+                'active': model_id == 'sam2_b'  # sam2_b is active
+            }
+        
+        # Check trained models
+        for model_id, model_data in model_info.get('trained_models', {}).items():
+            model_path = os.path.join(models_dir, 'trained', 'active', model_data['filename'])
+            available_models['trained_models'][model_id] = {
+                **model_data,
+                'available': os.path.exists(model_path),
+                'path': model_path,
+                'active': model_id == 'best_pt'  # best.pt is active
+            }
+        
+        return jsonify({
+            'success': True,
+            'models': available_models,
+            'project_info': {
+                'name': model_info.get('name', 'MyCV-Edge-API'),
+                'version': model_info.get('version', '1.0.0'),
+                'description': model_info.get('description', ''),
+                'installation_date': model_info.get('installation_date', ''),
+                'updated_at': model_info.get('updated_at', '')
+            },
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/models/active', methods=['GET'])
+def get_active_models():
+    """Get currently active models"""
+    try:
+        models_dir = '../../data-jetson/models'
+        active_models = {
+            'yolo': None,
+            'sam': None,
+            'trained': None
+        }
+        
+        # Check active YOLO model
+        yolo_path = os.path.join(models_dir, 'yolo', 'active', 'yolo11m.pt')
+        if os.path.exists(yolo_path):
+            active_models['yolo'] = {
+                'id': 'yolo11m',
+                'filename': 'yolo11m.pt',
+                'path': yolo_path,
+                'size': os.path.getsize(yolo_path),
+                'status': 'active'
+            }
+        
+        # Check active SAM model
+        sam_path = os.path.join(models_dir, 'sam', 'active', 'sam2_b.pt')
+        if os.path.exists(sam_path):
+            active_models['sam'] = {
+                'id': 'sam2_b',
+                'filename': 'sam2_b.pt',
+                'path': sam_path,
+                'size': os.path.getsize(sam_path),
+                'status': 'active'
+            }
+        
+        # Check active trained model
+        trained_path = os.path.join(models_dir, 'trained', 'active', 'best.pt')
+        if os.path.exists(trained_path):
+            active_models['trained'] = {
+                'id': 'best_pt',
+                'filename': 'best.pt',
+                'path': trained_path,
+                'size': os.path.getsize(trained_path),
+                'status': 'active'
+            }
+        
+        return jsonify({
+            'success': True,
+            'active_models': active_models,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/models/switch', methods=['POST'])
+def switch_model():
+    """Switch active model with file management"""
+    try:
+        data = request.get_json()
+        model_type = data.get('type')  # 'yolo', 'sam', 'trained'
+        model_id = data.get('model_id')
+        action = data.get('action', 'switch')  # 'switch', 'download', 'upload'
+        
+        if not model_type or not model_id:
+            return jsonify({
+                'success': False,
+                'error': 'Model type and model_id required'
+            }), 400
+        
+        models_dir = '../../data-jetson/models'
+        
+        if action == 'download':
+            return download_model_file(model_type, model_id, models_dir)
+        elif action == 'upload':
+            return upload_model_file(model_type, model_id, models_dir)
+        elif action == 'switch':
+            return switch_active_model(model_type, model_id, models_dir)
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid action. Use: switch, download, or upload'
+            }), 400
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+def download_model_file(model_type, model_id, models_dir):
+    """Download model file for testing"""
+    try:
+        # Get model info
+        model_info_path = os.path.join(models_dir, 'model_info.json')
+        with open(model_info_path, 'r') as f:
+            model_info = json.load(f)
+        
+        # Find model data
+        model_data = None
+        if model_type == 'yolo' and model_id in model_info.get('yolo_models', {}):
+            model_data = model_info['yolo_models'][model_id]
+        elif model_type == 'sam' and model_id in model_info.get('sam_models', {}):
+            model_data = model_info['sam_models'][model_id]
+        elif model_type == 'trained' and model_id in model_info.get('trained_models', {}):
+            model_data = model_info['trained_models'][model_id]
+        
+        if not model_data:
+            return jsonify({
+                'success': False,
+                'error': f'Model {model_id} not found in {model_type} models'
+            }), 404
+        
+        # Check if model file exists
+        model_path = os.path.join(models_dir, model_type, 'active', model_data['filename'])
+        if not os.path.exists(model_path):
+            return jsonify({
+                'success': False,
+                'error': f'Model file not found: {model_path}'
+            }), 404
+        
+        # Return model file as download
+        return send_file(
+            model_path,
+            as_attachment=True,
+            download_name=model_data['filename'],
+            mimetype='application/octet-stream'
+        )
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Download failed: {str(e)}'
+        }), 500
+
+def upload_model_file(model_type, model_id, models_dir):
+    """Upload new model file for testing"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({
+                'success': False,
+                'error': 'No file provided'
+            }), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({
+                'success': False,
+                'error': 'No file selected'
+            }), 400
+        
+        # Validate file extension
+        if not file.filename.endswith('.pt'):
+            return jsonify({
+                'success': False,
+                'error': 'Only .pt files are allowed'
+            }), 400
+        
+        # Create backup directory
+        backup_dir = os.path.join(models_dir, model_type, 'backup')
+        os.makedirs(backup_dir, exist_ok=True)
+        
+        # Backup current active model
+        active_dir = os.path.join(models_dir, model_type, 'active')
+        current_file = os.path.join(active_dir, f'{model_id}.pt')
+        if os.path.exists(current_file):
+            backup_file = os.path.join(backup_dir, f'{model_id}_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pt')
+            shutil.copy2(current_file, backup_file)
+        
+        # Save new model file
+        filename = f'{model_id}.pt'
+        file_path = os.path.join(active_dir, filename)
+        file.save(file_path)
+        
+        # Update model info
+        update_model_info(model_type, model_id, filename, models_dir)
+        
+        return jsonify({
+            'success': True,
+            'message': f'Model {model_id} uploaded successfully',
+            'filename': filename,
+            'path': file_path,
+            'backup_created': os.path.exists(backup_file) if 'backup_file' in locals() else False
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Upload failed: {str(e)}'
+        }), 500
+
+def switch_active_model(model_type, model_id, models_dir):
+    """Switch active model"""
+    try:
+        # Get model info
+        model_info_path = os.path.join(models_dir, 'model_info.json')
+        with open(model_info_path, 'r') as f:
+            model_info = json.load(f)
+        
+        # Find model data
+        model_data = None
+        if model_type == 'yolo' and model_id in model_info.get('yolo_models', {}):
+            model_data = model_info['yolo_models'][model_id]
+        elif model_type == 'sam' and model_id in model_info.get('sam_models', {}):
+            model_data = model_info['sam_models'][model_id]
+        elif model_type == 'trained' and model_id in model_info.get('trained_models', {}):
+            model_data = model_info['trained_models'][model_id]
+        
+        if not model_data:
+            return jsonify({
+                'success': False,
+                'error': f'Model {model_id} not found in {model_type} models'
+            }), 404
+        
+        # Check if model file exists
+        model_path = os.path.join(models_dir, model_type, 'active', model_data['filename'])
+        if not os.path.exists(model_path):
+            return jsonify({
+                'success': False,
+                'error': f'Model file not found: {model_path}'
+            }), 404
+        
+        # Create backup of current active model
+        backup_dir = os.path.join(models_dir, model_type, 'backup')
+        os.makedirs(backup_dir, exist_ok=True)
+        
+        # Find current active model and backup it
+        current_active = None
+        for mid, mdata in model_info.get(f'{model_type}_models', {}).items():
+            if mdata.get('active', False):
+                current_active = mid
+                break
+        
+        if current_active and current_active != model_id:
+            current_file = os.path.join(models_dir, model_type, 'active', model_info[f'{model_type}_models'][current_active]['filename'])
+            if os.path.exists(current_file):
+                backup_file = os.path.join(backup_dir, f'{current_active}_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pt')
+                shutil.copy2(current_file, backup_file)
+        
+        # Update model info to mark new model as active
+        for mid in model_info[f'{model_type}_models']:
+            model_info[f'{model_type}_models'][mid]['active'] = (mid == model_id)
+        
+        # Save updated model info
+        with open(model_info_path, 'w') as f:
+            json.dump(model_info, f, indent=2)
+        
+        return jsonify({
+            'success': True,
+            'message': f'Switched to {model_type} model: {model_id}',
+            'active_model': {
+                'type': model_type,
+                'id': model_id,
+                'filename': model_data['filename'],
+                'path': model_path
+            },
+            'backup_created': current_active != model_id if current_active else False
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Switch failed: {str(e)}'
+        }), 500
+
+def update_model_info(model_type, model_id, filename, models_dir):
+    """Update model_info.json with new model"""
+    try:
+        model_info_path = os.path.join(models_dir, 'model_info.json')
+        with open(model_info_path, 'r') as f:
+            model_info = json.load(f)
+        
+        # Get file size
+        file_path = os.path.join(models_dir, model_type, 'active', filename)
+        file_size = os.path.getsize(file_path)
+        file_size_mb = round(file_size / (1024 * 1024), 1)
+        
+        # Update model info
+        if model_type == 'yolo':
+            if model_id not in model_info['yolo_models']:
+                model_info['yolo_models'][model_id] = {}
+            model_info['yolo_models'][model_id].update({
+                'filename': filename,
+                'size': f'{file_size_mb}MB',
+                'active': True
+            })
+        elif model_type == 'sam':
+            if model_id not in model_info['sam_models']:
+                model_info['sam_models'][model_id] = {}
+            model_info['sam_models'][model_id].update({
+                'filename': filename,
+                'size': f'{file_size_mb}MB',
+                'active': True
+            })
+        elif model_type == 'trained':
+            if model_id not in model_info['trained_models']:
+                model_info['trained_models'][model_id] = {}
+            model_info['trained_models'][model_id].update({
+                'filename': filename,
+                'size': f'{file_size_mb}MB',
+                'active': True
+            })
+        
+        # Mark all other models of same type as inactive
+        for mid in model_info[f'{model_type}_models']:
+            if mid != model_id:
+                model_info[f'{model_type}_models'][mid]['active'] = False
+        
+        # Update timestamp
+        model_info['updated_at'] = datetime.now().isoformat()
+        
+        # Save updated model info
+        with open(model_info_path, 'w') as f:
+            json.dump(model_info, f, indent=2)
+            
+    except Exception as e:
+        print(f"Error updating model info: {e}")
+
+@app.route('/api/detection/run', methods=['POST'])
+def run_detection_manually():
+    """Run detection process manually with specific parameters"""
+    try:
+        data = request.get_json()
+        timestamp = data.get('timestamp')
+        user_id = data.get('user_id')
+        rvm_id = data.get('rvm_id')
+        
+        if not timestamp or not user_id:
+            return jsonify({
+                'success': False,
+                'error': 'timestamp and user_id required'
+            }), 400
+        
+        # Generate session ID
+        session_id = generate_session_id()
+        
+        # Start detection process in background
+        thread = threading.Thread(
+            target=run_detection_process,
+            args=(timestamp, user_id, session_id, rvm_id)
+        )
+        thread.daemon = True
+        thread.start()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Detection process started',
+            'session_id': session_id,
+            'timestamp': timestamp,
+            'user_id': user_id,
+            'rvm_id': rvm_id,
+            'status_url': f'/api/process/{session_id}',
+            'results_url': f'/api/results/{session_id}'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/playground/models', methods=['GET'])
+def get_playground_models():
+    """Get models available for playground testing"""
+    try:
+        models_dir = '../../data-jetson/models'
+        playground_dir = os.path.join(models_dir, 'playground')
+        os.makedirs(playground_dir, exist_ok=True)
+        
+        # Get available models for playground
+        playground_models = {
+            'available': [],
+            'active': None,
+            'backups': []
+        }
+        
+        # Check for playground models
+        for model_type in ['yolo', 'sam', 'trained']:
+            playground_type_dir = os.path.join(playground_dir, model_type)
+            if os.path.exists(playground_type_dir):
+                for file in os.listdir(playground_type_dir):
+                    if file.endswith('.pt'):
+                        model_path = os.path.join(playground_type_dir, file)
+                        model_size = os.path.getsize(model_path)
+                        playground_models['available'].append({
+                            'type': model_type,
+                            'filename': file,
+                            'size': model_size,
+                            'size_mb': round(model_size / (1024 * 1024), 1),
+                            'path': model_path,
+                            'created': datetime.fromtimestamp(os.path.getctime(model_path)).isoformat()
+                        })
+        
+        # Check for active playground model
+        active_file = os.path.join(playground_dir, 'active_model.json')
+        if os.path.exists(active_file):
+            with open(active_file, 'r') as f:
+                active_data = json.load(f)
+                playground_models['active'] = active_data
+        
+        # Check for backups
+        backup_dir = os.path.join(playground_dir, 'backup')
+        if os.path.exists(backup_dir):
+            for file in os.listdir(backup_dir):
+                if file.endswith('.pt'):
+                    backup_path = os.path.join(backup_dir, file)
+                    playground_models['backups'].append({
+                        'filename': file,
+                        'size': os.path.getsize(backup_path),
+                        'created': datetime.fromtimestamp(os.path.getctime(backup_path)).isoformat()
+                    })
+        
+        return jsonify({
+            'success': True,
+            'playground_models': playground_models,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/playground/upload', methods=['POST'])
+def upload_playground_model():
+    """Upload model for playground testing"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({
+                'success': False,
+                'error': 'No file provided'
+            }), 400
+        
+        file = request.files['file']
+        model_type = request.form.get('type', 'trained')  # Default to trained for best.pt
+        
+        if file.filename == '':
+            return jsonify({
+                'success': False,
+                'error': 'No file selected'
+            }), 400
+        
+        # Validate file extension
+        if not file.filename.endswith('.pt'):
+            return jsonify({
+                'success': False,
+                'error': 'Only .pt files are allowed'
+            }), 400
+        
+        # Create playground directory structure
+        models_dir = '../../data-jetson/models'
+        playground_dir = os.path.join(models_dir, 'playground')
+        type_dir = os.path.join(playground_dir, model_type)
+        os.makedirs(type_dir, exist_ok=True)
+        
+        # Save file
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(type_dir, filename)
+        file.save(file_path)
+        
+        # Update active model info
+        active_file = os.path.join(playground_dir, 'active_model.json')
+        active_data = {
+            'type': model_type,
+            'filename': filename,
+            'path': file_path,
+            'size': os.path.getsize(file_path),
+            'uploaded_at': datetime.now().isoformat()
+        }
+        
+        with open(active_file, 'w') as f:
+            json.dump(active_data, f, indent=2)
+        
+        return jsonify({
+            'success': True,
+            'message': f'Playground model uploaded successfully',
+            'model': active_data
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Upload failed: {str(e)}'
+        }), 500
+
+@app.route('/api/playground/activate', methods=['POST'])
+def activate_playground_model():
+    """Activate playground model for testing"""
+    try:
+        data = request.get_json()
+        model_type = data.get('type', 'trained')
+        filename = data.get('filename')
+        
+        if not filename:
+            return jsonify({
+                'success': False,
+                'error': 'Filename required'
+            }), 400
+        
+        models_dir = '../../data-jetson/models'
+        playground_dir = os.path.join(models_dir, 'playground')
+        type_dir = os.path.join(playground_dir, model_type)
+        
+        # Check if file exists
+        file_path = os.path.join(type_dir, filename)
+        if not os.path.exists(file_path):
+            return jsonify({
+                'success': False,
+                'error': f'Model file not found: {filename}'
+            }), 404
+        
+        # Create backup of current active model
+        backup_dir = os.path.join(models_dir, model_type, 'backup')
+        os.makedirs(backup_dir, exist_ok=True)
+        
+        current_active_file = os.path.join(models_dir, model_type, 'active', f'{model_type}.pt')
+        if os.path.exists(current_active_file):
+            backup_file = os.path.join(backup_dir, f'{model_type}_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pt')
+            shutil.copy2(current_active_file, backup_file)
+        
+        # Copy playground model to active directory
+        active_dir = os.path.join(models_dir, model_type, 'active')
+        os.makedirs(active_dir, exist_ok=True)
+        
+        # Determine target filename based on model type
+        if model_type == 'trained':
+            target_filename = 'best.pt'
+        elif model_type == 'yolo':
+            target_filename = 'yolo11m.pt'
+        elif model_type == 'sam':
+            target_filename = 'sam2_b.pt'
+        else:
+            target_filename = filename
+        
+        target_path = os.path.join(active_dir, target_filename)
+        shutil.copy2(file_path, target_path)
+        
+        # Update model info
+        update_model_info(model_type, model_type, target_filename, models_dir)
+        
+        # Update playground active model
+        active_file = os.path.join(playground_dir, 'active_model.json')
+        active_data = {
+            'type': model_type,
+            'filename': filename,
+            'path': file_path,
+            'size': os.path.getsize(file_path),
+            'activated_at': datetime.now().isoformat(),
+            'active_path': target_path
+        }
+        
+        with open(active_file, 'w') as f:
+            json.dump(active_data, f, indent=2)
+        
+        return jsonify({
+            'success': True,
+            'message': f'Playground model {filename} activated successfully',
+            'model': active_data,
+            'backup_created': os.path.exists(backup_file) if 'backup_file' in locals() else False
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Activation failed: {str(e)}'
+        }), 500
+
+@app.route('/api/playground/download/<model_type>/<filename>')
+def download_playground_model(model_type, filename):
+    """Download playground model file"""
+    try:
+        models_dir = '../../data-jetson/models'
+        playground_dir = os.path.join(models_dir, 'playground')
+        type_dir = os.path.join(playground_dir, model_type)
+        file_path = os.path.join(type_dir, filename)
+        
+        if not os.path.exists(file_path):
+            return jsonify({
+                'success': False,
+                'error': 'File not found'
+            }), 404
+        
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/octet-stream'
+        )
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+# ============================================================================
+# END MODEL MANAGEMENT ENDPOINTS
 # ============================================================================
 
 def get_jetson_info():
@@ -2271,6 +2946,14 @@ if __name__ == '__main__':
     print("   POST /api/monitoring/start - Start automatic monitoring")
     print("   POST /api/monitoring/stop - Stop automatic monitoring")
     print("   GET  /api/monitoring/status/auto - Get monitoring status")
+    print("   GET  /api/models - Get available models and their status")
+    print("   GET  /api/models/active - Get currently active models")
+    print("   POST /api/models/switch - Switch active model with download/upload")
+    print("   POST /api/detection/run - Run detection process manually")
+    print("   GET  /api/playground/models - Get playground models")
+    print("   POST /api/playground/upload - Upload model for playground testing")
+    print("   POST /api/playground/activate - Activate playground model")
+    print("   GET  /api/playground/download/<type>/<filename> - Download playground model")
     print("=" * 60)
     print("🔐 RVM Integration:")
     print(f"   - Server: {RVM_API_BASE_URL}")

@@ -82,6 +82,9 @@ direct/
 - ✅ **Live Streaming**: MJPEG, Base64, WebSocket, dan WebRTC streaming modes
 - ✅ **CV Models**: YOLO v8, SAM2, dan custom model support
 - ✅ **Real-time Processing**: Continuous CV processing tanpa mengganggu streaming
+- ✅ **Model Management**: Complete model switching, download, dan upload system
+- ✅ **Playground Testing**: Dedicated system untuk testing model baru
+- ✅ **Backup System**: Automatic backup sebelum model switching
 
 ## 🎯 Keunggulan
 
@@ -95,6 +98,8 @@ direct/
 - **🎥 Live Streaming**: Multiple streaming modes untuk real-time video
 - **🤖 Computer Vision**: Real-time CV processing dengan multiple models
 - **📊 Performance Monitoring**: Real-time FPS dan latency tracking
+- **🔄 Model Management**: Complete model switching dan testing system
+- **🧪 Playground Testing**: Dedicated environment untuk model testing
 
 ## 🔗 RVM Integration
 
@@ -110,6 +115,16 @@ direct/
 - `POST /api/detections/search` - Search detections dengan RVM filter
 - `POST /api/rvm/validate` - Validate RVM API key
 - `GET /api/rvm/{rvm_id}/stats` - Get RVM statistics
+
+### **Model Management API Endpoints:**
+- `GET /api/models` - Get available models and their status
+- `GET /api/models/active` - Get currently active models
+- `POST /api/models/switch` - Switch active model with download/upload
+- `POST /api/detection/run` - Run detection process manually
+- `GET /api/playground/models` - Get playground models for testing
+- `POST /api/playground/upload` - Upload model for playground testing
+- `POST /api/playground/activate` - Activate playground model
+- `GET /api/playground/download/<type>/<filename>` - Download playground model
 
 ## 📷 Remote Camera Control
 
@@ -233,9 +248,20 @@ CV_RESOLUTION=1920x1080     # Resolution for CV
 - ✅ **Continuous Processing**: Automatic CV processing mode
 - ✅ **Manual Capture**: On-demand image capture dan processing
 
+### **Model Management (v1.6.0):**
+- ✅ **Model Switching**: Switch active model dengan backup otomatis
+- ✅ **Model Download**: Download model untuk testing
+- ✅ **Model Upload**: Upload model baru dari dashboard
+- ✅ **Playground Testing**: Dedicated system untuk testing model
+- ✅ **Backup Management**: Automatic backup dan restore system
+- ✅ **Model Info Update**: Update model_info.json otomatis
+- ✅ **Dashboard Integration**: Siap untuk integrasi dengan dashboard
+- ✅ **File Validation**: Hanya file .pt yang diizinkan
+- ✅ **Error Handling**: Error handling lengkap
+
 ---
 
-**Status**: ✅ **PRODUCTION READY WITH CV INTEGRATION**  
-**Version**: 1.5.0-cv-integration  
+**Status**: ✅ **PRODUCTION READY WITH MODEL MANAGEMENT**  
+**Version**: 1.6.0-model-management  
 **Last Updated**: 6 Oktober 2025  
-**Features**: Computer Vision, Live Streaming, RVM Integration, Multi-Jetson Support
+**Features**: Computer Vision, Live Streaming, RVM Integration, Multi-Jetson Support, Model Management
