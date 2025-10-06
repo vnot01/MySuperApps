@@ -303,30 +303,61 @@
             <h3 class="text-lg font-semibold text-gray-900 flex items-center mb-4">
               <i class="fas fa-search mr-2 text-green-500"></i>
               Detection Results
+              <span v-if="cvResults.length > 0" class="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                {{ cvResults.length }} results
+              </span>
             </h3>
             
-            <div v-if="detectionResults.length === 0" class="text-center py-8 text-gray-500">
+            <div v-if="cvResults.length === 0" class="text-center py-8 text-gray-500">
               <i class="fas fa-search text-3xl mb-3 opacity-50"></i>
               <p>No detection results yet</p>
               <p class="text-sm">Start detection to see results</p>
             </div>
             
-            <div v-else class="space-y-4">
-              <div v-for="(result, index) in detectionResults" :key="index" 
-                   class="border border-gray-200 rounded-lg p-4">
+            <div v-else class="space-y-4 max-h-96 overflow-y-auto">
+              <div v-for="result in cvResults" :key="result.id" 
+                   class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
                 <div class="flex items-center justify-between mb-2">
-                  <span class="font-medium text-gray-900">Detection {{ index + 1 }}</span>
-                  <span class="text-sm text-gray-500">{{ result.timestamp }}</span>
+                  <span class="font-medium text-gray-900">Detection #{{ result.id }}</span>
+                  <span class="text-sm text-gray-500">{{ new Date(result.timestamp).toLocaleTimeString() }}</span>
                 </div>
-                <div class="grid grid-cols-2 gap-4 text-sm">
+                
+                <div class="grid grid-cols-2 gap-4 text-sm mb-3">
                   <div>
                     <span class="text-gray-600">Objects:</span>
-                    <span class="font-medium">{{ result.objects_count }}</span>
+                    <span class="font-medium">{{ result.objects.length }}</span>
                   </div>
                   <div>
                     <span class="text-gray-600">Confidence:</span>
-                    <span class="font-medium">{{ result.avg_confidence }}%</span>
+                    <span class="font-medium">{{ result.confidence }}%</span>
                   </div>
+                  <div>
+                    <span class="text-gray-600">Model:</span>
+                    <span class="font-medium">{{ result.model }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-600">Time:</span>
+                    <span class="font-medium">{{ result.processing_time }}ms</span>
+                  </div>
+                </div>
+                
+                <!-- Detected Objects -->
+                <div v-if="result.objects.length > 0" class="mt-3">
+                  <h5 class="text-sm font-medium text-gray-700 mb-2">Detected Objects:</h5>
+                  <div class="flex flex-wrap gap-2">
+                    <span v-for="(obj, index) in result.objects" :key="index"
+                          class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                      {{ obj.class }} ({{ Math.round(obj.confidence * 100) }}%)
+                    </span>
+                  </div>
+                </div>
+                
+                <!-- Processed Image -->
+                <div v-if="result.image_url" class="mt-3">
+                  <img :src="result.image_url" 
+                       :alt="`Detection result ${result.id}`"
+                       class="w-full h-32 object-cover rounded border cursor-pointer"
+                       @click="viewFullImage(result.image_url)" />
                 </div>
               </div>
             </div>
@@ -493,6 +524,52 @@
               
               <div class="grid grid-cols-2 gap-3">
                 <button 
+                  @click="captureSingleImage"
+                  :disabled="!isStreaming || !selectedModel"
+                  class="px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors flex items-center justify-center"
+                >
+                  <i class="fas fa-camera mr-2"></i>
+                  Capture & Process
+                </button>
+                <button 
+                  @click="downloadResults"
+                  :disabled="cvResults.length === 0"
+                  class="px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white rounded-lg transition-colors flex items-center justify-center"
+                >
+                  <i class="fas fa-download mr-2"></i>
+                  Download Results
+                </button>
+              </div>
+              
+              <!-- CV Processing Status -->
+              <div v-if="cvProcessing" class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex items-center">
+                  <i class="fas fa-spinner fa-spin text-blue-500 mr-2"></i>
+                  <span class="text-blue-700 font-medium">Processing image with Computer Vision...</span>
+                </div>
+              </div>
+              
+              <!-- CV Statistics -->
+              <div v-if="cvStats.totalProcessed > 0" class="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">CV Processing Stats:</h4>
+                <div class="grid grid-cols-3 gap-2 text-sm">
+                  <div>
+                    <span class="text-gray-600">Processed:</span>
+                    <span class="font-medium">{{ cvStats.totalProcessed }}</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-600">Avg Time:</span>
+                    <span class="font-medium">{{ Math.round(cvStats.avgProcessingTime) }}ms</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-600">Success:</span>
+                    <span class="font-medium">{{ Math.round(cvStats.successRate) }}%</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-3">
+                <button 
                   @click="uploadImage"
                   class="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center"
                 >
@@ -549,6 +626,17 @@ const streamFPS = ref(0)
 const lastUpdateTime = ref(Date.now())
 const streamMode = ref('auto') // 'mjpeg', 'base64', 'websocket'
 const websocket = ref(null)
+
+// Computer Vision variables
+const continuousCVInterval = ref(null)
+const cvProcessing = ref(false)
+const cvResults = ref([])
+const lastCVResult = ref(null)
+const cvStats = ref({
+  totalProcessed: 0,
+  avgProcessingTime: 0,
+  successRate: 0
+})
 
 // Computed properties
 const selectedCamera = computed(() => {
@@ -866,18 +954,192 @@ const handleStreamLoadStart = () => {
   console.log('🔄 Stream loading started...')
 }
 
+// Computer Vision Capture Functions
+const captureImageForCV = async () => {
+  if (!isStreaming.value || !selectedCameraId.value) return
+  
+  try {
+    cvProcessing.value = true
+    const startTime = Date.now()
+    
+    // Capture high-quality image for CV
+    const response = await fetch(`http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/capture/cv`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        quality: 95,
+        resolution: '1920x1080'
+      })
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      if (data.success && data.image_base64) {
+        // Process with Computer Vision
+        await processImageForCV(data.image_base64)
+        
+        // Update stats
+        const processingTime = Date.now() - startTime
+        updateCVStats(processingTime, true)
+      }
+    } else {
+      console.error('❌ CV capture failed:', response.status)
+      updateCVStats(0, false)
+    }
+  } catch (error) {
+    console.error('❌ CV capture error:', error)
+    updateCVStats(0, false)
+  } finally {
+    cvProcessing.value = false
+  }
+}
+
+// Process captured image with CV models
+const processImageForCV = async (imageBase64) => {
+  if (!selectedModel.value) {
+    console.warn('⚠️ No model selected for CV processing')
+    return
+  }
+  
+  try {
+    const response = await fetch('/api/cv/process', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        image: imageBase64,
+        model: selectedModel.value.id,
+        rvm_id: props.rvm.id,
+        timestamp: new Date().toISOString()
+      })
+    })
+    
+    if (response.ok) {
+      const results = await response.json()
+      displayCVResults(results)
+    } else {
+      console.error('❌ CV processing failed:', response.status)
+    }
+  } catch (error) {
+    console.error('❌ CV processing error:', error)
+  }
+}
+
+// Display CV results
+const displayCVResults = (results) => {
+  const cvResult = {
+    id: Date.now(),
+    timestamp: new Date().toISOString(),
+    objects: results.detections || [],
+    confidence: results.avg_confidence || 0,
+    model: results.model_used || selectedModel.value?.name,
+    processing_time: results.processing_time || 0,
+    image_url: results.processed_image_url || null
+  }
+  
+  // Add to results array
+  cvResults.value.unshift(cvResult)
+  lastCVResult.value = cvResult
+  
+  // Keep only last 50 results
+  if (cvResults.value.length > 50) {
+    cvResults.value = cvResults.value.slice(0, 50)
+  }
+  
+  console.log(`🎯 CV Result: ${cvResult.objects.length} objects detected with ${cvResult.confidence}% confidence`)
+}
+
+// Update CV statistics
+const updateCVStats = (processingTime, success) => {
+  cvStats.value.totalProcessed++
+  
+  if (success) {
+    // Update average processing time
+    const currentAvg = cvStats.value.avgProcessingTime
+    const total = cvStats.value.totalProcessed
+    cvStats.value.avgProcessingTime = ((currentAvg * (total - 1)) + processingTime) / total
+    
+    // Update success rate
+    const successCount = cvStats.value.totalProcessed * (cvStats.value.successRate / 100)
+    cvStats.value.successRate = ((successCount + 1) / cvStats.value.totalProcessed) * 100
+  } else {
+    // Update success rate for failure
+    const successCount = cvStats.value.totalProcessed * (cvStats.value.successRate / 100)
+    cvStats.value.successRate = (successCount / cvStats.value.totalProcessed) * 100
+  }
+}
+
+// Continuous CV processing
+const startContinuousCV = () => {
+  if (continuousCVInterval.value) return
+  
+  console.log('🎯 Starting continuous CV processing...')
+  continuousCVInterval.value = setInterval(async () => {
+    if (isStreaming.value && detectionActive.value && selectedModel.value) {
+      await captureImageForCV()
+    }
+  }, 2000) // Capture every 2 seconds for CV processing
+}
+
+const stopContinuousCV = () => {
+  if (continuousCVInterval.value) {
+    console.log('🛑 Stopping continuous CV processing...')
+    clearInterval(continuousCVInterval.value)
+    continuousCVInterval.value = null
+  }
+}
+
+// Manual CV capture
+const captureSingleImage = async () => {
+  if (!isStreaming.value) {
+    cameraError.value = 'Please start camera first'
+    return
+  }
+  
+  if (!selectedModel.value) {
+    cameraError.value = 'Please select a model first'
+    return
+  }
+  
+  await captureImageForCV()
+}
+
+// Download CV results
+const downloadResults = () => {
+  if (cvResults.value.length === 0) return
+  
+  const dataStr = JSON.stringify(cvResults.value, null, 2)
+  const dataBlob = new Blob([dataStr], { type: 'application/json' })
+  const url = URL.createObjectURL(dataBlob)
+  
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `cv_results_${new Date().toISOString().split('T')[0]}.json`
+  link.click()
+  
+  URL.revokeObjectURL(url)
+}
+
+// View full image
+const viewFullImage = (imageUrl) => {
+  window.open(imageUrl, '_blank')
+}
+
 const startDetection = () => {
   if (selectedModel.value && jetsonCameraInfo.value?.camera_ready) {
     detectionActive.value = true
-    // TODO: Implement actual detection
-    console.log('Starting detection with model:', selectedModel.value.name)
+    console.log('🎯 Starting detection with model:', selectedModel.value.name)
+    
+    // Start continuous CV processing
+    startContinuousCV()
   }
 }
 
 const stopDetection = () => {
   detectionActive.value = false
-  // TODO: Implement detection stop
-  console.log('Stopping detection...')
+  console.log('🛑 Stopping detection...')
+  
+  // Stop continuous CV processing
+  stopContinuousCV()
 }
 
 const uploadImage = () => {
@@ -885,12 +1147,6 @@ const uploadImage = () => {
   console.log('Uploading image...')
 }
 
-const downloadResults = () => {
-  if (detectionResults.value.length > 0) {
-    // TODO: Implement results download
-    console.log('Downloading results...')
-  }
-}
 
 // Lifecycle
 onMounted(() => {

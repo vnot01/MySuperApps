@@ -586,4 +586,49 @@ public function streamMjpeg(Request $request, $rvmId, $cameraId)
             }
         }
     }
+
+    /**
+     * Process image with Computer Vision models
+     */
+    public function processCVImage(Request $request)
+    {
+        try {
+            $data = $request->validate([
+                'image' => 'required|string',
+                'model' => 'required|string',
+                'rvm_id' => 'required|integer',
+                'timestamp' => 'nullable|string'
+            ]);
+
+            $rvm = ReverseVendingMachine::findOrFail($data['rvm_id']);
+            
+            if (!$rvm->ip_address) {
+                return response()->json(['error' => 'RVM IP address not configured'], 400);
+            }
+
+            // Forward request to Jetson API
+            $response = Http::timeout(30)->post("http://{$rvm->ip_address}:5000/api/cv/process", [
+                'image' => $data['image'],
+                'model' => $data['model'],
+                'rvm_id' => $data['rvm_id'],
+                'timestamp' => $data['timestamp'] ?? now()->toISOString()
+            ]);
+
+            if ($response->successful()) {
+                $results = $response->json();
+                
+                // Log the processing
+                \Log::info("CV processing completed for RVM {$data['rvm_id']} with model {$data['model']}: {$results['detections']} objects detected");
+                
+                return response()->json($results);
+            } else {
+                \Log::error("CV processing failed for RVM {$data['rvm_id']}: " . $response->body());
+                return response()->json(['error' => 'CV processing failed'], 500);
+            }
+
+        } catch (\Exception $e) {
+            \Log::error("CV processing error: " . $e->getMessage());
+            return response()->json(['error' => 'CV processing failed: ' . $e->getMessage()], 500);
+        }
+    }
 }
