@@ -212,21 +212,55 @@ class CameraService:
             
             # Open camera with device path instead of index
             device_path = self.cameras[camera_id]['device_path']
-            cap = cv2.VideoCapture(device_path)
-            if not cap.isOpened():
-                logger.error(f"Failed to open camera {camera_id} at {device_path}")
+            logger.info(f"Attempting to open camera {camera_id} at {device_path}")
+            
+            # Try multiple approaches to open camera
+            cap = None
+            
+            # Method 1: Try with device path
+            try:
+                cap = cv2.VideoCapture(device_path)
+                if cap.isOpened():
+                    logger.info(f"Camera {camera_id} opened with device path {device_path}")
+                else:
+                    cap.release()
+                    cap = None
+            except Exception as e:
+                logger.warning(f"Failed to open camera {camera_id} with device path {device_path}: {e}")
+                cap = None
+            
+            # Method 2: Try with index if device path failed
+            if cap is None:
+                try:
+                    cap = cv2.VideoCapture(int(camera_id))
+                    if cap.isOpened():
+                        logger.info(f"Camera {camera_id} opened with index {camera_id}")
+                    else:
+                        cap.release()
+                        cap = None
+                except Exception as e:
+                    logger.warning(f"Failed to open camera {camera_id} with index {camera_id}: {e}")
+                    cap = None
+            
+            if cap is None or not cap.isOpened():
+                logger.error(f"Failed to open camera {camera_id} with both device path and index")
                 return False
             
             # Set camera properties for optimal performance
-            cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-            cap.set(cv2.CAP_PROP_FPS, 30)
+            try:
+                cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+                cap.set(cv2.CAP_PROP_FPS, 30)
+                logger.info(f"Set camera {camera_id} properties: 640x480@30fps")
+            except Exception as e:
+                logger.warning(f"Could not set camera properties for {camera_id}: {e}")
             
             # Try to set MJPG format, fallback to default if not supported
             try:
                 cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-            except:
-                logger.warning(f"Could not set MJPG format for camera {camera_id}, using default")
+                logger.info(f"Set MJPG format for camera {camera_id}")
+            except Exception as e:
+                logger.warning(f"Could not set MJPG format for camera {camera_id}: {e}")
             
             # Test capture
             ret, frame = cap.read()
@@ -234,6 +268,8 @@ class CameraService:
                 cap.release()
                 logger.error(f"Failed to capture from camera {camera_id}")
                 return False
+            
+            logger.info(f"Camera {camera_id} capture test successful")
             
             self.streaming_cameras[camera_id] = {
                 'cap': cap,
@@ -244,7 +280,7 @@ class CameraService:
             }
             
             self.cameras[camera_id]['status'] = 'active'
-            logger.info(f"Camera {camera_id} started successfully with 640x480@30fps at {device_path}")
+            logger.info(f"Camera {camera_id} started successfully with 640x480@30fps")
             return True
             
         except Exception as e:
