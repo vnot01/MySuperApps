@@ -1048,7 +1048,7 @@ def get_camera_stream(camera_id):
 
 @app.route('/api/cameras/<camera_id>/stream/mjpeg')
 def camera_mjpeg_stream(camera_id):
-    """MJPEG stream for real-time video - Professional quality streaming"""
+    """MJPEG stream for real-time video - Optimized for performance"""
     def generate_frames():
         camera_service = get_camera_service()
         if not camera_service.is_initialized:
@@ -1056,10 +1056,17 @@ def camera_mjpeg_stream(camera_id):
         
         frame_count = 0
         start_time = time.time()
+        last_fps_time = start_time
         
         while True:
             try:
-                success, frame_base64 = camera_service.capture_image(camera_id, save_path=None)
+                # Use optimized parameters for streaming
+                success, frame_base64 = camera_service.capture_image(
+                    camera_id, 
+                    save_path=None, 
+                    quality=75,  # Reduced quality for better performance
+                    resolution='1280x720'  # Reduced resolution for better FPS
+                )
                 
                 if success:
                     # Decode base64 to image bytes
@@ -1073,14 +1080,16 @@ def camera_mjpeg_stream(camera_id):
                     
                     frame_count += 1
                     
-                    # Log FPS every 30 frames
-                    if frame_count % 30 == 0:
-                        elapsed = time.time() - start_time
-                        fps = frame_count / elapsed
+                    # Log FPS every 10 frames for better monitoring
+                    current_time = time.time()
+                    if frame_count % 10 == 0:
+                        elapsed = current_time - last_fps_time
+                        fps = 10 / elapsed if elapsed > 0 else 0
                         print(f"📊 MJPEG Stream FPS: {fps:.1f}")
+                        last_fps_time = current_time
                     
-                # Control frame rate (~30 FPS)
-                time.sleep(0.033)
+                # Optimized frame rate control (~15-20 FPS)
+                time.sleep(0.05)  # 20 FPS max
                 
             except Exception as e:
                 print(f"❌ Stream error: {e}")
