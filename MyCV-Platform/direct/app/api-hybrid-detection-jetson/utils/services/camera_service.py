@@ -225,6 +225,19 @@ class CameraService:
                 logger.error(f"No permission to access device {device_path}")
                 return False
             
+            # Check if device is already in use
+            try:
+                import subprocess
+                result = subprocess.run(['lsof', device_path], capture_output=True, text=True, timeout=5)
+                if result.returncode == 0 and result.stdout.strip():
+                    logger.warning(f"Device {device_path} is already in use by another process")
+                    logger.warning(f"Processes using device: {result.stdout.strip()}")
+                    # Try to continue anyway, sometimes it works
+                else:
+                    logger.info(f"Device {device_path} is not in use by other processes")
+            except Exception as e:
+                logger.warning(f"Could not check if device {device_path} is in use: {e}")
+            
             # Try multiple approaches to open camera
             cap = None
             
@@ -265,6 +278,29 @@ class CameraService:
                         cap = None
                 except Exception as e:
                     logger.warning(f"Failed to open camera {camera_id} with V4L2 backend: {e}")
+                    cap = None
+            
+            # Method 4: Try with different resolution settings
+            if cap is None:
+                try:
+                    # Try with lower resolution first
+                    cap = cv2.VideoCapture(device_path)
+                    if cap.isOpened():
+                        # Set lower resolution first
+                        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+                        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+                        # Test if it works
+                        ret, frame = cap.read()
+                        if ret:
+                            logger.info(f"Camera {camera_id} opened with lower resolution 320x240")
+                        else:
+                            cap.release()
+                            cap = None
+                    else:
+                        cap.release()
+                        cap = None
+                except Exception as e:
+                    logger.warning(f"Failed to open camera {camera_id} with lower resolution: {e}")
                     cap = None
             
             if cap is None or not cap.isOpened():
