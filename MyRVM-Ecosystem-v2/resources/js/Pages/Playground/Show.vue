@@ -820,6 +820,7 @@ const startLiveStream = () => {
 const startMjpegStream = () => {
   console.log('🎥 Starting MJPEG streaming...')
   streamUrl.value = `http://${props.rvm.ip_address}:5000/api/cameras/${selectedCameraId.value}/stream/mjpeg`
+  isStreaming.value = true  // FIX: Set streaming state to true
   startFPSMonitoring()
 }
 
@@ -894,6 +895,7 @@ const startAutoStream = () => {
       .then(response => {
         if (response.ok) {
           console.log('✅ MJPEG streaming active')
+          isStreaming.value = true  // FIX: Set streaming state to true
           startFPSMonitoring()
         } else {
           throw new Error('MJPEG not available')
