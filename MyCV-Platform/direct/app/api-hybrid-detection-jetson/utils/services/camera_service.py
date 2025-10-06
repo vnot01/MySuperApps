@@ -214,6 +214,17 @@ class CameraService:
             device_path = self.cameras[camera_id]['device_path']
             logger.info(f"Attempting to open camera {camera_id} at {device_path}")
             
+            # Check if device exists and is accessible
+            import os
+            if not os.path.exists(device_path):
+                logger.error(f"Device {device_path} does not exist")
+                return False
+            
+            # Check device permissions
+            if not os.access(device_path, os.R_OK | os.W_OK):
+                logger.error(f"No permission to access device {device_path}")
+                return False
+            
             # Try multiple approaches to open camera
             cap = None
             
@@ -242,8 +253,22 @@ class CameraService:
                     logger.warning(f"Failed to open camera {camera_id} with index {camera_id}: {e}")
                     cap = None
             
+            # Method 3: Try with different backends
+            if cap is None:
+                try:
+                    # Try with V4L2 backend explicitly
+                    cap = cv2.VideoCapture(device_path, cv2.CAP_V4L2)
+                    if cap.isOpened():
+                        logger.info(f"Camera {camera_id} opened with V4L2 backend")
+                    else:
+                        cap.release()
+                        cap = None
+                except Exception as e:
+                    logger.warning(f"Failed to open camera {camera_id} with V4L2 backend: {e}")
+                    cap = None
+            
             if cap is None or not cap.isOpened():
-                logger.error(f"Failed to open camera {camera_id} with both device path and index")
+                logger.error(f"Failed to open camera {camera_id} with all methods")
                 return False
             
             # Set camera properties for optimal performance
