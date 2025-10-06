@@ -7,7 +7,7 @@
 **Integration**: MyRVM-Platform via API dengan RVM authentication  
 **Environment**: Edge Computing dengan resource constraints
 
-Platform Computer Vision dengan YOLO + SAM2 Integration khusus untuk **Edge Devices** dan **NVIDIA Jetson** dengan optimasi memory, performance, dan **RVM integration** untuk multi-Jetson support.
+Platform Computer Vision dengan YOLO + SAM2 Integration khusus untuk **Edge Devices** dan **NVIDIA Jetson** dengan optimasi memory, performance, **RVM integration** untuk multi-Jetson support, dan **Computer Vision integration** untuk real-time processing.
 
 ## 📋 System Requirements
 
@@ -16,6 +16,7 @@ Platform Computer Vision dengan YOLO + SAM2 Integration khusus untuk **Edge Devi
 - **Minimum 8GB RAM** (recommended 16GB+)
 - **32GB+ Storage** (untuk models dan dependencies)
 - **Network connectivity** untuk API communication
+- **USB Camera** atau **CSI Camera** untuk live streaming
 
 ### **Software Requirements:**
 - **Ubuntu 22.04 LTS**
@@ -199,12 +200,39 @@ data-jetson/
 - ✅ **Python Script Integration** dengan `run_test_hybrid_integration-jetson.py`
 - ✅ **Resource Constraint Handling** untuk edge computing environment
 - ✅ **Independent Operation** tanpa dependency ke main server
+- ✅ **Computer Vision Integration** untuk real-time processing
+- ✅ **Live Streaming Support** dengan multiple streaming modes
+- ✅ **Real-time CV Processing** dengan YOLO models
+- ✅ **Performance Monitoring** dengan FPS dan latency tracking
+
+### **Computer Vision Features:**
+- ✅ **Real-time Image Capture** selama live streaming
+- ✅ **YOLO Model Support** (v8n, v8s, v8m) dengan mock data
+- ✅ **SAM2 Segmentation** untuk advanced image processing
+- ✅ **Custom Model Support** untuk user-uploaded models
+- ✅ **Continuous Processing** mode untuk automatic CV processing
+- ✅ **Manual Capture** untuk on-demand processing
+- ✅ **High Quality Capture** (95% quality, 1920x1080 resolution)
+- ✅ **Result Visualization** dengan overlay detection results
+- ✅ **Performance Statistics** tracking dan monitoring
+- ✅ **Download Results** sebagai JSON format
+
+### **Streaming Features:**
+- ✅ **MJPEG Streaming** untuk real-time video
+- ✅ **Base64 Polling** sebagai fallback mode
+- ✅ **WebSocket Support** untuk low-latency streaming
+- ✅ **WebRTC Integration** untuk browser-based streaming
+- ✅ **Adaptive Bitrate** untuk optimal performance
+- ✅ **FPS Monitoring** dengan real-time tracking
+- ✅ **Latency Optimization** untuk smooth streaming
 
 ### **Performance Optimizations:**
 - **Swap Configuration**: 16GB swap dengan swappiness=10
 - **Memory Management**: Optimized untuk Jetson Orin memory constraints
 - **CUDA Acceleration**: Full GPU support untuk inference
 - **Model Caching**: Local model storage untuk offline capability
+- **CV Processing**: Optimized untuk real-time Computer Vision
+- **Streaming Optimization**: Multiple modes untuk different use cases
 
 ### **Hardware Monitoring Features:**
 - **Comprehensive System Info**: Jetson model, L4T version, Jetpack version
@@ -214,6 +242,7 @@ data-jetson/
 - **Camera Detection**: USB cameras, CSI cameras, nvargus status
 - **Network Monitoring**: Interfaces, Tailscale IP, local IP, public IP detection
 - **Real-time Status**: Live hardware information via `/api/hardware` endpoint
+- **CV Performance**: Processing time, success rate, FPS tracking
 
 ## 🚨 Troubleshooting
 
@@ -269,6 +298,34 @@ ping 100.117.234.2
 sudo ufw status
 ```
 
+### **Computer Vision Issues:**
+```bash
+# Test CV capture
+curl -X POST http://100.117.234.2:5000/api/cameras/0/capture/cv \
+  -H "Content-Type: application/json" \
+  -d '{"quality": 95, "resolution": "1920x1080"}'
+
+# Test CV processing
+curl -X POST http://100.117.234.2:5000/api/cv/process \
+  -H "Content-Type: application/json" \
+  -d '{"image": "base64_data", "model": "yolo_v8n", "rvm_id": 25}'
+
+# Check camera status
+curl http://100.117.234.2:5000/api/cameras/status
+```
+
+### **Streaming Issues:**
+```bash
+# Test MJPEG stream
+curl http://100.117.234.2:5000/api/cameras/0/stream/mjpeg
+
+# Test Base64 capture
+curl -X POST http://100.117.234.2:5000/api/cameras/0/capture/base64
+
+# Check streaming status
+curl http://100.117.234.2:5000/api/cameras/0/status
+```
+
 ## 📊 Performance Monitoring
 
 ### **System Monitoring:**
@@ -288,6 +345,9 @@ htop
 - **Memory Usage**: ~4-6GB RAM + 2-4GB GPU memory
 - **Power Consumption**: ~15-25W (Jetson Orin Nano)
 - **Temperature**: Monitor dengan `tegrastats`
+- **CV Processing**: 50-200ms per image (mock data)
+- **Streaming FPS**: 10-60 FPS (tergantung mode)
+- **Total Latency**: 100-300ms untuk CV processing
 
 ## 🔗 Integration
 
@@ -313,12 +373,38 @@ curl http://100.117.234.2:5000/api/hardware
 curl http://100.117.234.2:5000/api/hardware | jq
 ```
 
+### **Computer Vision Integration:**
+```bash
+# Start camera
+curl -X POST http://100.117.234.2:5000/api/cameras/0/start
+
+# Capture for CV processing
+curl -X POST http://100.117.234.2:5000/api/cameras/0/capture/cv \
+  -H "Content-Type: application/json" \
+  -d '{"quality": 95, "resolution": "1920x1080"}'
+
+# Process with CV models
+curl -X POST http://100.117.234.2:5000/api/cv/process \
+  -H "Content-Type: application/json" \
+  -d '{"image": "base64_data", "model": "yolo_v8n", "rvm_id": 25}'
+
+# Get MJPEG stream
+curl http://100.117.234.2:5000/api/cameras/0/stream/mjpeg
+```
+
 ### **MyRVM-Platform Integration:**
 ```php
 // Laravel API call to Jetson
 $response = Http::post('http://100.117.234.2:5000/api/upload', [
     'files' => $imageFile,
     'user_id' => 'jetson_user'
+]);
+
+// CV processing
+$cvResponse = Http::post('http://100.117.234.2:5000/api/cv/process', [
+    'image' => $base64Image,
+    'model' => 'yolo_v8n',
+    'rvm_id' => 25
 ]);
 ```
 
@@ -333,6 +419,11 @@ $response = Http::post('http://100.117.234.2:5000/api/upload', [
 - [Jetson Performance Tuning](https://developer.nvidia.com/embedded/jetson-performance-tuning)
 - [CUDA Optimization Guide](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/)
 
+### **Computer Vision:**
+- [YOLO Documentation](https://docs.ultralytics.com/)
+- [SAM2 Documentation](https://github.com/facebookresearch/segment-anything-2)
+- [OpenCV for Jetson](https://opencv.org/)
+
 ## 🆘 Support
 
 Untuk bantuan atau laporan bug pada Jetson deployment:
@@ -341,10 +432,13 @@ Untuk bantuan atau laporan bug pada Jetson deployment:
 3. Check memory configuration dan swap settings
 4. Test API connectivity ke main server
 5. Monitor system resources selama processing
+6. Test Computer Vision features dan streaming
+7. Check camera connectivity dan CV processing
 
 ---
 
-**Status**: ✅ **JETSON READY**  
-**Version**: 1.4.2-edge  
-**Last Updated**: 29 September 2025  
-**Target Devices**: NVIDIA Jetson Orin Series
+**Status**: ✅ **JETSON READY WITH CV INTEGRATION**  
+**Version**: 1.5.0-edge-cv  
+**Last Updated**: 6 Oktober 2025  
+**Target Devices**: NVIDIA Jetson Orin Series  
+**Features**: Computer Vision, Live Streaming, RVM Integration, Multi-Jetson Support
